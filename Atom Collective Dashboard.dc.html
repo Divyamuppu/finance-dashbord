@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f8f8fb;color:#17162a;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#5b3fd9;text-decoration:none}a:hover{color:#17162a}
+*{box-sizing:border-box}
+input::placeholder{color:#8e8ca3}
+</style>
+</helmet>
+<div style="display:flex;min-height:100vh">
+  <aside style="width:264px;flex-shrink:0;background:#17162a;color:#c9c8d6;display:flex;flex-direction:column;padding:22px 14px 16px;position:sticky;top:0;height:100vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;gap:12px;padding:0 6px 30px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9b7bff,#6d4aff);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;box-shadow:0 6px 20px rgba(109,74,255,.35);flex-shrink:0">a</div>
+      <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+        <div style="color:#fff;font-weight:600;font-size:17px;letter-spacing:-.01em;white-space:nowrap">atom collective</div>
+        <div style="font-size:12px;color:#a9a7bd">Financial reporting</div>
+      </div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
+        <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:12px;cursor:pointer;font-size:15px;background:{{ n.bg }};color:{{ n.fg }};box-shadow:{{ n.ring }}" style-hover="color:#ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg>
+          <span style="flex:1">{{ n.name }}</span>
+          <span style="opacity:{{ n.chev }};font-size:14px">›</span>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;border:1px solid #2c2a44;background:#1e1d34;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a48bff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+        <div style="color:#fff;font-size:13px;font-weight:600">Connected source</div>
+        <div style="font-size:12px;color:#a9a7bd;line-height:1.45;word-break:break-word">{{ sourceName }}</div>
+      </div>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:radial-gradient(900px 500px at 100% 0%,#f1ecff 0%,rgba(248,248,251,0) 70%),#f8f8fb">
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 36px;border-bottom:1px solid #ececf2">
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4b4962">
+        <span style="width:8px;height:8px;border-radius:50%;background:{{ statusDot }};box-shadow:0 0 0 4px #e3f5ef"></span>
+        <span>{{ statusText }}</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;padding:9px 16px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0">FY 2025–26</div>
+    </header>
+
+    <div style="width:100%;max-width:1320px;margin:0 auto;padding:40px 36px 64px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.16em;color:#5b3fd9">FY 2025–26 REPORTING</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:46px;line-height:1.05;letter-spacing:-.01em">{{ title }}</div>
+          <div style="font-size:16px;color:#5d5b72">{{ subtitle }}</div>
+        </div>
+        <a href="uploads/data_file-1792562438937-q5eq.xlsx" download="atom-FY-2025-26.xlsx" style="display:flex;align-items:center;gap:10px;font-size:14px;color:#3b3953;padding:11px 18px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
+          Excel snapshot
+        </a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:24px 24px 20px;display:flex;flex-direction:column;gap:22px;box-shadow:0 1px 2px rgba(23,22,42,.04)">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:44px;height:44px;border-radius:12px;background:{{ k.tileBg }};color:{{ k.tileFg }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.icon }}"></path></svg>
+              </div>
+              <div style="font-size:16px;font-weight:600;color:#3b3953">{{ k.label }}</div>
+            </div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ k.color }}">{{ k.value }}</div>
+            <div style="border-top:1px solid #ececf2;padding-top:14px;font-size:13px;color:#6f6d85">{{ k.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
+        <div style="flex:2 1 520px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:26px 28px;display:flex;flex-direction:column;gap:22px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:19px;font-weight:500">{{ chartTitle }}</div>
+              <div style="font-size:14px;color:#6f6d85">{{ chartSub }}</div>
+            </div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#4b4962">
+              <sc-for list="{{ legend }}" as="l" hint-placeholder-count="1">
+                <span style="display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:3px;background:{{ l.c }}"></span>{{ l.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex:1;min-height:290px">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-bottom:28px;font-size:13px;color:#6f6d85;font-variant-numeric:tabular-nums;width:52px;flex-shrink:0">
+              <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5"><span style="line-height:0">{{ t }}</span></sc-for>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+              <div style="flex:1;position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:end;padding:0 6px;border-bottom:1px solid #dcdbe6">
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none">
+                  <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5"><div style="border-top:1px solid #efeff4;height:0"></div></sc-for>
+                </div>
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
+                  <div onMouseEnter="{{ b.enter }}" onMouseLeave="{{ b.leave }}" style="position:relative;height:100%;display:flex;align-items:flex-end;gap:4px;cursor:default">
+                    <sc-if value="{{ b.hot }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute;bottom:calc({{ b.tipB }} + 8px);left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;white-space:nowrap;z-index:2;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums">
+                        <sc-for list="{{ b.tip }}" as="x" hint-placeholder-count="1"><span>{{ x }}</span></sc-for>
+                      </div>
+                    </sc-if>
+                    <div style="flex:1;height:{{ b.h1 }};background:#17a589;border-radius:6px 6px 0 0;opacity:{{ b.op }}"></div>
+                    <sc-if value="{{ b.two }}" hint-placeholder-val="{{ false }}">
+                      <div style="flex:1;height:{{ b.h2 }};background:#8b6dff;border-radius:6px 6px 0 0;opacity:{{ b.op }}"></div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;padding:8px 6px 0">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12"><div style="text-align:center;font-size:14px;color:#4b4962">{{ b.label }}</div></sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1 1 320px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:26px 28px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:8px">
+            <div style="font-size:19px;font-weight:500">{{ sideTitle }}</div>
+            <div style="font-size:14px;color:#6f6d85">{{ sideSub }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ sideRows }}" as="r" hint-placeholder-count="7">
+              <div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid {{ r.line }}">
+                <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8e8ca3;width:20px;flex-shrink:0">{{ r.idx }}</span>
+                <span style="flex:1;min-width:0;font-size:15px;font-weight:{{ r.fw }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ r.vc }}">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px">
+          <sc-for list="{{ overviewLists }}" as="p" hint-placeholder-count="2">
+            <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:26px 28px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:19px;font-weight:500">{{ p.title }}</div>
+                  <div style="font-size:14px;color:#6f6d85">{{ p.sub }}</div>
+                </div>
+                <div onClick="{{ p.go }}" style="font-size:13px;color:#5b3fd9;cursor:pointer;white-space:nowrap">{{ p.link }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid #f0eff5">
+                    <div style="display:flex;align-items:center;gap:16px">
+                      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8e8ca3;width:20px">{{ r.idx }}</span>
+                      <span style="flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                      <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.value }}</span>
+                    </div>
+                    <div style="margin-left:36px;height:4px;border-radius:4px;background:#f0eff5"><div style="height:4px;border-radius:4px;width:{{ r.w }};background:{{ p.bar }}"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasTable }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="flex:1;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e3e2ec;border-radius:14px;padding:0 18px;height:52px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f6d85" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="{{ searchPh }}" style="flex:1;border:none;outline:none;font:inherit;font-size:16px;background:transparent;color:#17162a;min-width:0">
+            </div>
+            <div style="font-size:14px;color:#6f6d85;white-space:nowrap">{{ rowCount }}</div>
+          </div>
+          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;overflow:hidden">
+            <div style="overflow-x:auto">
+              <div style="display:grid;grid-template-columns:{{ tCols }};min-width:900px">
+                <sc-for list="{{ tHead }}" as="h" hint-placeholder-count="6">
+                  <div style="font-size:12px;font-weight:600;letter-spacing:.06em;color:#6f6d85;padding:14px 18px;background:#fafafc;border-bottom:1px solid #ececf2;text-align:{{ h.align }}">{{ h.label }}</div>
+                </sc-for>
+                <sc-for list="{{ tCells }}" as="c" hint-placeholder-count="60">
+                  <div style="font-size:14px;padding:13px 18px;border-bottom:1px solid #f0eff5;text-align:{{ c.align }};color:{{ c.fg }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.v }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ canMore }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ more }}" style="text-align:center;padding:14px;font-size:14px;color:#5b3fd9;cursor:pointer;border-top:1px solid #ececf2" style-hover="background:#faf8ff">{{ moreLabel }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;overview&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;revenue&quot;,&quot;expenses&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const ICON={
+  overview:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  revenue:'M3 17l6-6 4 4 8-8M15 7h6v6',
+  expenses:'M3 7l6 6 4-4 8 8M15 17h6v-6',
+  receipt:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3',
+  down:'M3 7l6 6 4-4 8 8M15 17h6v-6',
+  bank:'M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18',
+  up:'M3 17l6-6 4 4 8-8M15 7h6v6',
+  wallet:'M3 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13h2',
+  clock:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 3',
+  file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5'
+};
+const TILE={purple:['#efeaff','#6d4aff'],orange:['#fff1e4','#ee8a2a'],blue:['#e8f0ff','#2f6fdb'],green:['#e3f5ef','#17a589']};
+const BRANDS=[['Think Ebikego','think ebikego','ebg','think9'],['Paytm','paytm'],['Medanta','medanta'],['Zomato','zomato'],['Sattva','sattva'],['Nxtwave','nxtwave'],['JioStar','jio'],['Jumpp','jumpp'],['Hala Mobility','hala'],['ITC','itc','sunrise'],['TCS','tcs'],['Karya & Gravity Zip','karya','gravity'],['Advance Auto Parts','advance auto','women'],['Kuku TV','kuku'],['Wattpower','wattpower'],['Dabbahwala','dabbahwala'],['Unispeed','unispeed'],['WLDD','wldd','snapdeal','audible'],['Rapture / Sonic Lamb','rapture','sonic'],['Shadi.com','shadi'],['Chandana Shopping Mall','chandana'],['Select (Celeket)','select'],['B New','b new'],['Batchmates','batchmates'],['24 Organic Mantra','24 organic']];
+const f=n=>(n<0?'−₹':'₹')+Math.round(Math.abs(n)).toLocaleString('en-IN');
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const mIdx=d=>{if(!d)return null;const y=+d.slice(0,4),m=+d.slice(5,7)-1;return Math.max(0,Math.min(11,(y-2025)*12+m-3));};
+const fmtDate=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00Z');return x.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});};
+const brandOf=n=>{const l=n.toLowerCase();for(const [b,...k] of BRANDS)if(k.some(x=>l.includes(x)))return b;return n.split(/[ (\-–]/)[0]||n;};
+const lakh=v=>'₹'+(v/1e5).toFixed(0)+'L';
+function niceTicks(max){const steps=[1,2,2.5,5,10,20,25,50,100,200,250,500,1000].map(s=>s*1e5);const st=steps.find(s=>s*4>=max)||steps[steps.length-1];return [4,3,2,1,0].map(i=>i*st);}
+class Component extends DCLogic {
+  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null};
+  componentDidMount(){
+    fetch('./data/atom-fy26.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(data=>this.setState({data})).catch(e=>this.setState({err:String(e.message||e)}));
+  }
+  renderVals(){
+    const {page,data,err,q,limit,hover}=this.state;
+    const go=p=>()=>this.setState({page:p,q:'',limit:25,hover:null});
+    const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses']];
+    const base={
+      nav:NAV.map(([id,name])=>{const a=page===id;return {name,go:go(id),icon:ICON[id],bg:a?'#2a2846':'transparent',fg:a?'#ffffff':'#c9c8d6',ring:a?'inset 3px 0 0 #7c5cff':'none',chev:a?'1':'0'};}),
+      sourceName:data?data.source:'Loading workbook…',
+      statusDot:err?'#d0644c':data?'#17a589':'#c9c8d6',
+      statusText:err?'Workbook not found':data?'Workbook-connected snapshot':'Loading workbook…',
+      isOverview:page==='overview',hasTable:page!=='overview'
+    };
+    const R=data?data.revenue:[], E=data?data.expenses:[], TR=data?data.totals.revenue:{budget:0,amount:0,tds:0,balance:0}, TE=data?data.totals.expenses:{amount:0,tds:0,total:0};
+    const revM=Array(12).fill(0), expM=Array(12).fill(0);
+    R.forEach(r=>{const m=mIdx(r[2]);if(m!=null)revM[m]+=r[4];});
+    E.forEach(e=>{const m=mIdx(e[2]);if(m!=null)expM[m]+=(e[5]||e[3]);});
+    const B={};R.forEach(r=>{const b=brandOf(r[0]);B[b]=(B[b]||0)+r[4];});
+    const clients=Object.entries(B).sort((a,b)=>b[1]-a[1]);
+    const V={};E.forEach(e=>{const k=(e[0]||'Unlabelled').trim();const key=k.toLowerCase();V[key]=V[key]||[k,0];V[key][1]+=(e[5]||e[3]);});
+    const vendors=Object.values(V).sort((a,b)=>b[1]-a[1]);
+    const gstPaid=(V['gst']||[0,0])[1];
+    const enter=i=>()=>this.setState({hover:i}), leave=()=>this.setState({hover:null});
+    const chart=(series)=>{
+      const max=Math.max(1,...series.flatMap(s=>s.data));const ticks=niceTicks(max);const top=ticks[0];
+      return {yTicks:ticks.map(lakh),legend:series.map(s=>({label:s.label,c:s.c})),
+        bars:M.map((label,i)=>({label,enter:enter(i),leave,hot:hover===i,op:hover==null||hover===i?'1':'.45',
+          h1:(series[0].data[i]/top*100)+'%',two:series.length>1,h2:series[1]?(series[1].data[i]/top*100)+'%':'0%',
+          tipB:(Math.max(...series.map(s=>s.data[i]))/top*100)+'%',
+          tip:[label+' 2025–26'.slice(0,0)+(i<9?' 2025':' 2026'),...series.map(s=>s.label+': '+f(s.data[i]))]}))};
+    };
+    const rank=(list,n,o={})=>list.slice(0,n).map(([name,v],i,arr)=>({idx:String(i+1).padStart(2,'0'),name,value:f(v),vc:'#17162a',fw:'400',line:i===Math.min(n,arr.length)-1?'transparent':'#ececf2',w:(v/(list[0]?list[0][1]:1)*100)+'%'}));
+    const kpi=(label,value,note,tile,icon,color)=>({label,value,note,tileBg:TILE[tile][0],tileFg:TILE[tile][1],icon:ICON[icon],color:color||'#17162a'});
+    const search=s=>q?s.toLowerCase().includes(q.toLowerCase()):true;
+    let P={};
+    if(page==='overview'){
+      const net=TR.amount-TE.total;
+      const netRev=TR.amount-gstPaid, opex=TE.total-gstPaid;
+      P={title:'Overview',subtitle:"Cash position across the workbook's Revenue and Expenses sheets.",
+        kpis:[kpi('Amount received',f(TR.amount),'Revenue sheet · Amount total','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance receivable',f(TR.balance),'Revenue sheet · Balance total','blue','clock')],
+        chartTitle:'Revenue vs expenses',chartSub:'Monthly totals by transaction date',
+        ...chart([{label:'Revenue',c:'#17a589',data:revM},{label:'Expenses',c:'#8b6dff',data:expM}]),
+        sideTitle:'Income snapshot',sideSub:'FY 2025–26, cash basis',
+        sideRows:[['Gross revenue received',f(TR.amount),'600','#17162a'],['Less: GST remitted',f(-gstPaid),'400','#6f6d85'],['Net revenue',f(netRev),'600','#17162a'],['Operating expenses',f(-opex),'400','#6f6d85'],['Net profit',f(netRev-opex),'700',netRev-opex<0?'#c0392b':'#128a72'],['TDS deducted on revenue',f(TR.tds),'400','#6f6d85'],['Total billed (incl. GST)',f(TR.budget),'400','#6f6d85']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
+        overviewLists:[{title:'Top clients',sub:'By amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)},{title:'Top vendors',sub:'By total recorded spend',link:'View expenses →',go:go('expenses'),bar:'#8b6dff',rows:rank(vendors,6)}]};
+    }
+    if(page==='revenue'){
+      const rows=R.filter(r=>search(r[0]+' '+r[3]));
+      P={title:'Revenue',subtitle:"Project budgets, payments received and balances from the workbook's Revenue sheet.",
+        kpis:[kpi('Total budget',f(TR.budget),'Budget incl. GST · Column C total','purple','receipt'),kpi('Amount received',f(TR.amount),'Workbook Amount total','green','up'),kpi('Revenue TDS',f(TR.tds),'Workbook TDS total','blue','bank'),kpi('Balance',f(TR.balance),'Workbook Balance total','orange','clock')],
+        chartTitle:'Monthly revenue',chartSub:'Amount received by payment date',...chart([{label:'Revenue',c:'#17a589',data:revM}]),
+        sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
+        searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
+        tCols:'minmax(260px,2.2fr) 130px minmax(160px,1.2fr) 140px 120px 130px',
+        tHead:[['PROJECT','left'],['DATE','left'],['PAYMENT','left'],['AMOUNT','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[0],align:'left',fg:'#17162a'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
+        canMore:rows.length>limit};
+      P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
+    }
+    if(page==='expenses'){
+      const rows=E.filter(e=>search((e[0]||'')+' '+(e[1]||'')));
+      P={title:'Expenses',subtitle:"Vendor and project-level costs from the workbook's Expenses sheet.",
+        kpis:[kpi('Expense amount',f(TE.amount),'Column E total','purple','receipt'),kpi('Total expenses',f(TE.total),'Workbook Total Amount','orange','down'),kpi('Expense TDS',f(TE.tds),'Workbook TDS total','blue','bank')],
+        chartTitle:'Monthly expenses',chartSub:'Total Amount by transaction date',...chart([{label:'Expenses',c:'#17a589',data:expM}]),
+        sideTitle:'Top vendors',sideSub:'By total recorded spend',sideRows:rank(vendors,7),
+        searchPh:'Search vendor or project',rowCount:rows.length.toLocaleString('en-IN')+' rows',
+        tCols:'minmax(220px,1.6fr) minmax(220px,1.8fr) 130px 130px 110px 130px',
+        tHead:[['VENDOR','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(e=>[{v:e[0]||'—',align:'left',fg:'#17162a'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
+        canMore:rows.length>limit};
+      P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
+    }
+    return Object.assign(base,P,{q,onSearch:e=>this.setState({q:e.target.value,limit:25}),more:()=>this.setState(s=>({limit:s.limit+50}))});
+  }
+}
+</script>
+</body>
+</html>

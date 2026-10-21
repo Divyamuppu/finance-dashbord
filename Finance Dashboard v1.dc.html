@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2efe6;color:#161614;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#1f6b35}a:hover{color:#161614}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="display:flex;min-height:100vh;background:#f2efe6">
+  <aside style="width:236px;flex-shrink:0;background:#111110;color:#e9e6dc;display:flex;flex-direction:column;padding:18px 12px;position:sticky;top:0;height:100vh">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 22px">
+      <div style="width:30px;height:30px;background:#5ee07a;color:#111110;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px">a</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-weight:600;letter-spacing:.08em;font-size:14px">A-TOM GROUP</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#8a877d;letter-spacing:.08em">FINANCE · FY 2025–26</div>
+      </div>
+    </div>
+    <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#8a877d;letter-spacing:.1em;padding:0 10px 8px">GROUP</div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ navTop }}" as="n" hint-placeholder-count="1">
+        <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;cursor:pointer;font-size:13px;background:{{ n.bg }};color:{{ n.fg }};border-left:2px solid {{ n.bar }}">
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;width:22px;color:#8a877d">{{ n.code }}</span>
+          <span>{{ n.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#8a877d;letter-spacing:.1em;padding:22px 10px 8px">COLLECTIVES</div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+        <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;cursor:pointer;font-size:13px;background:{{ n.bg }};color:{{ n.fg }};border-left:2px solid {{ n.bar }}">
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;width:22px;color:#8a877d">{{ n.code }}</span>
+          <span style="flex:1">{{ n.name }}</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:{{ n.dot }}"></span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:auto;padding:12px 10px;border-top:1px solid #262624;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:6px;height:6px;border-radius:50%;background:#5ee07a"></span>{{ coverage }}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#8a877d;letter-spacing:.06em">{{ sourceNote }}</div>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 32px;border-bottom:1px solid #dcd8cc;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#6f6c63">
+        <span>Finance</span><span>/</span><span style="color:#161614;font-weight:500">{{ pageName }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63">
+        <span style="width:7px;height:7px;border-radius:50%;background:{{ syncDot }}"></span>
+        <span>{{ syncText }}</span>
+      </div>
+      <div onClick="{{ syncNow }}" style="font-size:12px;padding:7px 12px;background:#161614;color:#f2efe6;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:#2f2f2c">{{ syncLabel }}</div>
+      <div style="display:flex;gap:2px;flex-wrap:wrap;background:#e7e3d8;padding:3px">
+        <sc-for list="{{ monthTabs }}" as="t" hint-placeholder-count="13">
+          <div onClick="{{ t.go }}" style="font-family:'Geist Mono',monospace;font-size:11px;padding:6px 9px;cursor:pointer;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</div>
+        </sc-for>
+      </div>
+      </div>
+    </header>
+    <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:16px 32px 0;padding:12px 14px;border:1px solid #a3402b;color:#a3402b;font-size:13px;max-width:1376px">{{ errorText }}</div>
+    </sc-if>
+
+    <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:28px 32px 48px;display:flex;flex-direction:column;gap:28px;max-width:1440px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63;letter-spacing:.1em">{{ liveTag }}</div>
+          <div style="font-size:15px;color:#6f6c63">{{ greeting }}</div>
+        </div>
+
+        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));border-top:1px solid #161614;border-bottom:1px solid #dcd8cc">
+          <div style="padding:24px 28px 24px 0;display:flex;flex-direction:column;gap:14px;border-right:1px solid #dcd8cc">
+            <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6f6c63">REVENUE COLLECTED · {{ periodLabel }}</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:clamp(52px,6vw,88px);line-height:1;letter-spacing:-.02em">{{ heroRev }}</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:#6f6c63">
+              <span style="font-family:'Geist Mono',monospace;font-size:11px;padding:3px 7px;border:1px solid {{ deltaColor }};color:{{ deltaColor }}">{{ deltaText }}</span>
+              <span>{{ deltaNote }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <div style="height:4px;background:#dcd8cc;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ targetPctW }};background:#2f9e4f"></div></div>
+              <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63"><span>{{ targetPctText }} of target</span><span>Target {{ targetFmt }}</span></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
+              <div style="padding:20px 22px;border-bottom:1px solid #dcd8cc;border-left:1px solid #dcd8cc;display:flex;flex-direction:column;gap:6px">
+                <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;color:#6f6c63">{{ k.label }}</div>
+                <div style="font-size:22px;font-weight:600;letter-spacing:-.01em;color:{{ k.color }}">{{ k.value }}</div>
+                <div style="font-size:12px;color:#6f6c63">{{ k.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6f6c63">MONTH ON MONTH</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:30px">Revenue vs outflow</div>
+            </div>
+            <div style="display:flex;gap:18px;font-size:12px;color:#6f6c63;flex-wrap:wrap">
+              <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#161614"></span>Revenue</span>
+              <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#c9c4b5"></span>Expenses + GST</span>
+              <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;border-top:1px dashed #2f9e4f"></span>Monthly target</span>
+              <span>{{ hitCount }}</span>
+            </div>
+          </div>
+          <div style="position:relative;height:240px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;border-bottom:1px solid #161614;padding-top:20px">
+            <div style="position:absolute;left:0;right:0;bottom:{{ targetLineB }};border-top:1px dashed #2f9e4f;pointer-events:none"></div>
+            <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
+              <div onClick="{{ b.go }}" style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;background:{{ b.colBg }};padding:0 4px">
+                <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#6f6c63;text-align:center;padding-bottom:4px;white-space:nowrap;overflow:hidden">{{ b.top }}</div>
+                <div style="display:flex;gap:3px;align-items:flex-end">
+                  <div style="flex:1;height:{{ b.revH }};background:{{ b.revBg }}"></div>
+                  <div style="flex:1;height:{{ b.expH }};background:#c9c4b5"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;margin-top:-8px">
+            <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;text-align:center;color:{{ b.labelFg }}">{{ b.label }}</div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6f6c63">PROFIT &amp; LOSS · CASH BASIS</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:30px">Monthly P&amp;L statement</div>
+            </div>
+            <div style="font-size:12px;color:#6f6c63;max-width:420px">Revenue = payments received (incl. GST). Expenses = all payouts logged, with GST remittances shown separately.</div>
+          </div>
+          <div style="overflow-x:auto;border-top:1px solid #161614">
+            <div style="display:grid;grid-template-columns:200px repeat(12,minmax(96px,1fr)) minmax(116px,1fr);min-width:1500px">
+              <sc-for list="{{ plHead }}" as="h" hint-placeholder-count="14">
+                <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.08em;color:#6f6c63;padding:10px 8px;text-align:{{ h.align }};background:{{ h.bg }};border-bottom:1px solid #dcd8cc">{{ h.label }}</div>
+              </sc-for>
+              <sc-for list="{{ plCells }}" as="c" hint-placeholder-count="84">
+                <div style="font-size:13px;padding:11px 8px;text-align:{{ c.align }};background:{{ c.bg }};color:{{ c.fg }};font-weight:{{ c.fw }};border-bottom:1px solid {{ c.line }};font-variant-numeric:tabular-nums;white-space:nowrap">{{ c.v }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </section>
+
+        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:28px">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #161614;padding-bottom:8px">
+              <div style="font-family:'DM Serif Display',serif;font-size:24px">Top clients</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63">{{ clientMeta }}</div>
+            </div>
+            <sc-for list="{{ clients }}" as="c" hint-placeholder-count="8">
+              <div style="display:flex;flex-direction:column;gap:6px;padding:6px 0">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px"><span style="font-weight:500">{{ c.name }}</span><span style="font-variant-numeric:tabular-nums">{{ c.recv }}</span></div>
+                <div style="height:3px;background:#e2ded2"><div style="height:3px;width:{{ c.w }};background:#161614"></div></div>
+                <div style="font-size:11px;color:#6f6c63">{{ c.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #161614;padding-bottom:8px">
+              <div style="font-family:'DM Serif Display',serif;font-size:24px">Receivables</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63">{{ recvMeta }}</div>
+            </div>
+            <sc-for list="{{ receivables }}" as="r" hint-placeholder-count="8">
+              <div style="display:flex;flex-direction:column;gap:6px;padding:6px 0">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px"><span style="font-weight:500">{{ r.name }}</span><span style="font-variant-numeric:tabular-nums;color:#a3402b">{{ r.bal }}</span></div>
+                <div style="height:3px;background:#efd9d2"><div style="height:3px;width:{{ r.w }};background:#2f9e4f"></div></div>
+                <div style="font-size:11px;color:#6f6c63">{{ r.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #161614;padding-bottom:8px">
+              <div style="font-family:'DM Serif Display',serif;font-size:24px">Where money went</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63">TOP PAYEES · FY</div>
+            </div>
+            <sc-for list="{{ vendors }}" as="v" hint-placeholder-count="8">
+              <div style="display:flex;flex-direction:column;gap:6px;padding:6px 0">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px"><span style="font-weight:500">{{ v.name }}</span><span style="font-variant-numeric:tabular-nums">{{ v.amt }}</span></div>
+                <div style="height:3px;background:#e2ded2"><div style="height:3px;width:{{ v.w }};background:#8f8a7b"></div></div>
+                <div style="font-size:11px;color:#6f6c63">{{ v.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6f6c63">TARGETS VS ACTUAL</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:30px">{{ targetHeadline }}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-top:1px solid #161614">
+            <sc-for list="{{ targetRows }}" as="t" hint-placeholder-count="12">
+              <div onClick="{{ t.go }}" style="padding:14px 14px 16px;border-right:1px solid #dcd8cc;border-bottom:1px solid #dcd8cc;display:flex;flex-direction:column;gap:6px;cursor:pointer;background:{{ t.bg }}">
+                <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63"><span>{{ t.label }}</span><span style="color:{{ t.color }}">{{ t.pct }}</span></div>
+                <div style="font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ t.actual }}</div>
+                <div style="height:3px;background:#dcd8cc"><div style="height:3px;width:{{ t.w }};background:{{ t.color }}"></div></div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:28px 32px 48px;display:flex;flex-direction:column;gap:28px;max-width:1440px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63;letter-spacing:.1em">GROUP · 4 COLLECTIVES · {{ periodLabel }}</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:44px;line-height:1.05">Collective comparison</div>
+        </div>
+        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border-top:1px solid #161614;border-bottom:1px solid #dcd8cc">
+          <sc-for list="{{ groupKpis }}" as="k" hint-placeholder-count="4">
+            <div style="padding:20px 22px 22px 0;display:flex;flex-direction:column;gap:6px">
+              <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;color:#6f6c63">{{ k.label }}</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:36px;line-height:1.1">{{ k.value }}</div>
+              <div style="font-size:12px;color:#6f6c63">{{ k.note }}</div>
+            </div>
+          </sc-for>
+        </section>
+        <div style="overflow-x:auto">
+          <div style="display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(5,minmax(130px,1fr)) 110px;min-width:960px;border-top:1px solid #161614">
+            <sc-for list="{{ cmpHead }}" as="h" hint-placeholder-count="7">
+              <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.08em;color:#6f6c63;padding:10px 10px;text-align:{{ h.align }};border-bottom:1px solid #dcd8cc">{{ h.label }}</div>
+            </sc-for>
+            <sc-for list="{{ cmpCells }}" as="c" hint-placeholder-count="28">
+              <div onClick="{{ c.go }}" style="font-size:14px;padding:16px 10px;text-align:{{ c.align }};color:{{ c.fg }};font-weight:{{ c.fw }};border-bottom:1px solid #dcd8cc;cursor:pointer;font-variant-numeric:tabular-nums;white-space:nowrap">{{ c.v }}</div>
+            </sc-for>
+          </div>
+        </div>
+        <section style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6f6c63">SHARE OF GROUP REVENUE</div>
+          <div style="display:flex;height:28px;background:#e2ded2">
+            <sc-for list="{{ shareBar }}" as="s" hint-placeholder-count="1">
+              <div style="width:{{ s.w }};background:{{ s.bg }};color:#f2efe6;font-size:11px;font-family:'Geist Mono',monospace;display:flex;align-items:center;padding:0 10px;white-space:nowrap;overflow:hidden">{{ s.label }}</div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;color:#6f6c63">{{ shareNote }}</div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:28px 32px 48px;display:flex;flex-direction:column;gap:28px;max-width:1440px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:#6f6c63;letter-spacing:.1em">{{ emptyCode }} · FY 2025–26</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:44px;line-height:1.05">{{ pageName }}</div>
+        </div>
+        <div style="border-top:1px solid #161614;border-bottom:1px solid #dcd8cc;padding:56px 0;display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+          <div style="font-family:'DM Serif Display',serif;font-size:64px;line-height:1;color:#c9c4b5">₹ —</div>
+          <div style="font-size:16px;font-weight:500">{{ emptyTitle }}</div>
+          <div style="font-size:14px;color:#6f6c63;max-width:560px;text-wrap:pretty">{{ emptyBody }}</div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <div onClick="{{ syncNow }}" style="font-size:13px;padding:10px 14px;background:#161614;color:#f2efe6;cursor:pointer">Sync now</div>
+            <div onClick="{{ goAtom }}" style="font-size:13px;padding:10px 14px;border:1px solid #161614;cursor:pointer">View Atom as reference</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;atomSheet&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://docs.google.com/spreadsheets/d/1pN8eBB4Oo54BgOShHcpooKL5zB1kPnX06t8KksXSpGA/edit&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Connected sheets&quot;},&quot;socialSheet&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Connected sheets&quot;},&quot;ngenSheet&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Connected sheets&quot;},&quot;chopshopSheet&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Connected sheets&quot;},&quot;revenueTab&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Revenue&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Connected sheets&quot;},&quot;expensesTab&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Expenses&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Connected sheets&quot;},&quot;autoSyncMinutes&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:5,&quot;min&quot;:0,&quot;max&quot;:60,&quot;step&quot;:1,&quot;unit&quot;:&quot;min&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Sync&quot;},&quot;monthlyTarget&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:6000000,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:1000000,&quot;max&quot;:20000000,&quot;step&quot;:250000,&quot;unit&quot;:&quot;₹&quot;,&quot;section&quot;:&quot;Targets&quot;},&quot;defaultPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;atom&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;atom&quot;,&quot;social&quot;,&quot;ngen&quot;,&quot;chopshop&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;View&quot;}}">
+const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const MY=['Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+const SNAPSHOT={
+ rev:[4263280,2102300,6058925,5163800,3763000,4766260,7139355,6669728,7634780,4919692,5263630,7609670],
+ out:[1275342,1303952,2612225,3003787,3154010,4486284,4023744,5688149,5606476,5025177,4376098,6064830],
+ gst:[0,0,836624,516617,418043,354586,385901,994542,0,630756,1246364,600805],
+ billed:81881091,projects:130,clients:40,
+ brands:[["Think Ebikego",11133300,9002200,1933800,7],["Paytm",6890610,5588820,1032500,15],["Medanta",7727571,5344692,1888000,3],["Zomato",5228580,4992060,0,14],["Sattva",4661000,4434000,0,2],["Nxtwave",3870400,3652200,135700,12],["JioStar",3889870,3230570,593370,2],["Jumpp",3242050,2967300,0,2]],
+ recv:[["Medanta – Global Health",5900000,3672000,1888000],["Batchmates",1888000,0,1888000],["24 Organic Mantra TVC",1652000,0,1652000],["ITC Sunrise – 15 Videos",1123950,0,1123950],["Paytm Gold TVC",1032500,0,1032500],["Think Ebikego – TPL Amplification",1014800,0,1014800],["Kuku TV Telugu",1770000,870000,885000],["Kuku TV Tamil",1770000,870000,885000]],
+ recvTotal:15945640,recvCount:25,
+ vendors:[["IP India Marketing",4727000,8],["Shreya Productions",4259343,18],["Huemn Interactive",3569680,10],["Saksham",1970621,44],["Manikanta",1750382,31],["MMT (travel)",1511641,109],["Casting Wire LLP",1289385,20],["Runway Films LLP",1135000,4]]
+};
+const COLS=[{id:'atom',code:'01',name:'Atom',tag:'PRODUCTION STUDIO',prop:'atomSheet'},{id:'social',code:'02',name:'Atom Social',tag:'SOCIAL',prop:'socialSheet'},{id:'ngen',code:'03',name:'Ngen',tag:'NGEN',prop:'ngenSheet'},{id:'chopshop',code:'04',name:'Chopshop Lab',tag:'CHOPSHOP LAB',prop:'chopshopSheet'}];
+const DEFAULT_SHEETS={atomSheet:'https://docs.google.com/spreadsheets/d/1pN8eBB4Oo54BgOShHcpooKL5zB1kPnX06t8KksXSpGA/edit'};
+const SHARE_BG=['#161614','#2f9e4f','#8f8a7b','#a07a1c'];
+const CACHE='fin-dash-ledgers-v1';
+const BRANDS=[['Think Ebikego','think ebikego','ebg','think9'],['Paytm','paytm'],['Medanta','medanta'],['Zomato','zomato'],['Sattva','sattva'],['Nxtwave','nxtwave'],['JioStar','jio'],['Jumpp','jumpp'],['Hala Mobility','hala'],['ITC','itc','sunrise'],['TCS','tcs'],['Karya & Gravity Zip','karya','gravity'],['Advance Auto Parts','advance auto','women'],['Kuku TV','kuku'],['Wattpower','wattpower'],['Dabbahwala','dabbahwala'],['Unispeed','unispeed'],['WLDD','wldd','snapdeal','audible'],['Rapture / Sonic Lamb','rapture','sonic'],['Shadi.com','shadi']];
+const f=n=>(n<0?'−₹':'₹')+Math.round(Math.abs(n)).toLocaleString('en-IN');
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const pct=n=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
+const num=v=>typeof v==='number'?v:(parseFloat(String(v??'').replace(/[₹,\s]/g,''))||0);
+const sheetId=u=>{const m=String(u||'').match(/\/d\/([a-zA-Z0-9_-]{20,})/);return m?m[1]:(/^[a-zA-Z0-9_-]{20,}$/.test(String(u||'').trim())?String(u).trim():null);};
+function monthIdx(v){
+  let y,mo;
+  if(typeof v==='string'){const m=v.match(/Date\((\d+),(\d+)/);if(!m)return null;y=+m[1];mo=+m[2];}
+  else if(typeof v==='number'&&v>30000){const d=new Date(Date.UTC(1899,11,30)+v*864e5);y=d.getUTCFullYear();mo=d.getUTCMonth();}
+  else return null;
+  return Math.max(0,Math.min(11,(y-2025)*12+mo-3));
+}
+function brandOf(n){const l=n.toLowerCase();for(const [b,...k] of BRANDS)if(k.some(x=>l.includes(x)))return b;return n.split(/[ (\-–]/)[0]||n;}
+async function fetchTab(id,tab){
+  const r=await fetch('https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:json&headers=1&sheet='+encodeURIComponent(tab));
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const t=await r.text();const j=JSON.parse(t.slice(t.indexOf('{'),t.lastIndexOf('}')+1));
+  if(j.status==='error')throw new Error((j.errors&&j.errors[0]&&j.errors[0].detailed_message)||'Sheet error');
+  return j.table.rows.map(row=>(row.c||[]).map(c=>c?c.v:null));
+}
+function buildLedger(revRows,expRows){
+  const rev=Array(12).fill(0),out=Array(12).fill(0),gst=Array(12).fill(0);
+  const projects=[];let p=null;
+  for(const r of revRows){
+    const name=r[1]!=null?String(r[1]).trim():'';
+    if(/^total/i.test(name))break;
+    if(name){p={name,budget:num(r[2]),recv:0,bal:num(r[7])};projects.push(p);}
+    const m=monthIdx(r[3]),amt=num(r[5]);
+    if(m!=null&&amt&&p){rev[m]+=amt;p.recv+=amt;}
+  }
+  const V={};
+  for(const r of expRows){
+    const name=r[1]!=null?String(r[1]).trim().replace(/\s+/g,' '):'';
+    if(/^total/i.test(name))break;
+    const m=monthIdx(r[3]),amt=num(r[6])||num(r[4]);
+    if(m==null||!amt)continue;
+    out[m]+=amt;
+    if(name.toUpperCase()==='GST'){gst[m]+=amt;continue;}
+    const k=name.toLowerCase();V[k]=V[k]||[name,0,0];V[k][1]+=amt;V[k][2]++;
+  }
+  const B={};for(const x of projects){const b=brandOf(x.name);B[b]=B[b]||[b,0,0,0,0];B[b][1]+=x.budget;B[b][2]+=x.recv;B[b][3]+=x.bal;B[b][4]++;}
+  const pend=projects.filter(x=>x.bal>0).sort((a,b)=>b.bal-a.bal);
+  return {rev,out,gst,billed:sum(projects.map(x=>x.budget)),projects:projects.length,clients:Object.keys(B).length,
+    brands:Object.values(B).sort((a,b)=>b[2]-a[2]).slice(0,8),
+    recv:pend.slice(0,8).map(x=>[x.name,x.budget,x.recv,x.bal]),recvTotal:sum(pend.map(x=>x.bal)),recvCount:pend.length,
+    vendors:Object.values(V).sort((a,b)=>b[1]-a[1]).slice(0,8)};
+}
+class Component extends DCLogic {
+  state={page:this.props.defaultPage??'atom',m:11,ledgers:{atom:SNAPSHOT},status:{},syncing:false,lastSync:null,errors:{}};
+  componentDidMount(){
+    try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c&&c.ledgers)this.setState({ledgers:{...this.state.ledgers,...c.ledgers},lastSync:c.lastSync});}catch(e){}
+    this.sync();
+    const mins=this.props.autoSyncMinutes??5;
+    if(mins>0)this.timer=setInterval(()=>this.sync(),mins*60000);
+  }
+  componentWillUnmount(){clearInterval(this.timer);}
+  url(c){return this.props[c.prop]??DEFAULT_SHEETS[c.prop]??'';}
+  async sync(){
+    if(this.state.syncing)return;
+    this.setState({syncing:true});
+    const ledgers={...this.state.ledgers},errors={};let ok=0;
+    await Promise.all(COLS.map(async c=>{
+      const id=sheetId(this.url(c));if(!id)return;
+      try{
+        const [r,e]=await Promise.all([fetchTab(id,this.props.revenueTab??'Revenue'),fetchTab(id,this.props.expensesTab??'Expenses')]);
+        const L=buildLedger(r,e);if(!sum(L.rev)&&!sum(L.out))throw new Error('No dated rows found');
+        ledgers[c.id]=L;ok++;
+      }catch(err){errors[c.id]=c.name+': '+(err.message||'could not read sheet');}
+    }));
+    const lastSync=ok?Date.now():this.state.lastSync;
+    this.setState({ledgers,errors,syncing:false,lastSync});
+    try{localStorage.setItem(CACHE,JSON.stringify({ledgers,lastSync}));}catch(e){}
+  }
+  renderVals(){
+    const {page,m,ledgers,syncing,lastSync,errors}=this.state, T=this.props.monthlyTarget??6000000, isFY=m<0;
+    const go=p=>()=>this.setState({page:p}), setM=i=>()=>this.setState({m:i});
+    const pick=a=>isFY?sum(a):a[m];
+    const col=COLS.find(c=>c.id===page);
+    const live=COLS.filter(c=>ledgers[c.id]);
+    const D=(col&&ledgers[col.id])||null;
+    const errList=Object.values(errors);
+    const ago=lastSync?new Date(lastSync).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):null;
+    const base={
+      navTop:[{code:'00',name:'Group overview',go:go('overview'),bg:page==='overview'?'#1e1e1c':'transparent',fg:page==='overview'?'#f2efe6':'#b9b5a9',bar:page==='overview'?'#5ee07a':'transparent'}],
+      nav:COLS.map(c=>({code:c.code,name:c.name,go:go(c.id),bg:page===c.id?'#1e1e1c':'transparent',fg:page===c.id?'#f2efe6':'#b9b5a9',bar:page===c.id?'#5ee07a':'transparent',dot:errors[c.id]?'#d0644c':ledgers[c.id]?'#5ee07a':'#3a3a37'})),
+      coverage:live.length+' of 4 ledgers connected',
+      sourceNote:'SOURCE · GOOGLE SHEETS'+((this.props.autoSyncMinutes??5)>0?' · AUTO '+(this.props.autoSyncMinutes??5)+' MIN':''),
+      pageName:page==='overview'?'Group overview':col.name,
+      monthTabs:[{label:'FY',i:-1},...M.map((l,i)=>({label:l,i}))].map(t=>({label:t.label,go:setM(t.i),bg:t.i===m?'#161614':'transparent',fg:t.i===m?'#f2efe6':'#6f6c63'})),
+      syncNow:()=>this.sync(),
+      syncLabel:syncing?'Syncing…':'↻ Sync now',
+      syncDot:syncing?'#a07a1c':errList.length?'#d0644c':lastSync?'#2f9e4f':'#a9a497',
+      syncText:syncing?'Pulling latest from sheet':ago?'Synced '+ago:'Showing saved snapshot',
+      hasError:errList.length>0,
+      errorText:"Couldn't sync — "+errList.join(' · ')+". Check the sheet is shared as “Anyone with the link can view” and has tabs named Revenue and Expenses.",
+      isLive:!!D,isOverview:page==='overview',isEmpty:!!col&&!D,
+      emptyCode:col?col.code:'',
+      emptyTitle:col&&sheetId(this.url(col))?'Sheet linked, waiting for data':'No sheet connected yet',
+      emptyBody:col&&sheetId(this.url(col))?'The linked sheet has no readable Revenue / Expenses rows yet. Add entries in the same columns as Atom\'s sheet, then sync.':'Paste this collective\'s Google Sheet link in the dashboard settings ('+(col?col.name:'')+' sheet). It must use the same Revenue and Expenses tab layout as Atom\'s.',
+      goAtom:go('atom'),
+      periodLabel:isFY?'FY 2025–26':MY[m].toUpperCase()
+    };
+    const groupRev=sum(live.map(c=>pick(ledgers[c.id].rev))), groupOut=sum(live.map(c=>pick(ledgers[c.id].out))), groupRecv=sum(live.map(c=>ledgers[c.id].recvTotal));
+    const cmpCells=[];
+    COLS.forEach(c=>{
+      const d=ledgers[c.id];const r=d?pick(d.rev):0,o=d?pick(d.out):0;
+      const vals=d?[f(r),f(o),f(r-o),pct((r-o)/r),f(d.recvTotal)]:['—','—','—','—','—'];
+      cmpCells.push({v:c.code+'  '+c.name,align:'left',fg:'#161614',fw:'600',go:go(c.id)});
+      vals.forEach((v,i)=>cmpCells.push({v,align:'right',fg:d?(i===2?((r-o)<0?'#a3402b':'#1f6b35'):'#161614'):'#a9a497',fw:i===2?'600':'400',go:go(c.id)}));
+      cmpCells.push({v:errors[c.id]?'Sync error':d?'Live':'No data',align:'right',fg:errors[c.id]?'#a3402b':d?'#1f6b35':'#a9a497',fw:'500',go:go(c.id)});
+    });
+    Object.assign(base,{
+      groupKpis:[
+        {label:'GROUP REVENUE',value:f(groupRev),note:live.length+' of 4 collectives connected'},
+        {label:'GROUP OUTFLOW',value:f(groupOut),note:'Incl. GST remitted'},
+        {label:'GROUP NET PROFIT',value:f(groupRev-groupOut),note:pct((groupRev-groupOut)/groupRev)+' margin'},
+        {label:'RECEIVABLES',value:f(groupRecv),note:'Outstanding across group'}],
+      cmpHead:[['COLLECTIVE','left'],['REVENUE','right'],['OUTFLOW','right'],['NET PROFIT','right'],['MARGIN','right'],['RECEIVABLES','right'],['STATUS','right']].map(([label,align])=>({label,align})),
+      cmpCells,
+      shareBar:live.map(c=>{const r=pick(ledgers[c.id].rev);return {w:(groupRev?r/groupRev*100:0)+'%',bg:SHARE_BG[COLS.indexOf(c)],label:c.name.toUpperCase()+' · '+pct(groupRev?r/groupRev:0)};}),
+      shareNote:live.length<4?COLS.filter(c=>!ledgers[c.id]).map(c=>c.name).join(', ')+' will appear once their sheets are linked.':'All four collectives connected.'
+    });
+    if(!D)return base;
+    const rev=pick(D.rev), out=pick(D.out), gst=pick(D.gst), opex=out-gst, profit=rev-out, target=isFY?T*12:T;
+    const prev=isFY?null:(m>0?D.rev[m-1]:null);
+    const delta=prev?(rev-prev)/prev:null;
+    const max=Math.max(...D.rev,...D.out,T,1)*1.08;
+    const fyRev=sum(D.rev), fyOut=sum(D.out), fyProfit=fyRev-fyOut;
+    const hits=D.rev.filter(r=>r>=T).length;
+    const plRows=[['Revenue collected',D.rev,'600','#161614'],['Operating expenses',D.out.map((o,i)=>o-D.gst[i]),'400','#161614'],['GST remitted',D.gst,'400','#6f6c63'],['Total outflow',D.out,'500','#161614'],['Net profit',D.rev.map((r,i)=>r-D.out[i]),'600',null],['Margin',null,'400','#6f6c63']];
+    const plCells=[];
+    plRows.forEach(([label,arr,fw,fg],ri)=>{
+      plCells.push({v:label,align:'left',bg:'transparent',fg:'#161614',fw:ri===0||ri===4?'600':'400',line:ri===3?'#161614':'#dcd8cc'});
+      for(let i=0;i<13;i++){
+        const fy=i===12, sel=fy?isFY:i===m;let v,c=fg;
+        if(arr){const n=fy?sum(arr):arr[i];v=f(n);if(!fg)c=n<0?'#a3402b':'#1f6b35';}
+        else{const r=fy?fyRev:D.rev[i],o=fy?fyOut:D.out[i];v=pct((r-o)/r);}
+        plCells.push({v,align:'right',bg:sel?'#e7e3d8':(fy?'#ebe8de':'transparent'),fg:c,fw:fy?'600':fw,line:ri===3?'#161614':'#dcd8cc'});
+      }
+    });
+    const topB=(D.brands[0]&&D.brands[0][2])||1, topV=(D.vendors[0]&&D.vendors[0][1])||1;
+    return Object.assign(base,{
+      liveTag:col.name.toUpperCase()+' · '+col.tag,
+      greeting:isFY?'Full year, April 2025 to March 2026.':"Here's how "+MY[m]+' closed.',
+      heroRev:f(rev),
+      deltaText:delta==null?(isFY?'FY':'—'):(delta>=0?'▲ ':'▼ ')+pct(Math.abs(delta)),
+      deltaColor:delta==null?'#6f6c63':delta>=0?'#1f6b35':'#a3402b',
+      deltaNote:isFY?D.projects+' projects across '+D.clients+' clients':prev?'vs '+M[m-1]+' · '+f(prev):'First month of FY',
+      targetPctW:Math.min(100,rev/target*100)+'%',targetPctText:pct(rev/target),targetFmt:f(target),
+      kpis:[
+        {label:'NET PROFIT',value:f(profit),note:'Cash basis, after GST',color:profit>=0?'#1f6b35':'#a3402b'},
+        {label:'MARGIN',value:pct(profit/rev),note:isFY?'Full year':'FY avg '+pct(fyProfit/fyRev),color:'#161614'},
+        {label:'OPERATING EXPENSES',value:f(opex),note:'Shoots, crew, vendors, travel',color:'#161614'},
+        {label:'GST REMITTED',value:f(gst),note:gst?'Paid to govt':'No remittance logged',color:'#161614'},
+        {label:'OUTSTANDING',value:f(D.recvTotal),note:D.recvCount+' projects pending · FY',color:'#a3402b'},
+        {label:'BILLED · FY',value:f(D.billed),note:pct(fyRev/D.billed)+' collected',color:'#161614'}],
+      hitCount:hits+'/12 months on target',
+      targetLineB:(T/max*220)+'px',
+      bars:D.rev.map((r,i)=>({label:M[i],top:(r/100000).toFixed(1)+'L',revH:(r/max*220)+'px',expH:(D.out[i]/max*220)+'px',revBg:i===m||isFY?'#161614':'#5b5852',colBg:i===m?'#e7e3d8':'transparent',labelFg:i===m?'#161614':'#6f6c63',go:setM(i)})),
+      plHead:[{label:'PARTICULARS',align:'left',bg:'transparent'},...MY.map((l,i)=>({label:l.toUpperCase(),align:'right',bg:i===m?'#e7e3d8':'transparent'})),{label:'FY 25–26',align:'right',bg:isFY?'#e7e3d8':'#ebe8de'}],
+      plCells,
+      clientMeta:'TOP '+D.brands.length+' OF '+D.clients+' · FY',
+      clients:D.brands.map(([n,b,r,bal,p])=>({name:n,recv:f(r),w:(r/topB*100)+'%',note:p+' projects · '+pct(r/fyRev)+' of revenue'+(bal?' · '+f(bal)+' due':'')})),
+      recvMeta:f(D.recvTotal)+' DUE',
+      receivables:D.recv.map(([n,b,r,bal])=>({name:n,bal:f(bal),w:(b?r/b*100:0)+'%',note:f(r)+' of '+f(b)+' received'})),
+      vendors:D.vendors.map(([n,a,c])=>({name:n,amt:f(a),w:(a/topV*100)+'%',note:c+' payments · '+pct(a/fyOut)+' of outflow'})),
+      targetHeadline:hits+' of 12 months hit the '+f(T)+' target',
+      targetRows:D.rev.map((r,i)=>{const p=r/T;return {label:MY[i].toUpperCase(),pct:pct(p),actual:f(r),w:Math.min(100,p*100)+'%',color:p>=1?'#1f6b35':p>=0.8?'#a07a1c':'#a3402b',bg:i===m?'#e7e3d8':'transparent',go:setM(i)};})
+    });
+  }
+}
+</script>
+</body>
+</html>
