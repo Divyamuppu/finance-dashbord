@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="./support.js"></script>
 </head>
 <body>
@@ -10,14 +10,24 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17162a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="atom finance">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
 <style>
-body{margin:0;background:#f8f8fb;color:#17162a;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;background:#f8f8fb;color:#17162a;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:#5b3fd9;text-decoration:none}a:hover{color:#17162a}
 *{box-sizing:border-box}
 input::placeholder{color:#8e8ca3}
 </style>
 </helmet>
 <div style="display:flex;min-height:100vh">
+  <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
   <aside style="width:264px;flex-shrink:0;background:#17162a;color:#c9c8d6;display:flex;flex-direction:column;padding:22px 14px 16px;position:sticky;top:0;height:100vh;overflow-y:auto">
     <div style="display:flex;align-items:center;gap:12px;padding:0 6px 30px">
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9b7bff,#6d4aff);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;box-shadow:0 6px 20px rgba(109,74,255,.35);flex-shrink:0">a</div>
@@ -42,9 +52,62 @@ input::placeholder{color:#8e8ca3}
         <div style="font-size:12px;color:#a9a7bd;line-height:1.45;word-break:break-word">{{ sourceName }}</div>
       </div>
     </div>
+    <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ install }}" style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;background:#6d4aff;color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#5b3fd9">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"></path></svg>
+        Install app
+      </div>
+    </sc-if>
   </aside>
+  </sc-if>
 
   <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:radial-gradient(900px 500px at 100% 0%,#f1ecff 0%,rgba(248,248,251,0) 70%),#f8f8fb">
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="position:sticky;top:0;z-index:20;background:#17162a;color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#9b7bff,#6d4aff);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-style:italic;font-size:20px;flex-shrink:0">a</div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+            <div style="font-weight:600;font-size:16px;white-space:nowrap">atom collective</div>
+            <div style="font-size:11px;color:#a9a7bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">FY 2025–26 · {{ statusText }}</div>
+          </div>
+          <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ install }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#6d4aff;white-space:nowrap;cursor:pointer">Install</div>
+          </sc-if>
+          <sc-if value="{{ showIosHint }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ toggleIos }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#2a2846;white-space:nowrap;cursor:pointer">Install</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ iosOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;line-height:1.45;color:#dcdaf0;background:#2a2846;border-radius:12px;padding:12px 14px">Tap the Share button in Safari, then “Add to Home Screen” to install atom finance.</div>
+        </sc-if>
+        <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative">
+            <div style="display:flex;align-items:center;gap:10px;background:#2a2846;border-radius:12px;padding:0 14px;height:44px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9a7bd" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input value="{{ gq }}" onChange="{{ onGSearch }}" placeholder="Search projects or vendors" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font:inherit;font-size:16px;color:#fff">
+              <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ clearGq }}" style="cursor:pointer;color:#a9a7bd;font-size:20px;line-height:1;padding:4px">×</span>
+              </sc-if>
+            </div>
+            <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:52px;left:0;right:0;background:#fff;color:#17162a;border-radius:14px;box-shadow:0 18px 40px rgba(23,22,42,.25);max-height:60vh;overflow-y:auto;padding:6px">
+                <sc-for list="{{ gRes }}" as="r" hint-placeholder-count="0">
+                  <div onClick="{{ r.go }}" style="display:flex;align-items:center;gap:10px;padding:12px 10px;border-radius:10px;cursor:pointer">
+                    <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:{{ r.kb }};color:{{ r.kc }};flex-shrink:0">{{ r.kind }}</span>
+                    <span style="flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                    <span style="font-size:13px;font-weight:600;white-space:nowrap">{{ r.value }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ gEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:14px 10px;font-size:14px;color:#6f6d85">No matches.</div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 36px;border-bottom:1px solid #ececf2">
       <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4b4962">
         <span style="width:8px;height:8px;border-radius:50%;background:{{ statusDot }};box-shadow:0 0 0 4px #e3f5ef"></span>
@@ -80,54 +143,63 @@ input::placeholder{color:#8e8ca3}
       </sc-if>
       <div style="font-size:13px;font-weight:600;padding:9px 16px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0">FY 2025–26</div>
     </header>
+    </sc-if>
 
-    <div style="width:100%;max-width:1320px;margin:0 auto;padding:40px 36px 64px;display:flex;flex-direction:column;gap:24px">
+    <div style="width:100%;max-width:1320px;margin:0 auto;padding:{{ pad }};display:flex;flex-direction:column;gap:{{ gap }}">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
         <div style="display:flex;flex-direction:column;gap:10px">
           <div style="font-size:12px;font-weight:700;letter-spacing:.16em;color:#5b3fd9">FY 2025–26 REPORTING</div>
-          <div style="font-family:'DM Serif Display',serif;font-size:46px;line-height:1.05;letter-spacing:-.01em">{{ title }}</div>
-          <div style="font-size:16px;color:#5d5b72">{{ subtitle }}</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:{{ titleSize }};line-height:1.05;letter-spacing:-.01em">{{ title }}</div>
+          <div style="font-size:{{ subSize }};color:#5d5b72;text-wrap:pretty">{{ subtitle }}</div>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div onClick="{{ openAction }}" style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#fff;padding:11px 20px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap;box-shadow:0 6px 18px rgba(109,74,255,.28)" style-hover="background:#5b3fd9">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;width:{{ actW }}">
+        <div onClick="{{ openAction }}" style="flex:{{ btnFlex }};justify-content:center;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#fff;padding:11px 20px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap;box-shadow:0 6px 18px rgba(109,74,255,.28)" style-hover="background:#5b3fd9">
           <span style="font-size:18px;line-height:1">+</span>{{ actionLabel }}
         </div>
-        <div onClick="{{ openImport }}" style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#3b3953;padding:11px 18px;border:1px solid #d9d2ff;border-radius:999px;background:#f6f3ff;cursor:pointer;white-space:nowrap" style-hover="background:#efeaff">
+        <div onClick="{{ openImport }}" style="flex:{{ btnFlex }};justify-content:center;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#3b3953;padding:11px 18px;border:1px solid #d9d2ff;border-radius:999px;background:#f6f3ff;cursor:pointer;white-space:nowrap" style-hover="background:#efeaff">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
           Import Excel
         </div>
-        <a href="uploads/data_file-1792562438937-q5eq.xlsx" download="atom-FY-2025-26.xlsx" style="display:flex;align-items:center;gap:10px;font-size:14px;color:#3b3953;padding:11px 18px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
-          Excel snapshot
-        </a>
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <sc-if value="{{ noData }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1.5px dashed #cfc8f5;border-radius:18px;padding:24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+          <div style="width:48px;height:48px;border-radius:14px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+          </div>
+          <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:18px;font-weight:600">Import your FY workbook</div>
+            <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">One .xlsx with a-tom, Social and Ngen revenue and expenses. Every row is read and split by division.</div>
+          </div>
+          <div onClick="{{ openImport }}" style="font-size:14px;font-weight:600;color:#fff;padding:12px 22px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap" style-hover="background:#5b3fd9">Import Excel</div>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:10px;flex-wrap:{{ wrap }};overflow-x:auto;margin:{{ scrollM }};padding:{{ scrollP }};scrollbar-width:none">
         <sc-for list="{{ divTabs }}" as="d" hint-placeholder-count="4">
-          <div onClick="{{ d.go }}" style="display:flex;flex-direction:column;gap:4px;padding:12px 18px;border-radius:14px;cursor:pointer;min-width:160px;background:{{ d.bg }};border:1px solid {{ d.bd }};color:{{ d.fg }};box-shadow:{{ d.sh }}">
+          <div onClick="{{ d.go }}" style="display:flex;flex-direction:column;gap:4px;padding:12px 18px;border-radius:14px;cursor:pointer;flex-shrink:0;min-width:{{ divMin }};background:{{ d.bg }};border:1px solid {{ d.bd }};color:{{ d.fg }};box-shadow:{{ d.sh }}">
             <span style="font-size:13px;font-weight:600;white-space:nowrap">{{ d.name }}</span>
             <span style="font-size:15px;font-variant-numeric:tabular-nums;opacity:.85;white-space:nowrap">{{ d.value }}</span>
           </div>
         </sc-for>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+      <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:{{ kpiGapOuter }}">
         <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
-          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:24px 24px 20px;display:flex;flex-direction:column;gap:22px;box-shadow:0 1px 2px rgba(23,22,42,.04)">
+          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ kpiPad }};display:flex;flex-direction:column;gap:{{ kpiGap }};min-width:0;box-shadow:0 1px 2px rgba(23,22,42,.04)">
             <div style="display:flex;align-items:center;gap:14px">
-              <div style="width:44px;height:44px;border-radius:12px;background:{{ k.tileBg }};color:{{ k.tileFg }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <div style="width:{{ tile }};height:{{ tile }};border-radius:12px;background:{{ k.tileBg }};color:{{ k.tileFg }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.icon }}"></path></svg>
               </div>
-              <div style="font-size:16px;font-weight:600;color:#3b3953">{{ k.label }}</div>
+              <div style="font-size:{{ kpiLabel }};font-weight:600;color:#3b3953;line-height:1.25">{{ k.label }}</div>
             </div>
-            <div style="font-size:32px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ k.color }}">{{ k.value }}</div>
-            <div style="border-top:1px solid #ececf2;padding-top:14px;font-size:13px;color:#6f6d85">{{ k.note }}</div>
+            <div style="font-size:{{ kpiVal }};font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ k.color }};overflow-wrap:anywhere">{{ k.value }}</div>
+            <div style="border-top:1px solid #ececf2;padding-top:{{ kpiNoteP }};font-size:{{ kpiNote }};color:#6f6d85">{{ k.note }}</div>
           </div>
         </sc-for>
       </div>
 
       <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
-        <div style="flex:2 1 520px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:26px 28px;display:flex;flex-direction:column;gap:22px">
+        <div style="flex:2 1 520px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:22px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
             <div style="display:flex;flex-direction:column;gap:6px">
               <div style="font-size:19px;font-weight:500">{{ chartTitle }}</div>
@@ -139,17 +211,17 @@ input::placeholder{color:#8e8ca3}
               </sc-for>
             </div>
           </div>
-          <div style="display:flex;gap:12px;flex:1;min-height:290px">
-            <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-bottom:28px;font-size:13px;color:#6f6d85;font-variant-numeric:tabular-nums;width:52px;flex-shrink:0">
+          <div style="display:flex;gap:{{ axisGap }};flex:1;min-height:{{ chartH }}">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-bottom:28px;font-size:13px;color:#6f6d85;font-variant-numeric:tabular-nums;width:{{ axisW }};flex-shrink:0">
               <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5"><span style="line-height:0">{{ t }}</span></sc-for>
             </div>
             <div style="flex:1;min-width:0;display:flex;flex-direction:column">
-              <div style="flex:1;position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:end;padding:0 6px;border-bottom:1px solid #dcdbe6">
+              <div style="flex:1;position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:{{ barGap }};align-items:end;padding:0 4px;border-bottom:1px solid #dcdbe6">
                 <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none">
                   <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5"><div style="border-top:1px solid #efeff4;height:0"></div></sc-for>
                 </div>
                 <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
-                  <div onMouseEnter="{{ b.enter }}" onMouseLeave="{{ b.leave }}" style="position:relative;height:100%;display:flex;align-items:flex-end;gap:4px;cursor:default">
+                  <div onMouseEnter="{{ b.enter }}" onMouseLeave="{{ b.leave }}" onClick="{{ b.tap }}" style="position:relative;height:100%;display:flex;align-items:flex-end;gap:{{ pairGap }};cursor:default">
                     <sc-if value="{{ b.hot }}" hint-placeholder-val="{{ false }}">
                       <div style="position:absolute;bottom:calc({{ b.tipB }} + 8px);left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;white-space:nowrap;z-index:2;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums">
                         <sc-for list="{{ b.tip }}" as="x" hint-placeholder-count="1"><span>{{ x }}</span></sc-for>
@@ -162,14 +234,14 @@ input::placeholder{color:#8e8ca3}
                   </div>
                 </sc-for>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;padding:8px 6px 0">
-                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12"><div style="text-align:center;font-size:14px;color:#4b4962">{{ b.label }}</div></sc-for>
+              <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:{{ barGap }};padding:8px 4px 0">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12"><div style="text-align:center;font-size:{{ mFont }};color:#4b4962">{{ b.label }}</div></sc-for>
               </div>
             </div>
           </div>
         </div>
 
-        <div style="flex:1 1 320px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:26px 28px;display:flex;flex-direction:column;gap:14px">
+        <div style="flex:1 1 320px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:14px">
           <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:8px">
             <div style="font-size:19px;font-weight:500">{{ sideTitle }}</div>
             <div style="font-size:14px;color:#6f6d85">{{ sideSub }}</div>
@@ -189,7 +261,7 @@ input::placeholder{color:#8e8ca3}
       <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px">
           <sc-for list="{{ overviewLists }}" as="p" hint-placeholder-count="2">
-            <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:26px 28px;display:flex;flex-direction:column;gap:14px">
+            <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:14px">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
                 <div style="display:flex;flex-direction:column;gap:6px">
                   <div style="font-size:19px;font-weight:500">{{ p.title }}</div>
@@ -217,13 +289,31 @@ input::placeholder{color:#8e8ca3}
       <sc-if value="{{ hasTable }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:14px">
           <div style="display:flex;align-items:center;gap:16px">
-            <div style="flex:1;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e3e2ec;border-radius:14px;padding:0 18px;height:52px">
+            <div style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e3e2ec;border-radius:14px;padding:0 16px;height:50px">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f6d85" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
               <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="{{ searchPh }}" style="flex:1;border:none;outline:none;font:inherit;font-size:16px;background:transparent;color:#17162a;min-width:0">
             </div>
             <div style="font-size:14px;color:#6f6d85;white-space:nowrap">{{ rowCount }}</div>
           </div>
           <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;overflow:hidden">
+            <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ mRows }}" as="r" hint-placeholder-count="10">
+                  <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f0eff5;align-items:flex-start">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                      <span style="font-size:15px;font-weight:500;color:{{ r.fg }};overflow-wrap:anywhere">{{ r.title }}</span>
+                      <span style="font-size:13px;color:#4b4962;overflow-wrap:anywhere">{{ r.sub }}</span>
+                      <span style="font-size:12px;color:#8e8ca3">{{ r.meta }}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                      <span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.value }}</span>
+                      <span style="font-size:12px;color:{{ r.extraFg }};font-variant-numeric:tabular-nums">{{ r.extra }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
             <div style="overflow-x:auto">
               <div style="display:grid;grid-template-columns:{{ tCols }};min-width:900px">
                 <sc-for list="{{ tHead }}" as="h" hint-placeholder-count="6">
@@ -234,6 +324,7 @@ input::placeholder{color:#8e8ca3}
                 </sc-for>
               </div>
             </div>
+            </sc-if>
             <sc-if value="{{ canMore }}" hint-placeholder-val="{{ false }}">
               <div onClick="{{ more }}" style="text-align:center;padding:14px;font-size:14px;color:#5b3fd9;cursor:pointer;border-top:1px solid #ececf2" style-hover="background:#faf8ff">{{ moreLabel }}</div>
             </sc-if>
@@ -241,48 +332,69 @@ input::placeholder{color:#8e8ca3}
         </div>
       </sc-if>
     </div>
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <nav style="position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #e9e8f0;display:grid;grid-template-columns:repeat(3,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom))">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
+          <div onClick="{{ n.go }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;min-height:52px;cursor:pointer;color:{{ n.mfg }}">
+            <div style="width:52px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:{{ n.mbg }}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg>
+            </div>
+            <span style="font-size:12px;font-weight:{{ n.mfw }}">{{ n.name }}</span>
+          </div>
+        </sc-for>
+      </nav>
+    </sc-if>
     <sc-if value="{{ hasFlash }}" hint-placeholder-val="{{ false }}">
-      <div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:14px;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px rgba(23,22,42,.25);z-index:60;display:flex;align-items:center;gap:10px">
+      <div style="position:fixed;bottom:{{ flashB }};max-width:calc(100vw - 32px);left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:14px;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px rgba(23,22,42,.25);z-index:60;display:flex;align-items:center;gap:10px">
         <span style="width:8px;height:8px;border-radius:50%;background:#17a589"></span>{{ flash }}
       </div>
     </sc-if>
     <sc-if value="{{ impOpen }}" hint-placeholder-val="{{ false }}">
-      <div onClick="{{ closeImp }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50">
-        <div onClick="{{ stop }}" style="width:100%;max-width:660px;max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+      <div onClick="{{ closeImp }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:50">
+        <div onClick="{{ stop }}" style="width:100%;max-width:640px;max-height:{{ sheetMaxH }};overflow-y:auto;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:20px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
             <div style="display:flex;flex-direction:column;gap:6px">
               <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">Import Excel</div>
-              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Upload one workbook per division — each with Revenue and Expenses sheets. “All divisions” combines every brand across the three. Entries added by hand are kept.</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Upload one .xlsx containing a-tom, Social and Ngen. Every row of the Revenue and Expenses sheets is read and split by division. This replaces the current workbook data; entries added by hand are kept.</div>
             </div>
             <div onClick="{{ closeImp }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <sc-for list="{{ impSlots }}" as="s" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:12px">
-                <label onDragOver="{{ s.over }}" onDragLeave="{{ s.leave }}" onDrop="{{ s.drop }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px dashed {{ s.bd }};border-radius:14px;background:{{ s.bg }};cursor:pointer">
-                  <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange="{{ s.pick }}" style="display:none">
-                  <div style="width:40px;height:40px;border-radius:11px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
-                  </div>
-                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
-                    <div style="display:flex;align-items:center;gap:8px">
-                      <span style="font-size:15px;font-weight:600;white-space:nowrap">{{ s.name }}</span>
-                      <sc-if value="{{ s.hasBadge }}" hint-placeholder-val="{{ false }}">
-                        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#e3f5ef;color:#128a72">Ready</span>
-                      </sc-if>
-                    </div>
-                    <span style="font-size:12px;color:{{ s.statusFg }};line-height:1.4;overflow-wrap:anywhere">{{ s.status }}</span>
-                  </div>
-                  <span style="font-size:13px;font-weight:600;color:#5b3fd9;padding:8px 14px;border-radius:999px;border:1px solid #d9d2ff;background:#fff;white-space:nowrap;flex-shrink:0">{{ s.btn }}</span>
-                </label>
-                <sc-if value="{{ s.canRemove }}" hint-placeholder-val="{{ false }}">
-                  <span onClick="{{ s.remove }}" style="font-size:13px;color:#c0392b;cursor:pointer;white-space:nowrap">Remove</span>
-                </sc-if>
+          <label onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;border:1.5px dashed {{ zoneBd }};border-radius:16px;background:{{ zoneBg }};cursor:pointer;text-align:center">
+            <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange="{{ onFileInput }}" style="display:none">
+            <div style="width:44px;height:44px;border-radius:12px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+            </div>
+            <div style="font-size:15px;font-weight:600;overflow-wrap:anywhere">{{ zoneTitle }}</div>
+            <div style="font-size:13px;color:#6f6d85;overflow-wrap:anywhere">{{ zoneSub }}</div>
+          </label>
+          <sc-if value="{{ impHasParsed }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #e9e8f0;border-radius:14px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:10px 16px;background:#fafafc;font-size:11px;font-weight:600;letter-spacing:.06em;color:#6f6d85">
+                <span>DIVISION</span><span style="text-align:right">RECEIVED</span><span style="text-align:right">EXPENSES</span>
               </div>
-            </sc-for>
-          </div>
-          <div style="font-size:12px;color:#6f6d85">Drag a file onto a row or click it to browse. Only .xlsx is supported.</div>
-          <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #ececf2;padding-top:18px">
+              <sc-for list="{{ impSummary }}" as="s" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:12px 16px;border-top:1px solid #f0eff5;align-items:center;color:{{ s.fg }}">
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <span style="font-size:14px;font-weight:600">{{ s.name }}</span>
+                    <span style="font-size:12px;color:#6f6d85">{{ s.rows }}</span>
+                  </div>
+                  <span style="font-size:14px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums">{{ s.rev }}</span>
+                  <span style="font-size:14px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums">{{ s.exp }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasImpNote }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border-radius:10px;padding:10px 12px">{{ impNote }}</div>
+          </sc-if>
+          <sc-if value="{{ hasImpErr }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#c0392b">{{ impErr }}</div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:10px;border-top:1px solid #ececf2;padding-top:18px;flex-wrap:wrap">
+            <sc-if value="{{ hasImports }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ clearAll }}" style="font-size:13px;color:#c0392b;cursor:pointer;white-space:nowrap">Clear workbook data</span>
+            </sc-if>
+            <div style="flex:1"></div>
             <div onClick="{{ closeImp }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
             <div onClick="{{ doImport }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:{{ impBtnBg }};color:#fff;cursor:{{ impBtnCur }};white-space:nowrap">{{ impBtnLabel }}</div>
           </div>
@@ -290,8 +402,8 @@ input::placeholder{color:#8e8ca3}
       </div>
     </sc-if>
     <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
-      <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50">
-        <div onClick="{{ stop }}" style="width:100%;max-width:580px;max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+      <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:50">
+        <div onClick="{{ stop }}" style="width:100%;max-width:580px;max-height:{{ sheetMaxH }};overflow-y:auto;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
             <div style="display:flex;flex-direction:column;gap:6px">
               <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">{{ mTitle }}</div>
@@ -307,11 +419,11 @@ input::placeholder{color:#8e8ca3}
               </sc-for>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <div style="display:grid;grid-template-columns:{{ formCols }};gap:16px">
             <sc-for list="{{ fields }}" as="fl" hint-placeholder-count="6">
               <label style="display:flex;flex-direction:column;gap:7px;grid-column:{{ fl.span }}">
                 <span style="font-size:13px;font-weight:600;color:#3b3953">{{ fl.label }}</span>
-                <input type="{{ fl.type }}" value="{{ fl.value }}" onChange="{{ fl.onChange }}" placeholder="{{ fl.ph }}" list="{{ fl.list }}" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:15px;color:#17162a;outline:none;background:#fff;width:100%" style-focus="border-color:#7c5cff">
+                <input type="{{ fl.type }}" value="{{ fl.value }}" onChange="{{ fl.onChange }}" placeholder="{{ fl.ph }}" list="{{ fl.list }}" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;color:#17162a;outline:none;background:#fff;width:100%;min-width:0;-webkit-appearance:none" style-focus="border-color:#7c5cff">
               </label>
             </sc-for>
           </div>
@@ -351,12 +463,17 @@ const sum=a=>a.reduce((x,y)=>x+y,0);
 const mIdx=d=>{if(!d)return null;const y=+d.slice(0,4),m=+d.slice(5,7)-1;return Math.max(0,Math.min(11,(y-2025)*12+m-3));};
 const fmtDate=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00Z');return x.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});};
 const brandOf=n=>{const l=n.toLowerCase();for(const [b,...k] of BRANDS)if(k.some(x=>l.includes(x)))return b;return n.split(/[ (\-–]/)[0]||n;};
-const lakh=v=>'₹'+(v/1e5).toFixed(0)+'L';
-function niceTicks(max){const steps=[1,2,2.5,5,10,20,25,50,100,200,250,500,1000].map(s=>s*1e5);const st=steps.find(s=>s*4>=max)||steps[steps.length-1];return [4,3,2,1,0].map(i=>i*st);}
+const lakh=v=>{if(!v)return '₹0';if(v>=1e7)return '₹'+String(+(v/1e7).toFixed(2))+' Cr';if(v>=1e5)return '₹'+String(+(v/1e5).toFixed(1))+'L';return '₹'+String(+(v/1e3).toFixed(1))+'K';};
+function niceTicks(max){const steps=[1e3,2e3,2.5e3,5e3,1e4,2e4,2.5e4,5e4,1e5,2e5,2.5e5,5e5,1e6,2e6,2.5e6,5e6,1e7,2e7,2.5e7,5e7,1e8,2e8,5e8];const st=steps.find(s=>s*4>=max)||steps[steps.length-1];return [4,3,2,1,0].map(i=>i*st);}
 const DN={atom:'a-tom',social:'Social',ngen:'Ngen'};
 const DIVS=[['all','All divisions'],['atom','a-tom'],['social','Social'],['ngen','Ngen']];
 const rd=r=>r[8]||'atom', ed=e=>e[7]||'atom';
-const IMPORT_KEY='atom-dash-imports-v1';
+const IMPORT_KEY='atom-dash-imports-v2';
+const divOf=s=>{const l=String(s??'').toLowerCase();if(/\bn[\s-]?gen\b/.test(l))return 'ngen';if(/\bsocial\b/.test(l))return 'social';if(/\ba[\s-]?tom\b/.test(l))return 'atom';return null;};
+const DIV_HDR=/division|vertical|collective|entity|company|business|department|\bunit\b|segment/i;
+const SKIP_SHEET=/statement|p\s*&\s*l|\bpl\b|quarter|summary|investment|dashboard|pivot|chart/i;
+const isTotal=s=>/^(grand\s+|sub[\s-]?)?total\b/i.test(s);
+const markerOf=(r,numCols)=>{const cells=r.filter(c=>c!=null&&String(c).trim()!=='');if(!cells.length||cells.length>2)return null;if(numCols.some(i=>i>=0&&typeof r[i]==='number'&&r[i]!==0))return null;return cells.map(divOf).find(Boolean)||null;};
 const xdec=s=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(+c)).replace(/&amp;/g,'&');
 const colIdx=s=>{let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n-1;};
 async function unzip(buf){
@@ -391,28 +508,41 @@ const nv=v=>typeof v==='number'?v:(parseFloat(String(v??'').replace(/[₹,\s]/g,
 const sv=v=>v==null?'':String(v).trim().replace(/\s+/g,' ');
 const findCol=(H,res,fb)=>{for(const re of res){const i=H.findIndex(x=>re.test(x.trim()));if(i>=0)return i;}return fb;};
 const headerAt=(rows,re)=>Math.max(0,rows.slice(0,6).findIndex(r=>r.some(c=>typeof c==='string'&&re.test(c))));
-function parseRevenue(rows){
+function parseRevenue(rows,sheetDiv){
   const hi=headerAt(rows,/project|client/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
-  const C={name:findCol(H,[/project/i,/client/i,/name/i],1),budget:findCol(H,[/budget/i,/invoice/i,/billed/i],2),date:findCol(H,[/date/i],3),pay:findCol(H,[/payment/i,/terms/i,/remark/i,/status/i],4),amt:findCol(H,[/^amount/i,/received/i],5),tds:findCol(H,[/tds/i],6),bal:findCol(H,[/balance/i,/due/i],7)};
-  const out=[];let proj=null,budget=0,tot=null;
-  for(const r of rows.slice(hi+1)){const b=sv(r[C.name]);
-    if(/^total/i.test(b)){tot={budget:nv(r[C.budget]),amount:nv(r[C.amt]),tds:nv(r[C.tds]),balance:nv(r[C.bal])};break;}
-    if(b){proj=b;budget=nv(r[C.budget]);}if(!proj)continue;
-    const d=isoD(r[C.date]),a=nv(r[C.amt]);
-    if(b||d||a)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(nv(r[C.bal]))]);}
-  const calc={budget:sum(out.map(r=>r[1])),amount:sum(out.map(r=>r[4])),tds:sum(out.map(r=>r[5])),balance:sum(out.map(r=>r[6]))};
-  return {rows:out,totals:tot&&tot.amount?tot:calc};
+  const C={name:findCol(H,[/project/i,/client/i,/name/i],1),budget:findCol(H,[/budget/i,/invoice/i,/billed/i,/value/i],2),date:findCol(H,[/date/i],3),pay:findCol(H,[/payment/i,/advance/i,/terms/i,/remark/i,/status/i],4),amt:findCol(H,[/^amount/i,/received/i],5),tds:findCol(H,[/tds/i],6),bal:findCol(H,[/balance/i,/due/i],7),div:findCol(H,[DIV_HDR],-1)};
+  const hdrName=(H[C.name]||'').trim().toLowerCase();
+  const out=[];let proj=null,budget=0,pdiv=null,cur=sheetDiv||null,block=0;
+  for(const r of rows.slice(hi+1)){
+    const b=sv(r[C.name]);
+    if(b&&b.toLowerCase()===hdrName)continue;
+    if(isTotal(b)||(!b&&r.some(c=>typeof c==='string'&&isTotal(c.trim())))){const d=r.map(divOf).find(Boolean);if(d)for(let i=block;i<out.length;i++)if(!out[i][7])out[i][7]=d;block=out.length;proj=null;continue;}
+    const mk=markerOf(r,[C.budget,C.amt,C.tds,C.bal]);
+    if(mk&&!(C.div>=0&&r[C.div]===r.find(c=>c!=null&&String(c).trim()!==''))){cur=mk;block=out.length;proj=null;continue;}
+    const rowDiv=C.div>=0?divOf(r[C.div]):null;
+    if(b){proj=b;budget=nv(r[C.budget]);pdiv=rowDiv||cur;}
+    if(!proj)continue;
+    const d=isoD(r[C.date]),a=nv(r[C.amt]),t=nv(r[C.tds]);
+    if(b||d||a||t)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(t),Math.round(nv(r[C.bal])),rowDiv||pdiv||cur||null]);
+  }
+  return out;
 }
-function parseExpenses(rows){
-  const hi=headerAt(rows,/vendor|amount|particular/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
-  const C={v:findCol(H,[/vendor/i,/paid to/i,/party/i,/name/i],1),note:findCol(H,[/project/i,/particular/i,/description/i,/note/i,/purpose/i],2),date:findCol(H,[/date/i],3),amt:findCol(H,[/^amount/i,/^base/i],4),tds:findCol(H,[/tds/i],5),tot:findCol(H,[/total/i,/net/i],6)};
-  const out=[];let tot=null;
-  for(const r of rows.slice(hi+1)){const b=sv(r[C.v]);
-    if(/^total/i.test(b)){tot={amount:nv(r[C.amt]),tds:nv(r[C.tds]),total:nv(r[C.tot])};break;}
+function parseExpenses(rows,sheetDiv){
+  const hi=headerAt(rows,/vendor|amount|particular|expense/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
+  const C={v:findCol(H,[/vendor/i,/type of exp/i,/paid to/i,/party/i,/name/i],1),note:findCol(H,[/project/i,/particular/i,/description/i,/note/i,/purpose/i],2),date:findCol(H,[/date/i],3),amt:findCol(H,[/^amount/i,/^base/i],4),tds:findCol(H,[/tds/i],5),tot:findCol(H,[/total/i,/net/i],6),div:findCol(H,[DIV_HDR],-1)};
+  const hdrName=(H[C.v]||'').trim().toLowerCase();
+  const out=[];let cur=sheetDiv||null,block=0;
+  for(const r of rows.slice(hi+1)){
+    const b=sv(r[C.v]);
+    if(b&&b.toLowerCase()===hdrName)continue;
+    if(isTotal(b)||(!b&&r.some(c=>typeof c==='string'&&isTotal(c.trim())))){const d=r.map(divOf).find(Boolean);if(d)for(let i=block;i<out.length;i++)if(!out[i][6])out[i][6]=d;block=out.length;continue;}
+    const mk=markerOf(r,[C.amt,C.tds,C.tot]);
+    if(mk){cur=mk;block=out.length;continue;}
     const a=nv(r[C.amt]),t=nv(r[C.tot]);if(!b&&!a&&!t)continue;
-    out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t)]);}
-  const calc={amount:sum(out.map(e=>e[3])),tds:sum(out.map(e=>e[4])),total:sum(out.map(e=>e[5]||e[3]))};
-  return {rows:out,totals:tot&&tot.total?tot:calc};
+    const rowDiv=C.div>=0?divOf(r[C.div]):null;
+    out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t),rowDiv||cur||null]);
+  }
+  return out;
 }
 const ADDED_KEY='atom-dash-added-v1';
 const today=()=>new Date().toISOString().slice(0,10);
@@ -422,35 +552,44 @@ const FORMS={
  expense:{title:'Add expense',sub:'Log a vendor or project cost in the Expenses sheet.',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
 };
 class Component extends DCLogic {
-  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',imports:{},imp:{open:false,busy:{},err:{},parsed:{},drag:null}};
+  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
   setImp(o){this.setState(s=>({imp:{...s.imp,...o}}));}
-  async parseFile(d,file){
+  async parseFile(file){
     if(!file)return;
-    const set=(k,v)=>this.setState(s=>({imp:{...s.imp,[k]:{...s.imp[k],[d]:v}}}));
-    if(!/\.xlsx$/i.test(file.name)){set('parsed',null);return set('err','Choose an .xlsx file — save .xls or .csv as .xlsx first.');}
-    set('err','');set('parsed',null);set('busy',true);
+    if(!/\.xlsx$/i.test(file.name))return this.setImp({err:'Choose an .xlsx file — save .xls or .csv as .xlsx first.',parsed:null});
+    this.setImp({busy:true,err:'',parsed:null});
     try{
       const wb=await readXlsx(file);
-      const rs=wb.sheets.find(s=>/revenue|income|sales|receipt/i.test(s.name))||wb.sheets[0];
-      const es=wb.sheets.find(s=>/expense|cost|spend|payment/i.test(s.name))||wb.sheets.find(s=>s!==rs);
-      const rv=rs?parseRevenue(await wb.read(rs.path)):{rows:[],totals:{budget:0,amount:0,tds:0,balance:0}};
-      const ex=es?parseExpenses(await wb.read(es.path)):{rows:[],totals:{amount:0,tds:0,total:0}};
-      if(!rv.rows.length&&!ex.rows.length)throw new Error('No revenue or expense rows found — check the sheets are named Revenue and Expenses.');
-      set('parsed',{source:file.name,importedAt:Date.now(),sheets:[rs?rs.name:'—',es?es.name:'—'],totals:{revenue:rv.totals,expenses:ex.totals},revenue:rv.rows,expenses:ex.rows});
-    }catch(e){set('err',e.message||'Could not read this file.');}
-    set('busy',false);
+      const use=wb.sheets.filter(s=>!SKIP_SHEET.test(s.name));
+      let rS=use.filter(s=>/revenue|income|sales|receipt|collection/i.test(s.name));
+      let eS=use.filter(s=>/expense|cost|spend|payment|outflow|purchase/i.test(s.name)&&!rS.includes(s));
+      if(!rS.length&&wb.sheets[0])rS=[wb.sheets[0]];
+      if(!eS.length){const o=wb.sheets.find(s=>!rS.includes(s));if(o)eS=[o];}
+      const rev=[],exp=[];
+      for(const s of rS)rev.push(...parseRevenue(await wb.read(s.path),divOf(s.name)));
+      for(const s of eS)exp.push(...parseExpenses(await wb.read(s.path),divOf(s.name)));
+      if(!rev.length&&!exp.length)throw new Error('No revenue or expense rows found — check the sheets are named Revenue and Expenses.');
+      const sets={},now=Date.now();
+      for(const d of ['atom','social','ngen']){
+        const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>r.slice(0,7)),ex=exp.filter(e=>(e[6]||'atom')===d).map(e=>e.slice(0,6));
+        if(!rv.length&&!ex.length)continue;
+        const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
+        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex};
+      }
+      this.setImp({busy:false,parsed:{source:file.name,sets,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
+    }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
   }
   doImport(){
-    const {imp,imports}=this.state;const ds=['atom','social','ngen'].filter(d=>imp.parsed[d]);if(!ds.length)return;
-    const next={...imports};ds.forEach(d=>{next[d]=imp.parsed[d];});let warn='';
+    const {imp}=this.state;if(!imp.parsed)return;
+    const next=imp.parsed.sets;let warn='';
     try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){warn=' (too large to keep after reload)';}
     clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3500);
-    this.setState({imports:next,div:ds.length>1?'all':ds[0],imp:{open:false,busy:{},err:{},parsed:{},drag:null},flash:'Imported '+ds.map(d=>DN[d]).join(', ')+warn});
+    this.setState({imports:next,div:'all',imp:{open:false,busy:false,err:'',parsed:null,drag:false},flash:'Imported '+imp.parsed.source+warn});
   }
-  resetImport(d){
-    const next={...this.state.imports};delete next[d];
-    try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){}
-    this.setState({imports:next});
+  clearAll(){
+    try{localStorage.removeItem(IMPORT_KEY);}catch(e){}
+    clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
+    this.setState(s=>({imports:{},imp:{...s.imp,parsed:null,err:''},flash:'Workbook data cleared'}));
   }
   openModal(kind){this.setState(s=>({modal:kind,form:{date:today(),div:s.div==='all'?'atom':s.div},formErr:''}));}
   saveModal(){
@@ -474,17 +613,25 @@ class Component extends DCLogic {
     clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
     this.setState({added:next,modal:null,form:{},formErr:'',flash:msg});
   }
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);}
   componentDidMount(){
+    this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile)this.setState({mobile:m});};
+    window.addEventListener('resize',this.onResize);
+    const sa=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+    this.setState({standalone:!!sa});
+    window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();this.deferred=e;this.setState({canInstall:true});});
+    window.addEventListener('appinstalled',()=>{this.deferred=null;this.setState({canInstall:false,standalone:true});});
+    if('serviceWorker' in navigator&&location.protocol!=='file:'){navigator.serviceWorker.register('sw.js').catch(()=>{});}
     try{const a=JSON.parse(localStorage.getItem(ADDED_KEY)||'null');if(a&&a.revenue)this.setState({added:a});}catch(e){}
     try{const im=JSON.parse(localStorage.getItem(IMPORT_KEY)||'null');if(im)this.setState({imports:im});}catch(e){}
-    fetch('./data/atom-fy26.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(data=>this.setState({data})).catch(e=>this.setState({err:String(e.message||e)}));
+    try{localStorage.removeItem('atom-dash-imports-v1');}catch(e){}
   }
   renderVals(){
-    const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp}=this.state;
+    const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp,mobile,canInstall,standalone,iosOpen}=this.state;
     const go=p=>()=>this.setState({page:p,q:'',limit:25,hover:null});
     const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses']];
     const base={
-      nav:NAV.map(([id,name])=>{const a=page===id;return {name,go:go(id),icon:ICON[id],bg:a?'#2a2846':'transparent',fg:a?'#ffffff':'#c9c8d6',ring:a?'inset 3px 0 0 #7c5cff':'none',chev:a?'1':'0'};}),
+      nav:NAV.map(([id,name])=>{const a=page===id;return {name,go:go(id),icon:ICON[id],mfg:a?'#5b3fd9':'#6f6d85',mbg:a?'#efeaff':'transparent',mfw:a?'600':'500',bg:a?'#2a2846':'transparent',fg:a?'#ffffff':'#c9c8d6',ring:a?'inset 3px 0 0 #7c5cff':'none',chev:a?'1':'0'};}),
       sourceName:data?data.source:'Loading workbook…',
       statusDot:err?'#d0644c':data?'#17a589':'#c9c8d6',
       statusText:err?'Workbook not found':data?'Workbook-connected snapshot':'Loading workbook…',
@@ -492,12 +639,13 @@ class Component extends DCLogic {
     };
     const inDiv=d=>div==='all'||div===d, baseOn=inDiv('atom');
     const addR=added.revenue.filter(r=>inDiv(rd(r))), addE=added.expenses.filter(e=>inDiv(ed(e)));
-    const SETS={atom:data,...imports};
+    const SETS={...imports};
     const scopeD=['atom','social','ngen'].filter(inDiv);
     const R=[...addR,...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE,...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
     const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
-    const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
-    const TR={budget:TR0.budget+sum(addR.map(r=>r[1])),amount:TR0.amount+sum(addR.map(r=>r[4])),tds:TR0.tds+sum(addR.map(r=>r[5])),balance:TR0.balance+sum(addR.map(r=>r[6]))};
+    const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0,gst:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
+    const TR={budget:TR0.budget+sum(addR.map(r=>r[1])),amount:TR0.amount+sum(addR.map(r=>r[4])),tds:TR0.tds+sum(addR.map(r=>r[5])),gst:TR0.gst+Math.round(sum(addR.map(r=>r[1]))*18/118)};
+    TR.balance=TR.budget-TR.amount-TR.tds;
     const TE={amount:TE0.amount+sum(addE.map(e=>e[3])),tds:TE0.tds+sum(addE.map(e=>e[4])),total:TE0.total+sum(addE.map(e=>e[5]))};
     const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d),ae=added.expenses.filter(e=>ed(e)===d);return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
     const metric=t=>page==='revenue'?t.rev:page==='expenses'?t.exp:t.rev-t.exp;
@@ -514,7 +662,7 @@ class Component extends DCLogic {
     const chart=(series)=>{
       const max=Math.max(1,...series.flatMap(s=>s.data));const ticks=niceTicks(max);const top=ticks[0];
       return {yTicks:ticks.map(lakh),legend:series.map(s=>({label:s.label,c:s.c})),
-        bars:M.map((label,i)=>({label,enter:enter(i),leave,hot:hover===i,op:hover==null||hover===i?'1':'.45',
+        bars:M.map((label,i)=>({label:mobile?label[0]:label,enter:enter(i),leave,tap:()=>this.setState(s=>({hover:s.hover===i?null:i})),hot:hover===i,op:hover==null||hover===i?'1':'.45',
           h1:(series[0].data[i]/top*100)+'%',two:series.length>1,h2:series[1]?(series[1].data[i]/top*100)+'%':'0%',
           tipB:(Math.max(...series.map(s=>s.data[i]))/top*100)+'%',
           tip:[label+' 2025–26'.slice(0,0)+(i<9?' 2025':' 2026'),...series.map(s=>s.label+': '+f(s.data[i]))]}))};
@@ -527,7 +675,7 @@ class Component extends DCLogic {
       const net=TR.amount-TE.total;
       const netRev=TR.amount-gstPaid, opex=TE.total-gstPaid;
       P={title:'Overview',subtitle:"Cash position across the workbook's Revenue and Expenses sheets.",
-        kpis:[kpi('Amount received',f(TR.amount),'Revenue sheet · Amount total','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance receivable',f(TR.balance),'Revenue sheet · Balance total','blue','clock')],
+        kpis:[kpi('Total revenue',f(TR.budget),'Project budgets incl. GST','purple','receipt'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Revenue vs expenses',chartSub:'Monthly totals by transaction date',
         ...chart([{label:'Revenue',c:'#17a589',data:revM},{label:'Expenses',c:'#8b6dff',data:expM}]),
         sideTitle:'Income snapshot',sideSub:'FY 2025–26, cash basis',
@@ -537,13 +685,14 @@ class Component extends DCLogic {
     if(page==='revenue'){
       const rows=R.filter(r=>search(r[0]+' '+r[3]));
       P={title:'Revenue',subtitle:"Project budgets, payments received and balances from the workbook's Revenue sheet.",
-        kpis:[kpi('Total budget',f(TR.budget),'Budget incl. GST · Column C total','purple','receipt'),kpi('Amount received',f(TR.amount),'Workbook Amount total','green','up'),kpi('Revenue TDS',f(TR.tds),'Workbook TDS total','blue','bank'),kpi('Balance',f(TR.balance),'Workbook Balance total','orange','clock')],
+        kpis:[kpi('Total revenue',f(TR.budget),'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Monthly revenue',chartSub:'Amount received by payment date',...chart([{label:'Revenue',c:'#17a589',data:revM}]),
         sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
         searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
         tCols:'minmax(260px,2.2fr) 110px 130px minmax(160px,1.2fr) 140px 120px 130px',
         tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['AMOUNT','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
         tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[rd(r)],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
+        mRows:rows.slice(0,limit).map(r=>({title:(r[7]?'● ':'')+r[0],fg:r[7]?'#5b3fd9':'#17162a',sub:r[3]||'Payment',meta:fmtDate(r[2])+' · '+DN[rd(r)],value:r[4]?f(r[4]):'—',extra:r[6]?f(r[6])+' due':(r[5]?'TDS '+f(r[5]):''),extraFg:r[6]?'#c0392b':'#8e8ca3'})),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }
@@ -557,6 +706,7 @@ class Component extends DCLogic {
         tCols:'minmax(220px,1.6fr) 110px minmax(220px,1.8fr) 130px 130px 110px 130px',
         tHead:[['VENDOR','left'],['DIVISION','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
         tCells:rows.slice(0,limit).flatMap(e=>[{v:e[6]?'● '+(e[0]||'—'):(e[0]||'—'),align:'left',fg:e[6]?'#5b3fd9':'#17162a'},{v:DN[ed(e)],align:'left',fg:'#4b4962'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
+        mRows:rows.slice(0,limit).map(e=>({title:(e[6]?'● ':'')+(e[0]||'—'),fg:e[6]?'#5b3fd9':'#17162a',sub:e[1]||'—',meta:fmtDate(e[2])+' · '+DN[ed(e)],value:f(e[5]||e[3]),extra:e[4]?'TDS '+f(e[4]):'',extraFg:'#8e8ca3'})),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }
@@ -578,20 +728,36 @@ class Component extends DCLogic {
       projectOptions:[...new Set(R.map(r=>r[0]))].slice(0,400),vendorOptions:vendors.map(v=>v[0]).slice(0,400),
       hasErr:!!formErr,formErr,closeModal:()=>this.setState({modal:null}),stop:e=>e.stopPropagation(),saveModal:()=>this.saveModal(),
       hasFlash:!!flash,flash,divTabs,
-      sourceName:['atom','social','ngen'].filter(d=>SETS[d]).map(d=>DN[d]+': '+SETS[d].source).join(' · ')||'No workbook yet',
-      openImport:()=>this.setState({imp:{open:true,busy:{},err:{},parsed:{},drag:null}}),
+      isMobile:mobile,isDesk:!mobile,
+      canInstall:canInstall&&!standalone,install:async()=>{const d=this.deferred;if(!d)return;d.prompt();try{await d.userChoice;}catch(e){}this.deferred=null;this.setState({canInstall:false});},
+      showIosHint:mobile&&!standalone&&!canInstall&&/iphone|ipad|ipod/i.test(navigator.userAgent),iosOpen,toggleIos:()=>this.setState(s=>({iosOpen:!s.iosOpen})),
+      ...(mobile?{pad:'20px 16px calc(104px + env(safe-area-inset-bottom))',gap:'18px',titleSize:'32px',subSize:'14px',actW:'100%',btnFlex:'1 1 0',wrap:'nowrap',scrollM:'0 -16px',scrollP:'0 16px',divMin:'128px',
+        kpiCols:'repeat(2,minmax(0,1fr))',kpiGapOuter:'12px',kpiPad:'16px',kpiGap:'12px',tile:'34px',kpiLabel:'13px',kpiVal:'19px',kpiNote:'11px',kpiNoteP:'10px',
+        cardPad:'18px 16px',chartH:'220px',axisGap:'6px',axisW:'48px',barGap:'4px',pairGap:'2px',mFont:'11px',flashB:'calc(88px + env(safe-area-inset-bottom))',
+        ovAlign:'flex-end',ovPad:'0',sheetR:'22px 22px 0 0',sheetPad:'22px 18px calc(22px + env(safe-area-inset-bottom))',sheetMaxH:'92vh',formCols:'minmax(0,1fr)'}
+       :{pad:'40px 36px 64px',gap:'24px',titleSize:'46px',subSize:'16px',actW:'auto',btnFlex:'0 0 auto',wrap:'wrap',scrollM:'0',scrollP:'0',divMin:'160px',
+        kpiCols:'repeat(auto-fit,minmax(240px,1fr))',kpiGapOuter:'20px',kpiPad:'24px 24px 20px',kpiGap:'22px',tile:'44px',kpiLabel:'16px',kpiVal:'32px',kpiNote:'13px',kpiNoteP:'14px',
+        cardPad:'26px 28px',chartH:'290px',axisGap:'12px',axisW:'64px',barGap:'10px',pairGap:'4px',mFont:'14px',flashB:'28px',
+        ovAlign:'center',ovPad:'24px',sheetR:'20px',sheetPad:'28px',sheetMaxH:'calc(100vh - 48px)',formCols:'repeat(2,minmax(0,1fr))'}),
+      openImport:()=>this.setState({imp:{open:true,busy:false,err:'',parsed:null,drag:false}}),
       impOpen:imp.open,closeImp:()=>this.setImp({open:false}),
-      impSlots:['atom','social','ngen'].map(d=>{const p=imp.parsed[d],er=imp.err[d],busy=imp.busy[d],cur=SETS[d];
-        const status=busy?'Reading workbook…':er?er:p?p.source+' · '+p.revenue.length.toLocaleString('en-IN')+' revenue rows ('+f(p.totals.revenue.amount)+') · '+p.expenses.length.toLocaleString('en-IN')+' expense rows ('+f(p.totals.expenses.total)+')':cur?'Current: '+cur.source+(imports[d]?' · imported':' · original'):'No workbook yet';
-        const on=imp.drag===d;
-        return {name:DN[d],status,statusFg:er?'#c0392b':p?'#128a72':'#6f6d85',hasBadge:!!p,btn:p||cur?'Replace file':'Choose file',
-          canRemove:!!imports[d]&&!p,remove:()=>this.resetImport(d),
-          pick:e=>{const fl=e.target.files&&e.target.files[0];e.target.value='';this.parseFile(d,fl);},
-          over:e=>{e.preventDefault();if(imp.drag!==d)this.setImp({drag:d});},leave:()=>this.setImp({drag:null}),
-          drop:e=>{e.preventDefault();this.setImp({drag:null});this.parseFile(d,e.dataTransfer.files&&e.dataTransfer.files[0]);},
-          bd:on?'#6d4aff':p?'#9fdcc9':er?'#e8b4ab':'#e3e2ec',bg:on?'#f1ecff':p?'#f3fbf8':'#fff'};}),
-      doImport:()=>this.doImport(),
-      ...(n=>({impBtnBg:n?'#6d4aff':'#c9c2f0',impBtnCur:n?'pointer':'not-allowed',impBtnLabel:n?'Import '+n+(n>1?' files':' file'):'Import'}))(['atom','social','ngen'].filter(d=>imp.parsed[d]).length),
+      onFileInput:e=>{const fl=e.target.files&&e.target.files[0];e.target.value='';this.parseFile(fl);},
+      onDragOver:e=>{e.preventDefault();if(!imp.drag)this.setImp({drag:true});},
+      onDragLeave:()=>this.setImp({drag:false}),
+      onDrop:e=>{e.preventDefault();this.setImp({drag:false});this.parseFile(e.dataTransfer.files&&e.dataTransfer.files[0]);},
+      zoneBd:imp.drag?'#6d4aff':imp.parsed?'#9fdcc9':'#cfc8f5',zoneBg:imp.drag?'#f1ecff':imp.parsed?'#f3fbf8':'#faf9ff',
+      zoneTitle:imp.busy?'Reading every row…':imp.parsed?imp.parsed.source:'Drop your .xlsx here or click to browse',
+      zoneSub:imp.parsed?imp.parsed.revN.toLocaleString('en-IN')+' revenue rows · '+imp.parsed.expN.toLocaleString('en-IN')+' expense rows · sheets: '+imp.parsed.sheets.join(', '):'One workbook with a-tom, Social and Ngen — every row is read',
+      impHasParsed:!!imp.parsed,
+      impSummary:imp.parsed?['atom','social','ngen'].map(d=>{const s=imp.parsed.sets[d];return {name:DN[d],rows:s?s.revenue.length.toLocaleString('en-IN')+' revenue · '+s.expenses.length.toLocaleString('en-IN')+' expense rows':'No rows found',rev:s?f(s.totals.revenue.amount):'—',exp:s?f(s.totals.expenses.total):'—',fg:s?'#17162a':'#a9a7bd'};}):[],
+      hasImpNote:!!(imp.parsed&&imp.parsed.unassigned),impNote:imp.parsed&&imp.parsed.unassigned?imp.parsed.unassigned.toLocaleString('en-IN')+' rows had no division label (no Division column, section heading or labelled total) and were filed under a-tom.':'',
+      hasImpErr:!!imp.err,impErr:imp.err,
+      hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),
+      doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.parsed?'Import & replace':'Import',
+      noData:!Object.keys(imports).length&&!added.revenue.length&&!added.expenses.length,
+      sourceName:(Object.values(imports)[0]||{}).source||'No workbook yet — use Import Excel',
+      statusDot:Object.keys(imports).length?'#17a589':'#c9c8d6',
+      statusText:Object.keys(imports).length?'Workbook imported':'No workbook imported',
       formDivs:['atom','social','ngen'].map(id=>{const a=(form.div||'atom')===id;return {name:DN[id],go:()=>this.setState(s=>({form:{...s.form,div:id}})),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
       q,onSearch:e=>this.setState({q:e.target.value,limit:25}),more:()=>this.setState(s=>({limit:s.limit+50}))});
   }
