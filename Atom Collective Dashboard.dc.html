@@ -470,6 +470,7 @@ const DIVS=[['all','All divisions'],['atom','a-tom'],['social','Social'],['ngen'
 const rd=r=>r[8]||'atom', ed=e=>e[7]||'atom';
 const IMPORT_KEY='atom-dash-imports-v2';
 const divOf=s=>{const l=String(s??'').toLowerCase();if(/\bn[\s-]?gen\b/.test(l))return 'ngen';if(/\bsocial\b/.test(l))return 'social';if(/\ba[\s-]?tom\b/.test(l))return 'atom';return null;};
+const nameDiv=s=>{const m=String(s??'').match(/[-–—|]\s*(social|n[\s-]?gen|a[\s-]?tom)\b/i);return m?divOf(m[1]):null;};
 const DIV_HDR=/division|vertical|collective|entity|company|business|department|\bunit\b|segment/i;
 const SKIP_SHEET=/statement|p\s*&\s*l|\bpl\b|quarter|summary|investment|dashboard|pivot|chart/i;
 const isTotal=s=>/^(grand\s+|sub[\s-]?)?total\b/i.test(s);
@@ -511,8 +512,9 @@ const headerAt=(rows,re)=>Math.max(0,rows.slice(0,6).findIndex(r=>r.some(c=>type
 function parseRevenue(rows,sheetDiv){
   const hi=headerAt(rows,/project|client/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
   const C={name:findCol(H,[/project/i,/client/i,/name/i],1),budget:findCol(H,[/budget/i,/invoice/i,/billed/i,/value/i],2),date:findCol(H,[/date/i],3),pay:findCol(H,[/payment/i,/advance/i,/terms/i,/remark/i,/status/i],4),amt:findCol(H,[/^amount/i,/received/i],5),tds:findCol(H,[/tds/i],6),bal:findCol(H,[/balance/i,/due/i],7),div:findCol(H,[DIV_HDR],-1)};
+  C.gst=H.findIndex(x=>/gst/i.test(x)&&!/budget|incl|including|total|input/i.test(x));
   const hdrName=(H[C.name]||'').trim().toLowerCase();
-  const out=[];let proj=null,budget=0,pdiv=null,cur=sheetDiv||null,block=0;
+  const out=[];out.hasGst=C.gst>=0;let proj=null,budget=0,pdiv=null,cur=sheetDiv||null,block=0;
   for(const r of rows.slice(hi+1)){
     const b=sv(r[C.name]);
     if(b&&b.toLowerCase()===hdrName)continue;
@@ -520,10 +522,10 @@ function parseRevenue(rows,sheetDiv){
     const mk=markerOf(r,[C.budget,C.amt,C.tds,C.bal]);
     if(mk&&!(C.div>=0&&r[C.div]===r.find(c=>c!=null&&String(c).trim()!==''))){cur=mk;block=out.length;proj=null;continue;}
     const rowDiv=C.div>=0?divOf(r[C.div]):null;
-    if(b){proj=b;budget=nv(r[C.budget]);pdiv=rowDiv||cur;}
+    if(b){proj=b;budget=nv(r[C.budget]);pdiv=rowDiv||nameDiv(b)||cur;}
     if(!proj)continue;
-    const d=isoD(r[C.date]),a=nv(r[C.amt]),t=nv(r[C.tds]);
-    if(b||d||a||t)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(t),Math.round(nv(r[C.bal])),rowDiv||pdiv||cur||null]);
+    const d=isoD(r[C.date]),a=nv(r[C.amt]),t=nv(r[C.tds]),g=C.gst>=0&&b?nv(r[C.gst]):0;
+    if(b||d||a||t)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(t),Math.round(nv(r[C.bal])),rowDiv||pdiv||cur||null,Math.round(g)]);
   }
   return out;
 }
@@ -539,7 +541,7 @@ function parseExpenses(rows,sheetDiv){
     const mk=markerOf(r,[C.amt,C.tds,C.tot]);
     if(mk){cur=mk;block=out.length;continue;}
     const a=nv(r[C.amt]),t=nv(r[C.tot]);if(!b&&!a&&!t)continue;
-    const rowDiv=C.div>=0?divOf(r[C.div]):null;
+    const rowDiv=(C.div>=0?divOf(r[C.div]):null)||nameDiv(r[C.note])||nameDiv(b);
     out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t),rowDiv||cur||null]);
   }
   return out;
@@ -565,8 +567,8 @@ class Component extends DCLogic {
       let eS=use.filter(s=>/expense|cost|spend|payment|outflow|purchase/i.test(s.name)&&!rS.includes(s));
       if(!rS.length&&wb.sheets[0])rS=[wb.sheets[0]];
       if(!eS.length){const o=wb.sheets.find(s=>!rS.includes(s));if(o)eS=[o];}
-      const rev=[],exp=[];
-      for(const s of rS)rev.push(...parseRevenue(await wb.read(s.path),divOf(s.name)));
+      const rev=[],exp=[];let hasGst=false;
+      for(const s of rS){const o=parseRevenue(await wb.read(s.path),divOf(s.name));if(o.hasGst)hasGst=true;rev.push(...o);}
       for(const s of eS)exp.push(...parseExpenses(await wb.read(s.path),divOf(s.name)));
       if(!rev.length&&!exp.length)throw new Error('No revenue or expense rows found — check the sheets are named Revenue and Expenses.');
       const sets={},now=Date.now();
@@ -574,7 +576,7 @@ class Component extends DCLogic {
         const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>r.slice(0,7)),ex=exp.filter(e=>(e[6]||'atom')===d).map(e=>e.slice(0,6));
         if(!rv.length&&!ex.length)continue;
         const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
-        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex};
+        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:hasGst?sum(rev.filter(r=>(r[7]||'atom')===d).map(r=>r[8]||0)):Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex,gstCol:hasGst,gstByProj:hasGst?Object.fromEntries(rev.filter(r=>(r[7]||'atom')===d&&r[8]).map(r=>[r[0],r[8]])):null};
       }
       this.setImp({busy:false,parsed:{source:file.name,sets,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
     }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
@@ -644,7 +646,8 @@ class Component extends DCLogic {
     const exR=r=>excluded(r[0]), exE=e=>excluded(e[0])||excluded(e[1]);
     const recalc=s=>{const rv=s.revenue.filter(r=>!exR(r)),ex=s.expenses.filter(e=>!exE(e));if(rv.length===s.revenue.length&&ex.length===s.expenses.length)return s;
       const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
-      return {...s,revenue:rv,expenses:ex,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};};
+      const g=s.gstCol&&s.gstByProj?sum(Object.entries(s.gstByProj).filter(([k])=>!excluded(k)).map(([,v])=>v)):Math.round(b*18/118);
+      return {...s,revenue:rv,expenses:ex,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:g},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};};
     const SETS=Object.fromEntries(Object.entries(imports).map(([k,s])=>[k,recalc(s)]));
     const scopeD=['atom','social','ngen'].filter(inDiv);
     const R=[...addR.filter(r=>!exR(r)),...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE.filter(e=>!exE(e)),...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
@@ -692,7 +695,7 @@ class Component extends DCLogic {
     if(page==='revenue'){
       const rows=R.filter(r=>search(r[0]+' '+r[3]));
       P={title:'Revenue',subtitle:"Project budgets, payments received and balances from the workbook's Revenue sheet.",
-        kpis:[kpi('Total revenue',f(TR.budget),'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        kpis:[kpi('Total revenue',f(TR.budget),'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),Object.values(SETS).some(s=>s.gstCol)?'GST column total':'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Monthly revenue',chartSub:'Amount received by payment date',...chart([{label:'Revenue',c:'#17a589',data:revM}]),
         sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
         searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
@@ -719,10 +722,14 @@ class Component extends DCLogic {
     }
     const gl=gq.trim().toLowerCase();let gRes=[];
     if(gl){
-      const PJ={};R.forEach(r=>{if(r[0].toLowerCase().includes(gl)){PJ[r[0]]=PJ[r[0]]||[0,0];PJ[r[0]][0]+=r[4];PJ[r[0]][1]++;}});
-      const VJ={};E.forEach(e=>{if(((e[0]||'')+' '+(e[1]||'')).toLowerCase().includes(gl)){const k=e[0]||'—';VJ[k]=VJ[k]||[0,0];VJ[k][0]+=(e[5]||e[3]);VJ[k][1]++;}});
-      gRes=[...Object.entries(PJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c]])=>({kind:'Revenue',kb:'#e3f5ef',kc:'#128a72',name:k,value:f(v),meta:c+(c===1?' entry':' entries')+' · received',go:()=>this.setState({page:'revenue',q:k,gq:'',limit:25})})),
-        ...Object.entries(VJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c]])=>({kind:'Expense',kb:'#efeaff',kc:'#5b3fd9',name:k,value:f(v),meta:c+(c===1?' payment':' payments')+' · spent',go:()=>this.setState({page:'expenses',q:gq.trim(),gq:'',limit:25})}))];
+      const allD=['atom','social','ngen'];
+      const RA=[...added.revenue.filter(r=>!exR(r)),...allD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])];
+      const EA=[...added.expenses.filter(e=>!exE(e)),...allD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
+      const dl=ds=>[...ds].map(d=>DN[d]).join(', ');
+      const PJ={};RA.forEach(r=>{if((r[0]+' '+brandOf(r[0])+' '+(r[3]||'')).toLowerCase().includes(gl)){PJ[r[0]]=PJ[r[0]]||[0,0,new Set()];PJ[r[0]][0]+=r[4];PJ[r[0]][1]++;PJ[r[0]][2].add(rd(r));}});
+      const VJ={};EA.forEach(e=>{if(((e[0]||'')+' '+(e[1]||'')).toLowerCase().includes(gl)){const k=e[0]||'—';VJ[k]=VJ[k]||[0,0,new Set()];VJ[k][0]+=(e[5]||e[3]);VJ[k][1]++;VJ[k][2].add(ed(e));}});
+      gRes=[...Object.entries(PJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c,ds]])=>({kind:'Revenue',kb:'#e3f5ef',kc:'#128a72',name:k,value:f(v),meta:dl(ds)+' · '+c+(c===1?' entry':' entries')+' · received',go:()=>this.setState({page:'revenue',div:'all',q:k,gq:'',limit:25})})),
+        ...Object.entries(VJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c,ds]])=>({kind:'Expense',kb:'#efeaff',kc:'#5b3fd9',name:k,value:f(v),meta:dl(ds)+' · '+c+(c===1?' payment':' payments')+' · spent',go:()=>this.setState({page:'expenses',div:'all',q:gq.trim(),gq:'',limit:25})}))];
     }
     const FM=modal?FORMS[modal]:null;
     const setF=k=>e=>{const v=e.target.value;this.setState(s=>({form:{...s.form,[k]:v},formErr:''}));};
@@ -757,7 +764,7 @@ class Component extends DCLogic {
       zoneSub:imp.parsed?imp.parsed.revN.toLocaleString('en-IN')+' revenue rows · '+imp.parsed.expN.toLocaleString('en-IN')+' expense rows · sheets: '+imp.parsed.sheets.join(', '):'One workbook with a-tom, Social and Ngen — every row is read',
       impHasParsed:!!imp.parsed,
       impSummary:imp.parsed?['atom','social','ngen'].map(d=>{const s=imp.parsed.sets[d];return {name:DN[d],rows:s?s.revenue.length.toLocaleString('en-IN')+' revenue · '+s.expenses.length.toLocaleString('en-IN')+' expense rows':'No rows found',rev:s?f(s.totals.revenue.amount):'—',exp:s?f(s.totals.expenses.total):'—',fg:s?'#17162a':'#a9a7bd'};}):[],
-      hasImpNote:!!(imp.parsed&&imp.parsed.unassigned),impNote:imp.parsed&&imp.parsed.unassigned?imp.parsed.unassigned.toLocaleString('en-IN')+' rows had no division label (no Division column, section heading or labelled total) and were filed under a-tom.':'',
+      hasImpNote:!!imp.parsed,impNote:'Division is read from the name — “… - Social” or “… - Ngen”. Projects without a division name are filed under a-tom.',
       hasImpErr:!!imp.err,impErr:imp.err,
       hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),
       doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.parsed?'Import & replace':'Import',
