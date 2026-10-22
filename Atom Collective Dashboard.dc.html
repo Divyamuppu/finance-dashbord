@@ -442,7 +442,7 @@ input::placeholder{color:#8e8ca3}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;defaultPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;overview&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;revenue&quot;,&quot;expenses&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;overview&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;revenue&quot;,&quot;expenses&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;excludeProjects&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Cognitive Botics&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
 const ICON={
   overview:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
@@ -639,15 +639,22 @@ class Component extends DCLogic {
     };
     const inDiv=d=>div==='all'||div===d, baseOn=inDiv('atom');
     const addR=added.revenue.filter(r=>inDiv(rd(r))), addE=added.expenses.filter(e=>inDiv(ed(e)));
-    const SETS={...imports};
+    const exList=String(this.props.excludeProjects??'Cognitive Botics').split(',').map(s=>s.toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean);
+    const excluded=s=>{const k=String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');return !!k&&exList.some(x=>k.includes(x));};
+    const exR=r=>excluded(r[0]), exE=e=>excluded(e[0])||excluded(e[1]);
+    const recalc=s=>{const rv=s.revenue.filter(r=>!exR(r)),ex=s.expenses.filter(e=>!exE(e));if(rv.length===s.revenue.length&&ex.length===s.expenses.length)return s;
+      const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
+      return {...s,revenue:rv,expenses:ex,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};};
+    const SETS=Object.fromEntries(Object.entries(imports).map(([k,s])=>[k,recalc(s)]));
     const scopeD=['atom','social','ngen'].filter(inDiv);
-    const R=[...addR,...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE,...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
+    const R=[...addR.filter(r=>!exR(r)),...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE.filter(e=>!exE(e)),...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
     const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
     const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0,gst:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
-    const TR={budget:TR0.budget+sum(addR.map(r=>r[1])),amount:TR0.amount+sum(addR.map(r=>r[4])),tds:TR0.tds+sum(addR.map(r=>r[5])),gst:TR0.gst+Math.round(sum(addR.map(r=>r[1]))*18/118)};
+    const addRx=addR.filter(r=>!exR(r)),addEx=addE.filter(e=>!exE(e));
+    const TR={budget:TR0.budget+sum(addRx.map(r=>r[1])),amount:TR0.amount+sum(addRx.map(r=>r[4])),tds:TR0.tds+sum(addRx.map(r=>r[5])),gst:TR0.gst+Math.round(sum(addRx.map(r=>r[1]))*18/118)};
     TR.balance=TR.budget-TR.amount-TR.tds;
-    const TE={amount:TE0.amount+sum(addE.map(e=>e[3])),tds:TE0.tds+sum(addE.map(e=>e[4])),total:TE0.total+sum(addE.map(e=>e[5]))};
-    const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d),ae=added.expenses.filter(e=>ed(e)===d);return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
+    const TE={amount:TE0.amount+sum(addEx.map(e=>e[3])),tds:TE0.tds+sum(addEx.map(e=>e[4])),total:TE0.total+sum(addEx.map(e=>e[5]))};
+    const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d&&!exR(r)),ae=added.expenses.filter(e=>ed(e)===d&&!exE(e));return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
     const metric=t=>page==='revenue'?t.rev:page==='expenses'?t.exp:t.rev-t.exp;
     const divTabs=DIVS.map(([id,name])=>{const t=id==='all'?['atom','social','ngen'].map(divTot).reduce((a,b)=>({rev:a.rev+b.rev,exp:a.exp+b.exp}),{rev:0,exp:0}):divTot(id);const a=div===id;return {name,value:f(metric(t))+(page==='overview'?' net':''),go:()=>this.setState({div:id,limit:25}),bg:a?'#17162a':'#fff',fg:a?'#fff':'#17162a',bd:a?'#17162a':'#e3e2ec',sh:a?'0 8px 20px rgba(23,22,42,.16)':'none'};});
     const revM=Array(12).fill(0), expM=Array(12).fill(0);
