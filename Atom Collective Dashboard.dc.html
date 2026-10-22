@@ -163,6 +163,15 @@ input::placeholder{color:#8e8ca3}
         </div>
       </div>
 
+      <sc-if value="{{ showPublish }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff6e8;border:1px solid #f3d9a8;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:15px;font-weight:600;color:#6b4508">Only visible on this device</div>
+            <div style="font-size:13px;color:#8a5a12;text-wrap:pretty">Your import is saved in this browser. To show it to everyone, download the data file and add it to the site as data/workbook.json, then push.</div>
+          </div>
+          <div onClick="{{ downloadData }}" style="font-size:14px;font-weight:600;color:#fff;padding:11px 18px;border-radius:999px;background:#17162a;cursor:pointer;white-space:nowrap">Download workbook.json</div>
+        </div>
+      </sc-if>
       <sc-if value="{{ noData }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1.5px dashed #cfc8f5;border-radius:18px;padding:24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
           <div style="width:48px;height:48px;border-radius:14px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -408,12 +417,18 @@ input::placeholder{color:#8e8ca3}
           <sc-if value="{{ hasImpNote }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border-radius:10px;padding:10px 12px">{{ impNote }}</div>
           </sc-if>
+          <sc-if value="{{ needKey }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:13px;font-weight:600;color:#3b3953">Admin key</span>
+              <input type="password" value="{{ keyInput }}" onChange="{{ onKey }}" placeholder="Needed once to publish for everyone" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;color:#17162a;outline:none;background:#fff;width:100%;min-width:0" style-focus="border-color:#7c5cff">
+            </label>
+          </sc-if>
           <sc-if value="{{ hasImpErr }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:13px;color:#c0392b">{{ impErr }}</div>
           </sc-if>
           <div style="display:flex;align-items:center;gap:10px;border-top:1px solid #ececf2;padding-top:18px;flex-wrap:wrap">
             <sc-if value="{{ hasImports }}" hint-placeholder-val="{{ false }}">
-              <span onClick="{{ clearAll }}" style="font-size:13px;color:#c0392b;cursor:pointer;white-space:nowrap">Clear workbook data</span>
+              <span onClick="{{ clearAll }}" style="font-size:13px;color:#c0392b;cursor:pointer;white-space:nowrap">{{ clearLabel }}</span>
             </sc-if>
             <div style="flex:1"></div>
             <div onClick="{{ closeImp }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
@@ -450,6 +465,12 @@ input::placeholder{color:#8e8ca3}
           </div>
           <datalist id="dc-projects"><sc-for list="{{ projectOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o }}"></option></sc-for></datalist>
           <datalist id="dc-vendors"><sc-for list="{{ vendorOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o }}"></option></sc-for></datalist>
+          <sc-if value="{{ needKey }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:13px;font-weight:600;color:#3b3953">Admin key</span>
+              <input type="password" value="{{ keyInput }}" onChange="{{ onKey }}" placeholder="Needed once to publish for everyone" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;color:#17162a;outline:none;background:#fff;width:100%;min-width:0" style-focus="border-color:#7c5cff">
+            </label>
+          </sc-if>
           <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:13px;color:#c0392b">{{ formErr }}</div>
           </sc-if>
@@ -575,7 +596,7 @@ const FORMS={
  expense:{title:'Add expense',sub:'Log a vendor or project cost in the Expenses sheet.',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
 };
 class Component extends DCLogic {
-  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
+  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
   setImp(o){this.setState(s=>({imp:{...s.imp,...o}}));}
   async parseFile(file){
     if(!file)return;
@@ -612,8 +633,25 @@ class Component extends DCLogic {
       this.setImp({busy:false,parsed:{source:file.name,sets,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
     }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
   }
-  doImport(){
+  async push(payload){
+    const key=this.state.adminKey||this.state.keyInput.trim();
+    if(!key)return 'Enter the admin key to publish for everyone.';
+    try{const r=await fetch('/api/workbook',{method:'PUT',headers:{'content-type':'application/json','x-admin-key':key},body:JSON.stringify(payload)});
+      if(r.status===401){try{localStorage.removeItem('atom-dash-admin-key');}catch(e){}this.setState({adminKey:''});return 'Wrong admin key.';}
+      if(!r.ok)return 'Could not save to the server ('+r.status+').';
+      try{localStorage.setItem('atom-dash-admin-key',key);}catch(e){}this.setState({adminKey:key,keyInput:''});return null;
+    }catch(e){return 'Could not reach the server — check your connection.';}
+  }
+  async doImport(){
     const {imp}=this.state;if(!imp.parsed)return;
+    if(this.state.backend){
+      this.setImp({busy:true,err:''});
+      const err=await this.push({imports:imp.parsed.sets,added:this.state.added});
+      if(err)return this.setImp({busy:false,err});
+      try{localStorage.removeItem(IMPORT_KEY);}catch(e){}
+      clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);
+      return this.setState({published:imp.parsed.sets,imports:{},div:'all',updatedAt:Date.now(),imp:{open:false,busy:false,err:'',parsed:null,drag:false},flash:'Published · everyone with the link now sees '+imp.parsed.source});
+    }
     const next=imp.parsed.sets;let warn='';
     try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){warn=' (too large to keep after reload)';}
     clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3500);
@@ -625,7 +663,7 @@ class Component extends DCLogic {
     this.setState(s=>({imports:{},imp:{...s.imp,parsed:null,err:''},flash:'Workbook data cleared'}));
   }
   openModal(kind){this.setState(s=>({modal:kind,form:{date:today(),div:s.div==='all'?'atom':s.div},formErr:''}));}
-  saveModal(){
+  async saveModal(){
     const {modal,form,added}=this.state;const n=k=>parseFloat(form[k])||0;const s=k=>String(form[k]||'').trim();const has=k=>form[k]!=null&&String(form[k]).trim()!=='';
     const next={revenue:[...added.revenue],expenses:[...added.expenses]};let msg='';
     if(modal==='expense'){
@@ -642,6 +680,7 @@ class Component extends DCLogic {
       next.revenue.unshift([s('name'),budget,form.date||null,s('payment'),n('amount'),n('tds'),bal,true,form.div||'atom']);
       msg=DN[form.div||'atom']+(modal==='project'?' project added · ':' revenue added · ')+s('name');
     }
+    if(this.state.backend){const err=await this.push({imports:this.state.published||{},added:next});if(err)return this.setState({formErr:err});}
     try{localStorage.setItem(ADDED_KEY,JSON.stringify(next));}catch(e){}
     clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
     this.setState({added:next,modal:null,form:{},formErr:'',flash:msg});
@@ -658,6 +697,8 @@ class Component extends DCLogic {
     try{const a=JSON.parse(localStorage.getItem(ADDED_KEY)||'null');if(a&&a.revenue)this.setState({added:a});}catch(e){}
     try{const im=JSON.parse(localStorage.getItem(IMPORT_KEY)||'null');if(im)this.setState({imports:im});}catch(e){}
     try{localStorage.removeItem('atom-dash-imports-v1');}catch(e){}
+    fetch('/api/workbook',{cache:'no-store'}).then(r=>r.ok&&/json/.test(r.headers.get('content-type')||'')?r.json():null).then(d=>{if(!d)return;const st={backend:true};if(d.imports&&Object.keys(d.imports).length)st.published=d.imports;if(Array.isArray(d.added&&d.added.revenue))st.added=d.added;if(d.updatedAt)st.updatedAt=d.updatedAt;this.setState(st);}).catch(()=>{});
+    fetch('data/workbook.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(p=>{if(p&&typeof p==='object'&&Object.values(p).some(s=>s&&s.revenue))this.setState(s=>s.backend&&s.published?{}:{published:p});}).catch(()=>{});
   }
   renderVals(){
     const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp,mobile,canInstall,standalone,iosOpen}=this.state;
@@ -679,7 +720,9 @@ class Component extends DCLogic {
       const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
       const g=s.gstCol&&s.gstByProj?sum(Object.entries(s.gstByProj).filter(([k])=>!excluded(k)).map(([,v])=>v)):Math.round(b*18/118);
       return {...s,revenue:rv,expenses:ex,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:g},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};};
-    const SETS=Object.fromEntries(Object.entries(imports).map(([k,s])=>[k,recalc(s)]));
+    const hasLocal=Object.keys(imports).length>0, pub=this.state.published;
+    const src=hasLocal?imports:(pub||{});
+    const SETS=Object.fromEntries(Object.entries(src).map(([k,s])=>[k,recalc(s)]));
     const scopeD=['atom','social','ngen'].filter(inDiv);
     const R=[...addR.filter(r=>!exR(r)),...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE.filter(e=>!exE(e)),...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
     const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
@@ -809,12 +852,15 @@ class Component extends DCLogic {
       hasImpNote:!!imp.parsed,impNote:'Revenue: division is read from the project name (“… - Social”, “… - Ngen”); unlabelled projects go to a-tom. Expenses: matched to a division when the Project/operational text names a Social or Ngen project (or says Social / Ngen); the rest go to a-tom.',
       ...(()=>{const S=imp.parsed?Object.values(imp.parsed.sets):[];return {impTotalRows:sum(S.map(s=>s.revenue.length)).toLocaleString('en-IN')+' revenue · '+sum(S.map(s=>s.expenses.length)).toLocaleString('en-IN')+' expense rows',impTotalRev:f(sum(S.map(s=>s.totals.revenue.amount))),impTotalExp:f(sum(S.map(s=>s.totals.expenses.total)))};})(),
       hasImpErr:!!imp.err,impErr:imp.err,
-      hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),
-      doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.parsed?'Import & replace':'Import',
-      noData:!Object.keys(imports).length&&!added.revenue.length&&!added.expenses.length,
-      sourceName:(Object.values(imports)[0]||{}).source||'No workbook yet — use Import Excel',
-      statusDot:Object.keys(imports).length?'#17a589':'#c9c8d6',
-      statusText:Object.keys(imports).length?'Workbook imported':'No workbook imported',
+      hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),clearLabel:this.state.published?'Remove local import (use published)':'Clear workbook data',
+      doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.busy&&imp.parsed?'Publishing…':imp.parsed?(this.state.backend?'Publish for everyone':'Import & replace'):'Import',
+      noData:!Object.keys(src).length&&!added.revenue.length&&!added.expenses.length,
+      sourceName:(Object.values(src)[0]||{}).source||'No workbook yet — use Import Excel',
+      statusDot:hasLocal?'#e0a23a':pub?'#17a589':'#c9c8d6',
+      statusText:this.state.backend?(hasLocal?'Local import · not published':pub?'Live · shared with everyone'+(this.state.updatedAt?' · updated '+new Date(this.state.updatedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):''):'Live · no workbook published yet'):(hasLocal?'Local import · this device only':pub?'Published workbook':'No workbook imported'),
+      showPublish:!this.state.backend&&hasLocal&&JSON.stringify(imports)!==JSON.stringify(pub),
+      needKey:this.state.backend&&!this.state.adminKey,keyInput:this.state.keyInput,onKey:e=>this.setState({keyInput:e.target.value}),
+      downloadData:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
       formDivs:['atom','social','ngen'].map(id=>{const a=(form.div||'atom')===id;return {name:DN[id],go:()=>this.setState(s=>({form:{...s.form,div:id}})),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
       q,onSearch:e=>this.setState({q:e.target.value,limit:25}),more:()=>this.setState(s=>({limit:s.limit+50}))});
   }
