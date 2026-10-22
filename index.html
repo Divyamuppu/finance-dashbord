@@ -606,8 +606,9 @@ class Component extends DCLogic {
         const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>r.slice(0,7)),ex=exp.filter(e=>(e[6]||'atom')===d).map(e=>e.slice(0,6));
         if(!rv.length&&!ex.length)continue;
         const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
-        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:hasGst?sum(rev.filter(r=>(r[7]||'atom')===d).map(r=>r[8]||0)):Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex,gstCol:hasGst,gstByProj:hasGst?Object.fromEntries(rev.filter(r=>(r[7]||'atom')===d&&r[8]).map(r=>[r[0],r[8]])):null};
+        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:0,gst:hasGst?sum(rev.filter(r=>(r[7]||'atom')===d).map(r=>r[8]||0)):Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex,gstCol:hasGst,gstByProj:hasGst?Object.fromEntries(rev.filter(r=>(r[7]||'atom')===d&&r[8]).map(r=>[r[0],r[8]])):null};
       }
+      Object.values(sets).forEach(s=>{const t=s.totals.revenue;t.balance=t.budget-t.amount-t.tds;});
       this.setImp({busy:false,parsed:{source:file.name,sets,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
     }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
   }
@@ -684,7 +685,9 @@ class Component extends DCLogic {
     const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
     const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0,gst:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
     const addRx=addR.filter(r=>!exR(r)),addEx=addE.filter(e=>!exE(e));
-    const TR={budget:TR0.budget+sum(addRx.map(r=>r[1])),amount:TR0.amount+sum(addRx.map(r=>r[4])),tds:TR0.tds+sum(addRx.map(r=>r[5])),gst:TR0.gst+Math.round(sum(addRx.map(r=>r[1]))*18/118)};
+    const TR={budget:TR0.budget+sum(addRx.map(r=>r[1])),amount:TR0.amount+sum(addRx.map(r=>r[4])),tds:TR0.tds+sum(addRx.map(r=>r[5])),gst:0};
+    const gstSep=Object.values(SETS).some(s=>s.gstCol);
+    TR.gst=TR0.gst+Math.round(sum(addRx.map(r=>r[1]))*(gstSep?0.18:18/118));
     TR.balance=TR.budget-TR.amount-TR.tds;
     const TE={amount:TE0.amount+sum(addEx.map(e=>e[3])),tds:TE0.tds+sum(addEx.map(e=>e[4])),total:TE0.total+sum(addEx.map(e=>e[5]))};
     const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d&&!exR(r)),ae=added.expenses.filter(e=>ed(e)===d&&!exE(e));return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
@@ -720,7 +723,7 @@ class Component extends DCLogic {
       const net=TR.amount-TE.total;
       const netRev=TR.amount-gstPaid, opex=TE.total-gstPaid;
       P={title:'Overview',subtitle:"Cash position across the workbook's Revenue and Expenses sheets.",
-        kpis:[kpi('Total revenue',f(TR.budget),'Project budgets incl. GST','purple','receipt'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        kpis:[kpi('Total revenue',f(TR.budget),gstSep?'Project budgets excl. GST':'Project budgets incl. GST','purple','receipt'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Revenue vs expenses',chartSub:'Monthly totals by transaction date · '+fyLabel,
         ...chart([{label:'Revenue',c:'#17a589',data:revM},{label:'Expenses',c:'#8b6dff',data:expM}]),
         sideTitle:'Income snapshot',sideSub:fyLabel+' chart · totals cover the whole workbook',
@@ -730,7 +733,7 @@ class Component extends DCLogic {
     if(page==='revenue'){
       const rows=R.filter(r=>search(r[0]+' '+r[3]));
       P={title:'Revenue',subtitle:"Project budgets, payments received and balances from the workbook's Revenue sheet.",
-        kpis:[kpi('Total revenue',f(TR.budget),'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),Object.values(SETS).some(s=>s.gstCol)?'GST column total':'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        kpis:[kpi('Total revenue',f(TR.budget),gstSep?'Project budgets excl. GST':'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),gstSep?'GST column total (separate from revenue)':'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Monthly revenue',chartSub:'Amount received by payment date · '+fyLabel,...chart([{label:'Revenue',c:'#17a589',data:revM}]),
         sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
         searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
