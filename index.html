@@ -48,8 +48,36 @@ input::placeholder{color:#8e8ca3}
     <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 36px;border-bottom:1px solid #ececf2">
       <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4b4962">
         <span style="width:8px;height:8px;border-radius:50%;background:{{ statusDot }};box-shadow:0 0 0 4px #e3f5ef"></span>
-        <span>{{ statusText }}</span>
+        <span style="white-space:nowrap">{{ statusText }}</span>
       </div>
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;max-width:520px;position:relative">
+          <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e2ec;border-radius:999px;padding:0 16px;height:42px" style-focus-within="border-color:#7c5cff">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f6d85" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <input value="{{ gq }}" onChange="{{ onGSearch }}" placeholder="Search projects, clients or vendors" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font:inherit;font-size:14px;color:#17162a">
+            <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ clearGq }}" style="cursor:pointer;color:#8e8ca3;font-size:18px;line-height:1">×</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:50px;left:0;right:0;background:#fff;border:1px solid #e3e2ec;border-radius:16px;box-shadow:0 18px 40px rgba(23,22,42,.12);z-index:30;max-height:440px;overflow-y:auto;padding:6px">
+              <sc-for list="{{ gRes }}" as="r" hint-placeholder-count="0">
+                <div onClick="{{ r.go }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer" style-hover="background:#f6f3ff">
+                  <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:{{ r.kb }};color:{{ r.kc }};flex-shrink:0">{{ r.kind }}</span>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                    <span style="font-size:12px;color:#6f6d85">{{ r.meta }}</span>
+                  </div>
+                  <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.value }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ gEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:16px 12px;font-size:14px;color:#6f6d85">No projects or vendors match “{{ gq }}”.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
       <div style="font-size:13px;font-weight:600;padding:9px 16px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0">FY 2025–26</div>
     </header>
 
@@ -60,12 +88,29 @@ input::placeholder{color:#8e8ca3}
           <div style="font-family:'DM Serif Display',serif;font-size:46px;line-height:1.05;letter-spacing:-.01em">{{ title }}</div>
           <div style="font-size:16px;color:#5d5b72">{{ subtitle }}</div>
         </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div onClick="{{ openAction }}" style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#fff;padding:11px 20px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap;box-shadow:0 6px 18px rgba(109,74,255,.28)" style-hover="background:#5b3fd9">
+          <span style="font-size:18px;line-height:1">+</span>{{ actionLabel }}
+        </div>
+        <div onClick="{{ openImport }}" style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#3b3953;padding:11px 18px;border:1px solid #d9d2ff;border-radius:999px;background:#f6f3ff;cursor:pointer;white-space:nowrap" style-hover="background:#efeaff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+          Import Excel
+        </div>
         <a href="uploads/data_file-1792562438937-q5eq.xlsx" download="atom-FY-2025-26.xlsx" style="display:flex;align-items:center;gap:10px;font-size:14px;color:#3b3953;padding:11px 18px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
           Excel snapshot
         </a>
+        </div>
       </div>
 
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <sc-for list="{{ divTabs }}" as="d" hint-placeholder-count="4">
+          <div onClick="{{ d.go }}" style="display:flex;flex-direction:column;gap:4px;padding:12px 18px;border-radius:14px;cursor:pointer;min-width:160px;background:{{ d.bg }};border:1px solid {{ d.bd }};color:{{ d.fg }};box-shadow:{{ d.sh }}">
+            <span style="font-size:13px;font-weight:600;white-space:nowrap">{{ d.name }}</span>
+            <span style="font-size:15px;font-variant-numeric:tabular-nums;opacity:.85;white-space:nowrap">{{ d.value }}</span>
+          </div>
+        </sc-for>
+      </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
         <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
           <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:24px 24px 20px;display:flex;flex-direction:column;gap:22px;box-shadow:0 1px 2px rgba(23,22,42,.04)">
@@ -196,6 +241,92 @@ input::placeholder{color:#8e8ca3}
         </div>
       </sc-if>
     </div>
+    <sc-if value="{{ hasFlash }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:14px;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px rgba(23,22,42,.25);z-index:60;display:flex;align-items:center;gap:10px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#17a589"></span>{{ flash }}
+      </div>
+    </sc-if>
+    <sc-if value="{{ impOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeImp }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50">
+        <div onClick="{{ stop }}" style="width:100%;max-width:660px;max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">Import Excel</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Upload one workbook per division — each with Revenue and Expenses sheets. “All divisions” combines every brand across the three. Entries added by hand are kept.</div>
+            </div>
+            <div onClick="{{ closeImp }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ impSlots }}" as="s" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px">
+                <label onDragOver="{{ s.over }}" onDragLeave="{{ s.leave }}" onDrop="{{ s.drop }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px dashed {{ s.bd }};border-radius:14px;background:{{ s.bg }};cursor:pointer">
+                  <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange="{{ s.pick }}" style="display:none">
+                  <div style="width:40px;height:40px;border-radius:11px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+                  </div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="font-size:15px;font-weight:600;white-space:nowrap">{{ s.name }}</span>
+                      <sc-if value="{{ s.hasBadge }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#e3f5ef;color:#128a72">Ready</span>
+                      </sc-if>
+                    </div>
+                    <span style="font-size:12px;color:{{ s.statusFg }};line-height:1.4;overflow-wrap:anywhere">{{ s.status }}</span>
+                  </div>
+                  <span style="font-size:13px;font-weight:600;color:#5b3fd9;padding:8px 14px;border-radius:999px;border:1px solid #d9d2ff;background:#fff;white-space:nowrap;flex-shrink:0">{{ s.btn }}</span>
+                </label>
+                <sc-if value="{{ s.canRemove }}" hint-placeholder-val="{{ false }}">
+                  <span onClick="{{ s.remove }}" style="font-size:13px;color:#c0392b;cursor:pointer;white-space:nowrap">Remove</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;color:#6f6d85">Drag a file onto a row or click it to browse. Only .xlsx is supported.</div>
+          <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #ececf2;padding-top:18px">
+            <div onClick="{{ closeImp }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
+            <div onClick="{{ doImport }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:{{ impBtnBg }};color:#fff;cursor:{{ impBtnCur }};white-space:nowrap">{{ impBtnLabel }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50">
+        <div onClick="{{ stop }}" style="width:100%;max-width:580px;max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">{{ mTitle }}</div>
+              <div style="font-size:14px;color:#6f6d85">{{ mSub }}</div>
+            </div>
+            <div onClick="{{ closeModal }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;font-weight:600;color:#3b3953">Division</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ formDivs }}" as="d" hint-placeholder-count="3">
+                <div onClick="{{ d.go }}" style="padding:10px 18px;border-radius:999px;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0;border:1px solid {{ d.bd }};background:{{ d.bg }};color:{{ d.fg }}">{{ d.name }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+            <sc-for list="{{ fields }}" as="fl" hint-placeholder-count="6">
+              <label style="display:flex;flex-direction:column;gap:7px;grid-column:{{ fl.span }}">
+                <span style="font-size:13px;font-weight:600;color:#3b3953">{{ fl.label }}</span>
+                <input type="{{ fl.type }}" value="{{ fl.value }}" onChange="{{ fl.onChange }}" placeholder="{{ fl.ph }}" list="{{ fl.list }}" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:15px;color:#17162a;outline:none;background:#fff;width:100%" style-focus="border-color:#7c5cff">
+              </label>
+            </sc-for>
+          </div>
+          <datalist id="dc-projects"><sc-for list="{{ projectOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o }}"></option></sc-for></datalist>
+          <datalist id="dc-vendors"><sc-for list="{{ vendorOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o }}"></option></sc-for></datalist>
+          <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#c0392b">{{ formErr }}</div>
+          </sc-if>
+          <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #ececf2;padding-top:18px">
+            <div onClick="{{ closeModal }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
+            <div onClick="{{ saveModal }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:#6d4aff;color:#fff;cursor:pointer" style-hover="background:#5b3fd9">{{ mSave }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
   </main>
 </div>
 </x-dc>
@@ -222,13 +353,134 @@ const fmtDate=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00Z');return x.t
 const brandOf=n=>{const l=n.toLowerCase();for(const [b,...k] of BRANDS)if(k.some(x=>l.includes(x)))return b;return n.split(/[ (\-–]/)[0]||n;};
 const lakh=v=>'₹'+(v/1e5).toFixed(0)+'L';
 function niceTicks(max){const steps=[1,2,2.5,5,10,20,25,50,100,200,250,500,1000].map(s=>s*1e5);const st=steps.find(s=>s*4>=max)||steps[steps.length-1];return [4,3,2,1,0].map(i=>i*st);}
+const DN={atom:'a-tom',social:'Social',ngen:'Ngen'};
+const DIVS=[['all','All divisions'],['atom','a-tom'],['social','Social'],['ngen','Ngen']];
+const rd=r=>r[8]||'atom', ed=e=>e[7]||'atom';
+const IMPORT_KEY='atom-dash-imports-v1';
+const xdec=s=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(+c)).replace(/&amp;/g,'&');
+const colIdx=s=>{let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n-1;};
+async function unzip(buf){
+  const dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength);let e=buf.length-22;
+  while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+  if(e<0)throw new Error('This file is not a valid .xlsx workbook.');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const files={};
+  for(let i=0;i<n;i++){const method=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),fl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),off=dv.getUint32(p+42,true);files[new TextDecoder().decode(buf.subarray(p+46,p+46+fl))]={method,cs,off};p+=46+fl+el+cl;}
+  return async name=>{const f=files[name];if(!f)return null;const st=f.off+30+dv.getUint16(f.off+26,true)+dv.getUint16(f.off+28,true);const data=buf.slice(st,st+f.cs);if(f.method===0)return new TextDecoder().decode(data);return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();};
+}
+async function readXlsx(file){
+  const get=await unzip(new Uint8Array(await file.arrayBuffer()));
+  const wb=await get('xl/workbook.xml');if(!wb)throw new Error('This file is not an Excel workbook.');
+  const rels=(await get('xl/_rels/workbook.xml.rels'))||'';const relMap={};
+  for(const m of rels.matchAll(/<Relationship\b[^>]*>/g)){const id=(m[0].match(/Id="([^"]+)"/)||[])[1],t=(m[0].match(/Target="([^"]+)"/)||[])[1];if(id&&t)relMap[id]=t.startsWith('/')?t.slice(1):'xl/'+t;}
+  const sheets=[...wb.matchAll(/<sheet\b[^>]*>/g)].map(m=>({name:xdec((m[0].match(/name="([^"]*)"/)||[])[1]||''),path:relMap[(m[0].match(/r:id="([^"]+)"/)||[])[1]]})).filter(s=>s.path);
+  const ss=(await get('xl/sharedStrings.xml'))||'';
+  const strings=[...ss.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m=>xdec([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join('')));
+  const read=async path=>{const x=await get(path);if(!x)return [];const rows=[];
+    for(const r of x.matchAll(/<row\b(?:[^>]*[^\/>])?>([\s\S]*?)<\/row>/g)){const a=[];
+      for(const c of r[1].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){const ref=(c[1].match(/r="([A-Z]+)\d+"/)||[])[1];if(!ref)continue;const t=(c[1].match(/t="(\w+)"/)||[])[1];const body=c[2]||'';let val;
+        if(t==='inlineStr')val=xdec([...body.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join(''));
+        else{const v=body.match(/<v>([\s\S]*?)<\/v>/);if(!v)continue;val=t==='s'?strings[+v[1]]:(t==='str'||t==='e'||t==='b')?xdec(v[1]):+v[1];}
+        a[colIdx(ref)]=val;}
+      rows.push(a);}
+    return rows;};
+  return {sheets,read};
+}
+const isoD=v=>{if(typeof v==='number'&&v>30000&&v<80000)return new Date(Date.UTC(1899,11,30)+Math.round(v)*864e5).toISOString().slice(0,10);
+  if(typeof v==='string'){const s=v.trim();const m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);if(m){const y=m[3].length===2?2000+ +m[3]:+m[3];return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}const m2=s.match(/^\d{4}-\d{2}-\d{2}/);if(m2)return m2[0];}return null;};
+const nv=v=>typeof v==='number'?v:(parseFloat(String(v??'').replace(/[₹,\s]/g,''))||0);
+const sv=v=>v==null?'':String(v).trim().replace(/\s+/g,' ');
+const findCol=(H,res,fb)=>{for(const re of res){const i=H.findIndex(x=>re.test(x.trim()));if(i>=0)return i;}return fb;};
+const headerAt=(rows,re)=>Math.max(0,rows.slice(0,6).findIndex(r=>r.some(c=>typeof c==='string'&&re.test(c))));
+function parseRevenue(rows){
+  const hi=headerAt(rows,/project|client/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
+  const C={name:findCol(H,[/project/i,/client/i,/name/i],1),budget:findCol(H,[/budget/i,/invoice/i,/billed/i],2),date:findCol(H,[/date/i],3),pay:findCol(H,[/payment/i,/terms/i,/remark/i,/status/i],4),amt:findCol(H,[/^amount/i,/received/i],5),tds:findCol(H,[/tds/i],6),bal:findCol(H,[/balance/i,/due/i],7)};
+  const out=[];let proj=null,budget=0,tot=null;
+  for(const r of rows.slice(hi+1)){const b=sv(r[C.name]);
+    if(/^total/i.test(b)){tot={budget:nv(r[C.budget]),amount:nv(r[C.amt]),tds:nv(r[C.tds]),balance:nv(r[C.bal])};break;}
+    if(b){proj=b;budget=nv(r[C.budget]);}if(!proj)continue;
+    const d=isoD(r[C.date]),a=nv(r[C.amt]);
+    if(b||d||a)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(nv(r[C.bal]))]);}
+  const calc={budget:sum(out.map(r=>r[1])),amount:sum(out.map(r=>r[4])),tds:sum(out.map(r=>r[5])),balance:sum(out.map(r=>r[6]))};
+  return {rows:out,totals:tot&&tot.amount?tot:calc};
+}
+function parseExpenses(rows){
+  const hi=headerAt(rows,/vendor|amount|particular/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
+  const C={v:findCol(H,[/vendor/i,/paid to/i,/party/i,/name/i],1),note:findCol(H,[/project/i,/particular/i,/description/i,/note/i,/purpose/i],2),date:findCol(H,[/date/i],3),amt:findCol(H,[/^amount/i,/^base/i],4),tds:findCol(H,[/tds/i],5),tot:findCol(H,[/total/i,/net/i],6)};
+  const out=[];let tot=null;
+  for(const r of rows.slice(hi+1)){const b=sv(r[C.v]);
+    if(/^total/i.test(b)){tot={amount:nv(r[C.amt]),tds:nv(r[C.tds]),total:nv(r[C.tot])};break;}
+    const a=nv(r[C.amt]),t=nv(r[C.tot]);if(!b&&!a&&!t)continue;
+    out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t)]);}
+  const calc={amount:sum(out.map(e=>e[3])),tds:sum(out.map(e=>e[4])),total:sum(out.map(e=>e[5]||e[3]))};
+  return {rows:out,totals:tot&&tot.total?tot:calc};
+}
+const ADDED_KEY='atom-dash-added-v1';
+const today=()=>new Date().toISOString().slice(0,10);
+const FORMS={
+ project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Budget incl. GST (₹)','number','0',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',2,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: budget − received − TDS',2,'']]},
+ revenue:{title:'Add revenue',sub:'Log a payment received against a project.',save:'Add revenue',fields:[['name','Project','text','Pick or type a project',2,'dc-projects'],['date','Payment date','date','',1,''],['payment','Payment note','text','e.g. 50% balance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance remaining (₹)','number','0',2,'']]},
+ expense:{title:'Add expense',sub:'Log a vendor or project cost in the Expenses sheet.',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
+};
 class Component extends DCLogic {
-  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null};
+  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',imports:{},imp:{open:false,busy:{},err:{},parsed:{},drag:null}};
+  setImp(o){this.setState(s=>({imp:{...s.imp,...o}}));}
+  async parseFile(d,file){
+    if(!file)return;
+    const set=(k,v)=>this.setState(s=>({imp:{...s.imp,[k]:{...s.imp[k],[d]:v}}}));
+    if(!/\.xlsx$/i.test(file.name)){set('parsed',null);return set('err','Choose an .xlsx file — save .xls or .csv as .xlsx first.');}
+    set('err','');set('parsed',null);set('busy',true);
+    try{
+      const wb=await readXlsx(file);
+      const rs=wb.sheets.find(s=>/revenue|income|sales|receipt/i.test(s.name))||wb.sheets[0];
+      const es=wb.sheets.find(s=>/expense|cost|spend|payment/i.test(s.name))||wb.sheets.find(s=>s!==rs);
+      const rv=rs?parseRevenue(await wb.read(rs.path)):{rows:[],totals:{budget:0,amount:0,tds:0,balance:0}};
+      const ex=es?parseExpenses(await wb.read(es.path)):{rows:[],totals:{amount:0,tds:0,total:0}};
+      if(!rv.rows.length&&!ex.rows.length)throw new Error('No revenue or expense rows found — check the sheets are named Revenue and Expenses.');
+      set('parsed',{source:file.name,importedAt:Date.now(),sheets:[rs?rs.name:'—',es?es.name:'—'],totals:{revenue:rv.totals,expenses:ex.totals},revenue:rv.rows,expenses:ex.rows});
+    }catch(e){set('err',e.message||'Could not read this file.');}
+    set('busy',false);
+  }
+  doImport(){
+    const {imp,imports}=this.state;const ds=['atom','social','ngen'].filter(d=>imp.parsed[d]);if(!ds.length)return;
+    const next={...imports};ds.forEach(d=>{next[d]=imp.parsed[d];});let warn='';
+    try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){warn=' (too large to keep after reload)';}
+    clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3500);
+    this.setState({imports:next,div:ds.length>1?'all':ds[0],imp:{open:false,busy:{},err:{},parsed:{},drag:null},flash:'Imported '+ds.map(d=>DN[d]).join(', ')+warn});
+  }
+  resetImport(d){
+    const next={...this.state.imports};delete next[d];
+    try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){}
+    this.setState({imports:next});
+  }
+  openModal(kind){this.setState(s=>({modal:kind,form:{date:today(),div:s.div==='all'?'atom':s.div},formErr:''}));}
+  saveModal(){
+    const {modal,form,added}=this.state;const n=k=>parseFloat(form[k])||0;const s=k=>String(form[k]||'').trim();const has=k=>form[k]!=null&&String(form[k]).trim()!=='';
+    const next={revenue:[...added.revenue],expenses:[...added.expenses]};let msg='';
+    if(modal==='expense'){
+      if(!s('vendor'))return this.setState({formErr:'Vendor is required.'});
+      if(!n('amount'))return this.setState({formErr:'Enter an amount.'});
+      next.expenses.unshift([s('vendor'),s('note'),form.date||null,n('amount'),n('tds'),has('total')?n('total'):n('amount')-n('tds'),true,form.div||'atom']);
+      msg=DN[form.div||'atom']+' expense added · '+f(has('total')?n('total'):n('amount')-n('tds'));
+    }else{
+      if(!s('name'))return this.setState({formErr:'Project name is required.'});
+      if(modal==='project'&&!n('budget')&&!n('amount'))return this.setState({formErr:'Enter a budget or an amount received.'});
+      if(modal==='revenue'&&!n('amount'))return this.setState({formErr:'Enter the amount received.'});
+      const budget=modal==='project'?n('budget'):0;
+      const bal=has('balance')?n('balance'):(modal==='project'?Math.max(0,budget-n('amount')-n('tds')):0);
+      next.revenue.unshift([s('name'),budget,form.date||null,s('payment'),n('amount'),n('tds'),bal,true,form.div||'atom']);
+      msg=DN[form.div||'atom']+(modal==='project'?' project added · ':' revenue added · ')+s('name');
+    }
+    try{localStorage.setItem(ADDED_KEY,JSON.stringify(next));}catch(e){}
+    clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
+    this.setState({added:next,modal:null,form:{},formErr:'',flash:msg});
+  }
   componentDidMount(){
+    try{const a=JSON.parse(localStorage.getItem(ADDED_KEY)||'null');if(a&&a.revenue)this.setState({added:a});}catch(e){}
+    try{const im=JSON.parse(localStorage.getItem(IMPORT_KEY)||'null');if(im)this.setState({imports:im});}catch(e){}
     fetch('./data/atom-fy26.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(data=>this.setState({data})).catch(e=>this.setState({err:String(e.message||e)}));
   }
   renderVals(){
-    const {page,data,err,q,limit,hover}=this.state;
+    const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp}=this.state;
     const go=p=>()=>this.setState({page:p,q:'',limit:25,hover:null});
     const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses']];
     const base={
@@ -238,7 +490,18 @@ class Component extends DCLogic {
       statusText:err?'Workbook not found':data?'Workbook-connected snapshot':'Loading workbook…',
       isOverview:page==='overview',hasTable:page!=='overview'
     };
-    const R=data?data.revenue:[], E=data?data.expenses:[], TR=data?data.totals.revenue:{budget:0,amount:0,tds:0,balance:0}, TE=data?data.totals.expenses:{amount:0,tds:0,total:0};
+    const inDiv=d=>div==='all'||div===d, baseOn=inDiv('atom');
+    const addR=added.revenue.filter(r=>inDiv(rd(r))), addE=added.expenses.filter(e=>inDiv(ed(e)));
+    const SETS={atom:data,...imports};
+    const scopeD=['atom','social','ngen'].filter(inDiv);
+    const R=[...addR,...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE,...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
+    const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
+    const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
+    const TR={budget:TR0.budget+sum(addR.map(r=>r[1])),amount:TR0.amount+sum(addR.map(r=>r[4])),tds:TR0.tds+sum(addR.map(r=>r[5])),balance:TR0.balance+sum(addR.map(r=>r[6]))};
+    const TE={amount:TE0.amount+sum(addE.map(e=>e[3])),tds:TE0.tds+sum(addE.map(e=>e[4])),total:TE0.total+sum(addE.map(e=>e[5]))};
+    const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d),ae=added.expenses.filter(e=>ed(e)===d);return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
+    const metric=t=>page==='revenue'?t.rev:page==='expenses'?t.exp:t.rev-t.exp;
+    const divTabs=DIVS.map(([id,name])=>{const t=id==='all'?['atom','social','ngen'].map(divTot).reduce((a,b)=>({rev:a.rev+b.rev,exp:a.exp+b.exp}),{rev:0,exp:0}):divTot(id);const a=div===id;return {name,value:f(metric(t))+(page==='overview'?' net':''),go:()=>this.setState({div:id,limit:25}),bg:a?'#17162a':'#fff',fg:a?'#fff':'#17162a',bd:a?'#17162a':'#e3e2ec',sh:a?'0 8px 20px rgba(23,22,42,.16)':'none'};});
     const revM=Array(12).fill(0), expM=Array(12).fill(0);
     R.forEach(r=>{const m=mIdx(r[2]);if(m!=null)revM[m]+=r[4];});
     E.forEach(e=>{const m=mIdx(e[2]);if(m!=null)expM[m]+=(e[5]||e[3]);});
@@ -278,9 +541,9 @@ class Component extends DCLogic {
         chartTitle:'Monthly revenue',chartSub:'Amount received by payment date',...chart([{label:'Revenue',c:'#17a589',data:revM}]),
         sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
         searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
-        tCols:'minmax(260px,2.2fr) 130px minmax(160px,1.2fr) 140px 120px 130px',
-        tHead:[['PROJECT','left'],['DATE','left'],['PAYMENT','left'],['AMOUNT','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
-        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[0],align:'left',fg:'#17162a'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
+        tCols:'minmax(260px,2.2fr) 110px 130px minmax(160px,1.2fr) 140px 120px 130px',
+        tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['AMOUNT','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[rd(r)],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }
@@ -291,13 +554,46 @@ class Component extends DCLogic {
         chartTitle:'Monthly expenses',chartSub:'Total Amount by transaction date',...chart([{label:'Expenses',c:'#17a589',data:expM}]),
         sideTitle:'Top vendors',sideSub:'By total recorded spend',sideRows:rank(vendors,7),
         searchPh:'Search vendor or project',rowCount:rows.length.toLocaleString('en-IN')+' rows',
-        tCols:'minmax(220px,1.6fr) minmax(220px,1.8fr) 130px 130px 110px 130px',
-        tHead:[['VENDOR','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
-        tCells:rows.slice(0,limit).flatMap(e=>[{v:e[0]||'—',align:'left',fg:'#17162a'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
+        tCols:'minmax(220px,1.6fr) 110px minmax(220px,1.8fr) 130px 130px 110px 130px',
+        tHead:[['VENDOR','left'],['DIVISION','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(e=>[{v:e[6]?'● '+(e[0]||'—'):(e[0]||'—'),align:'left',fg:e[6]?'#5b3fd9':'#17162a'},{v:DN[ed(e)],align:'left',fg:'#4b4962'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }
-    return Object.assign(base,P,{q,onSearch:e=>this.setState({q:e.target.value,limit:25}),more:()=>this.setState(s=>({limit:s.limit+50}))});
+    const gl=gq.trim().toLowerCase();let gRes=[];
+    if(gl){
+      const PJ={};R.forEach(r=>{if(r[0].toLowerCase().includes(gl)){PJ[r[0]]=PJ[r[0]]||[0,0];PJ[r[0]][0]+=r[4];PJ[r[0]][1]++;}});
+      const VJ={};E.forEach(e=>{if(((e[0]||'')+' '+(e[1]||'')).toLowerCase().includes(gl)){const k=e[0]||'—';VJ[k]=VJ[k]||[0,0];VJ[k][0]+=(e[5]||e[3]);VJ[k][1]++;}});
+      gRes=[...Object.entries(PJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c]])=>({kind:'Revenue',kb:'#e3f5ef',kc:'#128a72',name:k,value:f(v),meta:c+(c===1?' entry':' entries')+' · received',go:()=>this.setState({page:'revenue',q:k,gq:'',limit:25})})),
+        ...Object.entries(VJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c]])=>({kind:'Expense',kb:'#efeaff',kc:'#5b3fd9',name:k,value:f(v),meta:c+(c===1?' payment':' payments')+' · spent',go:()=>this.setState({page:'expenses',q:gq.trim(),gq:'',limit:25})}))];
+    }
+    const FM=modal?FORMS[modal]:null;
+    const setF=k=>e=>{const v=e.target.value;this.setState(s=>({form:{...s.form,[k]:v},formErr:''}));};
+    const kind=page==='overview'?'project':page==='revenue'?'revenue':'expense';
+    return Object.assign(base,P,{
+      gq,hasGq:!!gl,gRes,gEmpty:!!gl&&gRes.length===0,onGSearch:e=>this.setState({gq:e.target.value}),clearGq:()=>this.setState({gq:''}),
+      actionLabel:FORMS[kind].title,openAction:()=>this.openModal(kind),
+      modalOpen:!!FM,mTitle:FM?FM.title:'',mSub:FM?FM.sub:'',mSave:FM?FM.save:'',
+      fields:FM?FM.fields.map(([key,label,type,ph,span,list])=>({label,type,ph,list,span:span===2?'1 / -1':'auto',value:form[key]??'',onChange:setF(key)})):[],
+      projectOptions:[...new Set(R.map(r=>r[0]))].slice(0,400),vendorOptions:vendors.map(v=>v[0]).slice(0,400),
+      hasErr:!!formErr,formErr,closeModal:()=>this.setState({modal:null}),stop:e=>e.stopPropagation(),saveModal:()=>this.saveModal(),
+      hasFlash:!!flash,flash,divTabs,
+      sourceName:['atom','social','ngen'].filter(d=>SETS[d]).map(d=>DN[d]+': '+SETS[d].source).join(' · ')||'No workbook yet',
+      openImport:()=>this.setState({imp:{open:true,busy:{},err:{},parsed:{},drag:null}}),
+      impOpen:imp.open,closeImp:()=>this.setImp({open:false}),
+      impSlots:['atom','social','ngen'].map(d=>{const p=imp.parsed[d],er=imp.err[d],busy=imp.busy[d],cur=SETS[d];
+        const status=busy?'Reading workbook…':er?er:p?p.source+' · '+p.revenue.length.toLocaleString('en-IN')+' revenue rows ('+f(p.totals.revenue.amount)+') · '+p.expenses.length.toLocaleString('en-IN')+' expense rows ('+f(p.totals.expenses.total)+')':cur?'Current: '+cur.source+(imports[d]?' · imported':' · original'):'No workbook yet';
+        const on=imp.drag===d;
+        return {name:DN[d],status,statusFg:er?'#c0392b':p?'#128a72':'#6f6d85',hasBadge:!!p,btn:p||cur?'Replace file':'Choose file',
+          canRemove:!!imports[d]&&!p,remove:()=>this.resetImport(d),
+          pick:e=>{const fl=e.target.files&&e.target.files[0];e.target.value='';this.parseFile(d,fl);},
+          over:e=>{e.preventDefault();if(imp.drag!==d)this.setImp({drag:d});},leave:()=>this.setImp({drag:null}),
+          drop:e=>{e.preventDefault();this.setImp({drag:null});this.parseFile(d,e.dataTransfer.files&&e.dataTransfer.files[0]);},
+          bd:on?'#6d4aff':p?'#9fdcc9':er?'#e8b4ab':'#e3e2ec',bg:on?'#f1ecff':p?'#f3fbf8':'#fff'};}),
+      doImport:()=>this.doImport(),
+      ...(n=>({impBtnBg:n?'#6d4aff':'#c9c2f0',impBtnCur:n?'pointer':'not-allowed',impBtnLabel:n?'Import '+n+(n>1?' files':' file'):'Import'}))(['atom','social','ngen'].filter(d=>imp.parsed[d]).length),
+      formDivs:['atom','social','ngen'].map(id=>{const a=(form.div||'atom')===id;return {name:DN[id],go:()=>this.setState(s=>({form:{...s.form,div:id}})),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
+      q,onSearch:e=>this.setState({q:e.target.value,limit:25}),more:()=>this.setState(s=>({limit:s.limit+50}))});
   }
 }
 </script>
