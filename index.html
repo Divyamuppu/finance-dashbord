@@ -166,10 +166,10 @@ input::placeholder{color:#8e8ca3}
       <sc-if value="{{ showPublish }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff6e8;border:1px solid #f3d9a8;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:15px;font-weight:600;color:#6b4508">Only visible on this device</div>
-            <div style="font-size:13px;color:#8a5a12;text-wrap:pretty">Your import is saved in this browser. To show it to everyone, download the data file and add it to the site as data/workbook.json, then push.</div>
+            <div style="font-size:15px;font-weight:600;color:#6b4508">{{ pubTitle }}</div>
+            <div style="font-size:13px;color:#8a5a12;text-wrap:pretty">{{ pubBody }}</div>
           </div>
-          <div onClick="{{ downloadData }}" style="font-size:14px;font-weight:600;color:#fff;padding:11px 18px;border-radius:999px;background:#17162a;cursor:pointer;white-space:nowrap">Download workbook.json</div>
+          <div onClick="{{ pubAction }}" style="font-size:14px;font-weight:600;color:#fff;padding:11px 18px;border-radius:999px;background:#17162a;cursor:pointer;white-space:nowrap">{{ pubBtn }}</div>
         </div>
       </sc-if>
       <sc-if value="{{ noData }}" hint-placeholder-val="{{ false }}">
@@ -583,8 +583,9 @@ function parseExpenses(rows,sheetDiv){
     const mk=markerOf(r,[C.amt,C.tds,C.tot]);
     if(mk){cur=mk;block=out.length;continue;}
     const a=nv(r[C.amt]),t=nv(r[C.tot]);if(!b&&!a&&!t)continue;
-    const rowDiv=(C.div>=0?divOf(r[C.div]):null)||divOf(r[C.note])||divOf(b);
-    out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t),rowDiv||null,cur||null]);
+    const cells=Array.from(r,c=>typeof c==='string'?c:'').filter(Boolean);
+    const rowDiv=(C.div>=0?divOf(r[C.div]):null)||divOf(r[C.note])||divOf(b)||cells.map(divOf).find(Boolean)||null;
+    out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t),rowDiv,cur||null,cells.join(' ')]);
   }
   return out;
 }
@@ -621,7 +622,7 @@ class Component extends DCLogic {
       const km={};rev.forEach(r=>{const d=r[7]||'atom';keysFor(r[0]).forEach(k=>{(km[k]=km[k]||new Set()).add(d);});});
       const keys=Object.entries(km).filter(([,s])=>s.size===1).map(([k,s])=>[k,[...s][0]]).sort((a,b)=>b[0].length-a[0].length);
       let matched=0;
-      exp.forEach(e=>{if(e[6])return;const d=(keys.find(([k])=>keyOf(e[1]).includes(k)||keyOf(e[0]).includes(k))||[])[1];if(d&&d!=='atom'){e[6]=d;matched++;}else e[6]=e[7]||null;});
+      exp.forEach(e=>{if(e[6])return;const full=keyOf(e[8]||(e[0]+' '+e[1]));const d=(keys.find(([k])=>full.includes(k))||[])[1];if(d&&d!=='atom'){e[6]=d;matched++;}else e[6]=e[7]||null;});
       const sets={},now=Date.now();
       for(const d of ['atom','social','ngen']){
         const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>r.slice(0,7)),ex=exp.filter(e=>(e[6]||'atom')===d).map(e=>e.slice(0,6));
@@ -630,7 +631,8 @@ class Component extends DCLogic {
         sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:0,gst:hasGst?sum(rev.filter(r=>(r[7]||'atom')===d).map(r=>r[8]||0)):Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex,gstCol:hasGst,gstByProj:hasGst?Object.fromEntries(rev.filter(r=>(r[7]||'atom')===d&&r[8]).map(r=>[r[0],r[8]])):null};
       }
       Object.values(sets).forEach(s=>{const t=s.totals.revenue;t.balance=t.budget-t.amount-t.tds;});
-      this.setImp({busy:false,parsed:{source:file.name,sets,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
+      const exCols=eS.length?(await wb.read(eS[0].path)).slice(0,6).find(r=>r.some(c=>typeof c==='string'&&/vendor|amount|particular|expense/i.test(c)))||[]:[];
+      this.setImp({busy:false,parsed:{source:file.name,sets,expHeaders:Array.from(exCols,c=>typeof c==='string'?c:'').filter(Boolean),expMatched:matched,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
     }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
   }
   async push(payload){
@@ -849,7 +851,7 @@ class Component extends DCLogic {
       zoneSub:imp.parsed?imp.parsed.revN.toLocaleString('en-IN')+' revenue rows · '+imp.parsed.expN.toLocaleString('en-IN')+' expense rows · sheets: '+imp.parsed.sheets.join(', '):'One workbook with a-tom, Social and Ngen — every row is read',
       impHasParsed:!!imp.parsed,
       impSummary:imp.parsed?['atom','social','ngen'].map(d=>{const s=imp.parsed.sets[d];return {name:DN[d],rows:s?s.revenue.length.toLocaleString('en-IN')+' revenue · '+s.expenses.length.toLocaleString('en-IN')+' expense rows':'No rows found',rev:s?f(s.totals.revenue.amount):'—',exp:s?f(s.totals.expenses.total):'—',fg:s?'#17162a':'#a9a7bd'};}):[],
-      hasImpNote:!!imp.parsed,impNote:'Revenue: division is read from the project name (“… - Social”, “… - Ngen”); unlabelled projects go to a-tom. Expenses: matched to a division when the Project/operational text names a Social or Ngen project (or says Social / Ngen); the rest go to a-tom.',
+      hasImpNote:!!imp.parsed,impNote:imp.parsed&&imp.parsed.expHeaders?'Expense columns found: '+imp.parsed.expHeaders.join(', ')+'. '+imp.parsed.expMatched+' expense rows linked to Social/Ngen by project name. ':'',impNoteX:'Revenue: division is read from the project name (“… - Social”, “… - Ngen”); unlabelled projects go to a-tom. Expenses: matched to a division when the Project/operational text names a Social or Ngen project (or says Social / Ngen); the rest go to a-tom.',
       ...(()=>{const S=imp.parsed?Object.values(imp.parsed.sets):[];return {impTotalRows:sum(S.map(s=>s.revenue.length)).toLocaleString('en-IN')+' revenue · '+sum(S.map(s=>s.expenses.length)).toLocaleString('en-IN')+' expense rows',impTotalRev:f(sum(S.map(s=>s.totals.revenue.amount))),impTotalExp:f(sum(S.map(s=>s.totals.expenses.total)))};})(),
       hasImpErr:!!imp.err,impErr:imp.err,
       hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),clearLabel:this.state.published?'Remove local import (use published)':'Clear workbook data',
@@ -858,7 +860,11 @@ class Component extends DCLogic {
       sourceName:(Object.values(src)[0]||{}).source||'No workbook yet — use Import Excel',
       statusDot:hasLocal?'#e0a23a':pub?'#17a589':'#c9c8d6',
       statusText:this.state.backend?(hasLocal?'Local import · not published':pub?'Live · shared with everyone'+(this.state.updatedAt?' · updated '+new Date(this.state.updatedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):''):'Live · no workbook published yet'):(hasLocal?'Local import · this device only':pub?'Published workbook':'No workbook imported'),
-      showPublish:!this.state.backend&&hasLocal&&JSON.stringify(imports)!==JSON.stringify(pub),
+      showPublish:hasLocal&&(this.state.backend||JSON.stringify(imports)!==JSON.stringify(pub)),
+      pubTitle:this.state.backend?'Not published yet':'Server not connected — only visible on this device',
+      pubBody:this.state.backend?'This import is only in your browser. Publish it so everyone with the link sees it.':'The site could not reach /api/workbook, so the import is saved only in this browser. Check that the Netlify function is deployed (see Functions tab in Netlify).',
+      pubBtn:this.state.backend?'Publish for everyone':'Download workbook.json',
+      pubAction:this.state.backend?async()=>{const err=await this.push({imports,added:this.state.added});clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);if(err){if(/admin key/i.test(err)){const k=window.prompt('Admin key');if(k){this.setState({keyInput:k},async()=>{const e2=await this.push({imports,added:this.state.added});if(!e2){try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for everyone'});}else this.setState({flash:e2});});}return;}return this.setState({flash:err});}try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for everyone'});}:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
       needKey:this.state.backend&&!this.state.adminKey,keyInput:this.state.keyInput,onKey:e=>this.setState({keyInput:e.target.value}),
       downloadData:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
       formDivs:['atom','social','ngen'].map(id=>{const a=(form.div||'atom')===id;return {name:DN[id],go:()=>this.setState(s=>({form:{...s.form,div:id}})),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
