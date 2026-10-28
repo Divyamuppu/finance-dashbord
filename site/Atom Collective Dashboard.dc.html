@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17162a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="atom finance">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+html{-webkit-text-size-adjust:100%}
+body{margin:0;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;background:#f8f8fb;color:#17162a;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#5b3fd9;text-decoration:none}a:hover{color:#17162a}
+*{box-sizing:border-box}
+input::placeholder{color:#8e8ca3}
+</style>
+</helmet>
+<div style="display:flex;min-height:100vh">
+  <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
+  <aside style="width:264px;flex-shrink:0;background:#17162a;color:#c9c8d6;display:flex;flex-direction:column;padding:22px 14px 16px;position:sticky;top:0;height:100vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;gap:12px;padding:0 6px 30px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9b7bff,#6d4aff);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;box-shadow:0 6px 20px rgba(109,74,255,.35);flex-shrink:0">a</div>
+      <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+        <div style="color:#fff;font-weight:600;font-size:17px;letter-spacing:-.01em;white-space:nowrap">atom collective</div>
+        <div style="font-size:12px;color:#a9a7bd">Financial reporting</div>
+      </div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
+        <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:12px;cursor:pointer;font-size:15px;background:{{ n.bg }};color:{{ n.fg }};box-shadow:{{ n.ring }}" style-hover="color:#ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg>
+          <span style="flex:1">{{ n.name }}</span>
+          <span style="opacity:{{ n.chev }};font-size:14px">›</span>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;border:1px solid #2c2a44;background:#1e1d34;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a48bff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+        <div style="color:#fff;font-size:13px;font-weight:600">Connected source</div>
+        <div style="font-size:12px;color:#a9a7bd;line-height:1.45;word-break:break-word">{{ sourceName }}</div>
+      </div>
+    </div>
+    <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ install }}" style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;background:#6d4aff;color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#5b3fd9">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"></path></svg>
+        Install app
+      </div>
+    </sc-if>
+  </aside>
+  </sc-if>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:radial-gradient(900px 500px at 100% 0%,#f1ecff 0%,rgba(248,248,251,0) 70%),#f8f8fb">
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="position:sticky;top:0;z-index:20;background:#17162a;color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#9b7bff,#6d4aff);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-style:italic;font-size:20px;flex-shrink:0">a</div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+            <div style="font-weight:600;font-size:16px;white-space:nowrap">atom collective</div>
+            <div style="font-size:11px;color:#a9a7bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fyLabel }} · {{ statusText }}</div>
+          </div>
+          <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ install }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#6d4aff;white-space:nowrap;cursor:pointer">Install</div>
+          </sc-if>
+          <sc-if value="{{ showIosHint }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ toggleIos }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#2a2846;white-space:nowrap;cursor:pointer">Install</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ iosOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;line-height:1.45;color:#dcdaf0;background:#2a2846;border-radius:12px;padding:12px 14px">Tap the Share button in Safari, then “Add to Home Screen” to install atom finance.</div>
+        </sc-if>
+        <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative">
+            <div style="display:flex;align-items:center;gap:10px;background:#2a2846;border-radius:12px;padding:0 14px;height:44px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9a7bd" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input value="{{ gq }}" onChange="{{ onGSearch }}" placeholder="Search projects or vendors" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font:inherit;font-size:16px;color:#fff">
+              <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ clearGq }}" style="cursor:pointer;color:#a9a7bd;font-size:20px;line-height:1;padding:4px">×</span>
+              </sc-if>
+            </div>
+            <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:52px;left:0;right:0;background:#fff;color:#17162a;border-radius:14px;box-shadow:0 18px 40px rgba(23,22,42,.25);max-height:60vh;overflow-y:auto;padding:6px">
+                <sc-for list="{{ gRes }}" as="r" hint-placeholder-count="0">
+                  <div onClick="{{ r.go }}" style="display:flex;align-items:center;gap:10px;padding:12px 10px;border-radius:10px;cursor:pointer">
+                    <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:{{ r.kb }};color:{{ r.kc }};flex-shrink:0">{{ r.kind }}</span>
+                    <span style="flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                    <span style="font-size:13px;font-weight:600;white-space:nowrap">{{ r.value }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ gEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:14px 10px;font-size:14px;color:#6f6d85">No matches.</div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 36px;border-bottom:1px solid #ececf2">
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4b4962">
+        <span style="width:8px;height:8px;border-radius:50%;background:{{ statusDot }};box-shadow:0 0 0 4px #e3f5ef"></span>
+        <span style="white-space:nowrap">{{ statusText }}</span>
+      </div>
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;max-width:520px;position:relative">
+          <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e2ec;border-radius:999px;padding:0 16px;height:42px" style-focus-within="border-color:#7c5cff">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f6d85" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <input value="{{ gq }}" onChange="{{ onGSearch }}" placeholder="Search projects, clients or vendors" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font:inherit;font-size:14px;color:#17162a">
+            <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ clearGq }}" style="cursor:pointer;color:#8e8ca3;font-size:18px;line-height:1">×</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{ hasGq }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:50px;left:0;right:0;background:#fff;border:1px solid #e3e2ec;border-radius:16px;box-shadow:0 18px 40px rgba(23,22,42,.12);z-index:30;max-height:440px;overflow-y:auto;padding:6px">
+              <sc-for list="{{ gRes }}" as="r" hint-placeholder-count="0">
+                <div onClick="{{ r.go }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer" style-hover="background:#f6f3ff">
+                  <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:{{ r.kb }};color:{{ r.kc }};flex-shrink:0">{{ r.kind }}</span>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                    <span style="font-size:12px;color:#6f6d85">{{ r.meta }}</span>
+                  </div>
+                  <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.value }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ gEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:16px 12px;font-size:14px;color:#6f6d85">No projects or vendors match “{{ gq }}”.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <div onClick="{{ fyNext }}" style="font-size:13px;font-weight:600;padding:9px 16px;border:1px solid #e3e2ec;border-radius:999px;background:#fff;white-space:nowrap;flex-shrink:0;cursor:{{ fyCur }}">{{ fyPill }}</div>
+    </header>
+    </sc-if>
+
+    <div style="width:100%;max-width:1320px;margin:0 auto;padding:{{ pad }};display:flex;flex-direction:column;gap:{{ gap }}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.16em;color:#5b3fd9">{{ fyLabelUp }} REPORTING</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:{{ titleSize }};line-height:1.05;letter-spacing:-.01em">{{ title }}</div>
+          <div style="font-size:{{ subSize }};color:#5d5b72;text-wrap:pretty">{{ subtitle }}</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;width:{{ actW }}">
+        <div onClick="{{ openAction }}" style="flex:{{ btnFlex }};justify-content:center;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#fff;padding:11px 20px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap;box-shadow:0 6px 18px rgba(109,74,255,.28)" style-hover="background:#5b3fd9">
+          <span style="font-size:18px;line-height:1">+</span>{{ actionLabel }}
+        </div>
+        <div onClick="{{ openImport }}" style="flex:{{ btnFlex }};justify-content:center;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#3b3953;padding:11px 18px;border:1px solid #d9d2ff;border-radius:999px;background:#f6f3ff;cursor:pointer;white-space:nowrap" style-hover="background:#efeaff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+          Import Excel
+        </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showPublish }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff6e8;border:1px solid #f3d9a8;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:15px;font-weight:600;color:#6b4508">{{ pubTitle }}</div>
+            <div style="font-size:13px;color:#8a5a12;text-wrap:pretty">{{ pubBody }}</div>
+          </div>
+          <div onClick="{{ pubAction }}" style="font-size:14px;font-weight:600;color:#fff;padding:11px 18px;border-radius:999px;background:#17162a;cursor:pointer;white-space:nowrap">{{ pubBtn }}</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noData }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1.5px dashed #cfc8f5;border-radius:18px;padding:24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+          <div style="width:48px;height:48px;border-radius:14px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+          </div>
+          <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:18px;font-weight:600">Import your FY workbook</div>
+            <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">One .xlsx with a-tom, Social and Ngen revenue and expenses. Every row is read and split by division.</div>
+          </div>
+          <div onClick="{{ openImport }}" style="font-size:14px;font-weight:600;color:#fff;padding:12px 22px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap" style-hover="background:#5b3fd9">Import Excel</div>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:10px;flex-wrap:{{ wrap }};overflow-x:auto;margin:{{ scrollM }};padding:{{ scrollP }};scrollbar-width:none">
+        <sc-for list="{{ divTabs }}" as="d" hint-placeholder-count="4">
+          <div onClick="{{ d.go }}" style="display:flex;flex-direction:column;gap:4px;padding:12px 18px;border-radius:14px;cursor:pointer;flex-shrink:0;min-width:{{ divMin }};background:{{ d.bg }};border:1px solid {{ d.bd }};color:{{ d.fg }};box-shadow:{{ d.sh }}">
+            <span style="font-size:13px;font-weight:600;white-space:nowrap">{{ d.name }}</span>
+            <span style="font-size:15px;font-variant-numeric:tabular-nums;opacity:.85;white-space:nowrap">{{ d.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:{{ kpiGapOuter }}">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ kpiPad }};display:flex;flex-direction:column;gap:{{ kpiGap }};min-width:0;box-shadow:0 1px 2px rgba(23,22,42,.04)">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:{{ tile }};height:{{ tile }};border-radius:12px;background:{{ k.tileBg }};color:{{ k.tileFg }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.icon }}"></path></svg>
+              </div>
+              <div style="font-size:{{ kpiLabel }};font-weight:600;color:#3b3953;line-height:1.25">{{ k.label }}</div>
+            </div>
+            <div style="font-size:{{ kpiVal }};font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ k.color }};overflow-wrap:anywhere">{{ k.value }}</div>
+            <div style="border-top:1px solid #ececf2;padding-top:{{ kpiNoteP }};font-size:{{ kpiNote }};color:#6f6d85">{{ k.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
+        <div style="flex:2 1 520px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:22px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:19px;font-weight:500">{{ chartTitle }}</div>
+              <div style="font-size:14px;color:#6f6d85">{{ chartSub }}</div>
+            </div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#4b4962">
+              <sc-for list="{{ legend }}" as="l" hint-placeholder-count="1">
+                <span style="display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:3px;background:{{ l.c }}"></span>{{ l.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;gap:{{ axisGap }};flex:1;min-height:{{ chartH }}">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-bottom:28px;font-size:13px;color:#6f6d85;font-variant-numeric:tabular-nums;width:{{ axisW }};flex-shrink:0">
+              <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5"><span style="line-height:0">{{ t }}</span></sc-for>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+              <div style="flex:1;position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:{{ barGap }};align-items:end;padding:0 4px;border-bottom:1px solid #dcdbe6">
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none">
+                  <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5"><div style="border-top:1px solid #efeff4;height:0"></div></sc-for>
+                </div>
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
+                  <div onMouseEnter="{{ b.enter }}" onMouseLeave="{{ b.leave }}" onClick="{{ b.tap }}" style="position:relative;height:100%;display:flex;align-items:flex-end;gap:{{ pairGap }};cursor:default">
+                    <sc-if value="{{ b.hot }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute;bottom:calc({{ b.tipB }} + 8px);left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;white-space:nowrap;z-index:2;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums">
+                        <sc-for list="{{ b.tip }}" as="x" hint-placeholder-count="1"><span>{{ x }}</span></sc-for>
+                      </div>
+                    </sc-if>
+                    <div style="flex:1;height:{{ b.h1 }};background:#17a589;border-radius:6px 6px 0 0;opacity:{{ b.op }}"></div>
+                    <sc-if value="{{ b.two }}" hint-placeholder-val="{{ false }}">
+                      <div style="flex:1;height:{{ b.h2 }};background:#8b6dff;border-radius:6px 6px 0 0;opacity:{{ b.op }}"></div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:{{ barGap }};padding:8px 4px 0">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12"><div style="text-align:center;font-size:{{ mFont }};color:#4b4962">{{ b.label }}</div></sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1 1 320px;min-width:0;background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:8px">
+            <div style="font-size:19px;font-weight:500">{{ sideTitle }}</div>
+            <div style="font-size:14px;color:#6f6d85">{{ sideSub }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ sideRows }}" as="r" hint-placeholder-count="7">
+              <div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid {{ r.line }}">
+                <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8e8ca3;width:20px;flex-shrink:0">{{ r.idx }}</span>
+                <span style="flex:1;min-width:0;font-size:15px;font-weight:{{ r.fw }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ r.vc }}">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px">
+          <sc-for list="{{ overviewLists }}" as="p" hint-placeholder-count="2">
+            <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:19px;font-weight:500">{{ p.title }}</div>
+                  <div style="font-size:14px;color:#6f6d85">{{ p.sub }}</div>
+                </div>
+                <div onClick="{{ p.go }}" style="font-size:13px;color:#5b3fd9;cursor:pointer;white-space:nowrap">{{ p.link }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid #f0eff5">
+                    <div style="display:flex;align-items:center;gap:16px">
+                      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8e8ca3;width:20px">{{ r.idx }}</span>
+                      <span style="flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                      <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.value }}</span>
+                    </div>
+                    <div style="margin-left:36px;height:4px;border-radius:4px;background:#f0eff5"><div style="height:4px;border-radius:4px;width:{{ r.w }};background:{{ p.bar }}"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasTable }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e3e2ec;border-radius:14px;padding:0 16px;height:50px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f6d85" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="{{ searchPh }}" style="flex:1;border:none;outline:none;font:inherit;font-size:16px;background:transparent;color:#17162a;min-width:0">
+            </div>
+            <div style="font-size:14px;color:#6f6d85;white-space:nowrap">{{ rowCount }}</div>
+          </div>
+          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;overflow:hidden">
+            <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column">
+                <div style="display:flex;gap:12px;padding:14px 16px;background:#f6f3ff;border-bottom:1px solid #d9d2ff;align-items:flex-start">
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                    <span style="font-size:15px;font-weight:700">Total</span>
+                    <span style="font-size:12px;color:#6f6d85">{{ mFootSub }}</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                    <span style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ mFootValue }}</span>
+                    <span style="font-size:12px;color:{{ mFootExtraFg }};font-variant-numeric:tabular-nums">{{ mFootExtra }}</span>
+                  </div>
+                </div>
+                <sc-for list="{{ mRows }}" as="r" hint-placeholder-count="10">
+                  <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f0eff5;align-items:flex-start">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                      <span style="font-size:15px;font-weight:500;color:{{ r.fg }};overflow-wrap:anywhere">{{ r.title }}</span>
+                      <span style="font-size:13px;color:#4b4962;overflow-wrap:anywhere">{{ r.sub }}</span>
+                      <span style="font-size:12px;color:#8e8ca3">{{ r.meta }}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                      <span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.value }}</span>
+                      <span style="font-size:12px;color:{{ r.extraFg }};font-variant-numeric:tabular-nums">{{ r.extra }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
+            <div style="overflow-x:auto">
+              <div style="display:grid;grid-template-columns:{{ tCols }};min-width:900px">
+                <sc-for list="{{ tHead }}" as="h" hint-placeholder-count="6">
+                  <div style="font-size:12px;font-weight:600;letter-spacing:.06em;color:#6f6d85;padding:14px 18px;background:#fafafc;border-bottom:1px solid #ececf2;text-align:{{ h.align }}">{{ h.label }}</div>
+                </sc-for>
+                <sc-for list="{{ tCells }}" as="c" hint-placeholder-count="60">
+                  <div style="font-size:14px;padding:13px 18px;border-bottom:1px solid #f0eff5;text-align:{{ c.align }};color:{{ c.fg }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.v }}</div>
+                </sc-for>
+                <sc-for list="{{ tFoot }}" as="c" hint-placeholder-count="0">
+                  <div style="font-size:14px;font-weight:700;padding:14px 18px;background:#f6f3ff;border-top:1px solid #d9d2ff;text-align:{{ c.align }};color:{{ c.fg }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.v }}</div>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+            <sc-if value="{{ canMore }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ more }}" style="text-align:center;padding:14px;font-size:14px;color:#5b3fd9;cursor:pointer;border-top:1px solid #ececf2" style-hover="background:#faf8ff">{{ moreLabel }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <nav style="position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #e9e8f0;display:grid;grid-template-columns:repeat(3,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom))">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
+          <div onClick="{{ n.go }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;min-height:52px;cursor:pointer;color:{{ n.mfg }}">
+            <div style="width:52px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:{{ n.mbg }}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg>
+            </div>
+            <span style="font-size:12px;font-weight:{{ n.mfw }}">{{ n.name }}</span>
+          </div>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <sc-if value="{{ hasFlash }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;bottom:{{ flashB }};max-width:calc(100vw - 32px);left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:14px;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px rgba(23,22,42,.25);z-index:60;display:flex;align-items:center;gap:10px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#17a589"></span>{{ flash }}
+      </div>
+    </sc-if>
+    <sc-if value="{{ impOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeImp }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:50">
+        <div onClick="{{ stop }}" style="width:100%;max-width:640px;max-height:{{ sheetMaxH }};overflow-y:auto;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:20px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">Import Excel</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Upload one .xlsx containing a-tom, Social and Ngen. Every row of the Revenue and Expenses sheets is read and split by division. This replaces the current workbook data; entries added by hand are kept.</div>
+            </div>
+            <div onClick="{{ closeImp }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+          </div>
+          <label onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;border:1.5px dashed {{ zoneBd }};border-radius:16px;background:{{ zoneBg }};cursor:pointer;text-align:center">
+            <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange="{{ onFileInput }}" style="display:none">
+            <div style="width:44px;height:44px;border-radius:12px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+            </div>
+            <div style="font-size:15px;font-weight:600;overflow-wrap:anywhere">{{ zoneTitle }}</div>
+            <div style="font-size:13px;color:#6f6d85;overflow-wrap:anywhere">{{ zoneSub }}</div>
+          </label>
+          <sc-if value="{{ impHasParsed }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #e9e8f0;border-radius:14px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:10px 16px;background:#fafafc;font-size:11px;font-weight:600;letter-spacing:.06em;color:#6f6d85">
+                <span>DIVISION</span><span style="text-align:right">RECEIVED</span><span style="text-align:right">EXPENSES</span>
+              </div>
+              <sc-for list="{{ impSummary }}" as="s" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:12px 16px;border-top:1px solid #f0eff5;align-items:center;color:{{ s.fg }}">
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <span style="font-size:14px;font-weight:600">{{ s.name }}</span>
+                    <span style="font-size:12px;color:#6f6d85">{{ s.rows }}</span>
+                  </div>
+                  <span style="font-size:14px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums">{{ s.rev }}</span>
+                  <span style="font-size:14px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums">{{ s.exp }}</span>
+                </div>
+              </sc-for>
+              <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:12px 16px;border-top:1px solid #d9d2ff;background:#f6f3ff;align-items:center">
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                  <span style="font-size:14px;font-weight:700">Total</span>
+                  <span style="font-size:12px;color:#6f6d85">{{ impTotalRows }}</span>
+                </div>
+                <span style="font-size:14px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums">{{ impTotalRev }}</span>
+                <span style="font-size:14px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums">{{ impTotalExp }}</span>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasImpNote }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border-radius:10px;padding:10px 12px">{{ impNote }}</div>
+          </sc-if>
+          <sc-if value="{{ needKey }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:13px;font-weight:600;color:#3b3953">Admin key</span>
+              <input type="password" value="{{ keyInput }}" onChange="{{ onKey }}" placeholder="Needed once to publish for everyone" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;color:#17162a;outline:none;background:#fff;width:100%;min-width:0" style-focus="border-color:#7c5cff">
+            </label>
+          </sc-if>
+          <sc-if value="{{ hasImpErr }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#c0392b">{{ impErr }}</div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:10px;border-top:1px solid #ececf2;padding-top:18px;flex-wrap:wrap">
+            <sc-if value="{{ hasImports }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ clearAll }}" style="font-size:13px;color:#c0392b;cursor:pointer;white-space:nowrap">{{ clearLabel }}</span>
+            </sc-if>
+            <div style="flex:1"></div>
+            <div onClick="{{ closeImp }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
+            <div onClick="{{ doImport }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:{{ impBtnBg }};color:#fff;cursor:{{ impBtnCur }};white-space:nowrap">{{ impBtnLabel }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:50">
+        <div onClick="{{ stop }}" style="width:100%;max-width:580px;max-height:{{ sheetMaxH }};overflow-y:auto;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">{{ mTitle }}</div>
+              <div style="font-size:14px;color:#6f6d85">{{ mSub }}</div>
+            </div>
+            <div onClick="{{ closeModal }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;font-weight:600;color:#3b3953">Division</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ formDivs }}" as="d" hint-placeholder-count="3">
+                <div onClick="{{ d.go }}" style="padding:10px 18px;border-radius:999px;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0;border:1px solid {{ d.bd }};background:{{ d.bg }};color:{{ d.fg }}">{{ d.name }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:{{ formCols }};gap:16px">
+            <sc-for list="{{ fields }}" as="fl" hint-placeholder-count="6">
+              <label style="display:flex;flex-direction:column;gap:7px;grid-column:{{ fl.span }}">
+                <span style="font-size:13px;font-weight:600;color:#3b3953">{{ fl.label }}</span>
+                <input type="{{ fl.type }}" value="{{ fl.value }}" onChange="{{ fl.onChange }}" placeholder="{{ fl.ph }}" list="{{ fl.list }}" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;color:#17162a;outline:none;background:#fff;width:100%;min-width:0;-webkit-appearance:none" style-focus="border-color:#7c5cff">
+              </label>
+            </sc-for>
+          </div>
+          <datalist id="dc-projects"><sc-for list="{{ projectOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o }}"></option></sc-for></datalist>
+          <datalist id="dc-vendors"><sc-for list="{{ vendorOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o }}"></option></sc-for></datalist>
+          <sc-if value="{{ needKey }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:13px;font-weight:600;color:#3b3953">Admin key</span>
+              <input type="password" value="{{ keyInput }}" onChange="{{ onKey }}" placeholder="Needed once to publish for everyone" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;color:#17162a;outline:none;background:#fff;width:100%;min-width:0" style-focus="border-color:#7c5cff">
+            </label>
+          </sc-if>
+          <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#c0392b">{{ formErr }}</div>
+          </sc-if>
+          <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #ececf2;padding-top:18px">
+            <div onClick="{{ closeModal }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
+            <div onClick="{{ saveModal }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:#6d4aff;color:#fff;cursor:pointer" style-hover="background:#5b3fd9">{{ mSave }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;overview&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;revenue&quot;,&quot;expenses&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;excludeProjects&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Cognitive Botics&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const ICON={
+  overview:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  revenue:'M3 17l6-6 4 4 8-8M15 7h6v6',
+  expenses:'M3 7l6 6 4-4 8 8M15 17h6v-6',
+  receipt:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3',
+  down:'M3 7l6 6 4-4 8 8M15 17h6v-6',
+  bank:'M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18',
+  up:'M3 17l6-6 4 4 8-8M15 7h6v6',
+  wallet:'M3 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13h2',
+  clock:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 3',
+  file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5'
+};
+const TILE={purple:['#efeaff','#6d4aff'],orange:['#fff1e4','#ee8a2a'],blue:['#e8f0ff','#2f6fdb'],green:['#e3f5ef','#17a589']};
+const BRANDS=[['Think Ebikego','think ebikego','ebg','think9'],['Paytm','paytm'],['Medanta','medanta'],['Zomato','zomato'],['Sattva','sattva'],['Nxtwave','nxtwave'],['JioStar','jio'],['Jumpp','jumpp'],['Hala Mobility','hala'],['ITC','itc','sunrise'],['TCS','tcs'],['Karya & Gravity Zip','karya','gravity'],['Advance Auto Parts','advance auto','women'],['Kuku TV','kuku'],['Wattpower','wattpower'],['Dabbahwala','dabbahwala'],['Unispeed','unispeed'],['WLDD','wldd','snapdeal','audible'],['Rapture / Sonic Lamb','rapture','sonic'],['Shadi.com','shadi'],['Chandana Shopping Mall','chandana'],['Select (Celeket)','select'],['B New','b new'],['Batchmates','batchmates'],['24 Organic Mantra','24 organic']];
+const f=n=>(n<0?'−₹':'₹')+Math.round(Math.abs(n)).toLocaleString('en-IN');
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const mIdx=d=>{if(!d)return null;const y=+d.slice(0,4),m=+d.slice(5,7)-1;return Math.max(0,Math.min(11,(y-2025)*12+m-3));};
+const fmtDate=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00Z');return x.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});};
+const brandOf=n=>{const l=n.toLowerCase();for(const [b,...k] of BRANDS)if(k.some(x=>l.includes(x)))return b;return n.split(/[ (\-–]/)[0]||n;};
+const lakh=v=>{if(!v)return '₹0';if(v>=1e7)return '₹'+String(+(v/1e7).toFixed(2))+' Cr';if(v>=1e5)return '₹'+String(+(v/1e5).toFixed(1))+'L';return '₹'+String(+(v/1e3).toFixed(1))+'K';};
+function niceTicks(max){const steps=[1e3,2e3,2.5e3,5e3,1e4,2e4,2.5e4,5e4,1e5,2e5,2.5e5,5e5,1e6,2e6,2.5e6,5e6,1e7,2e7,2.5e7,5e7,1e8,2e8,5e8];const st=steps.find(s=>s*4>=max)||steps[steps.length-1];return [4,3,2,1,0].map(i=>i*st);}
+const DN={atom:'a-tom',social:'Social',ngen:'Ngen'};
+const DIVS=[['all','All divisions'],['atom','a-tom'],['social','Social'],['ngen','Ngen']];
+const rd=r=>r[8]||'atom', ed=e=>e[7]||'atom';
+const IMPORT_KEY='atom-dash-imports-v2';
+const divOf=s=>{const l=String(s??'').toLowerCase();if(/\bn[\s-]?gen\b/.test(l))return 'ngen';if(/\bsocial\b/.test(l))return 'social';if(/\ba[\s-]?tom\b/.test(l))return 'atom';return null;};
+const nameDiv=s=>{const m=String(s??'').match(/[-–—|]\s*(social|n[\s-]?gen|a[\s-]?tom)\b/i);return m?divOf(m[1]):null;};
+const DIV_HDR=/division|vertical|collective|entity|company|business|department|\bunit\b|segment/i;
+const SKIP_SHEET=/statement|p\s*&\s*l|\bpl\b|quarter|summary|investment|dashboard|pivot|chart/i;
+const isTotal=s=>/^(grand\s+|sub[\s-]?)?total\b/i.test(s);
+const markerOf=(r,numCols)=>{const cells=r.filter(c=>c!=null&&String(c).trim()!=='');if(!cells.length||cells.length>2)return null;if(numCols.some(i=>i>=0&&typeof r[i]==='number'&&r[i]!==0))return null;return cells.map(divOf).find(Boolean)||null;};
+const xdec=s=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(+c)).replace(/&amp;/g,'&');
+const colIdx=s=>{let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n-1;};
+async function unzip(buf){
+  const dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength);let e=buf.length-22;
+  while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+  if(e<0)throw new Error('This file is not a valid .xlsx workbook.');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const files={};
+  for(let i=0;i<n;i++){const method=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),fl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),off=dv.getUint32(p+42,true);files[new TextDecoder().decode(buf.subarray(p+46,p+46+fl))]={method,cs,off};p+=46+fl+el+cl;}
+  return async name=>{const f=files[name];if(!f)return null;const st=f.off+30+dv.getUint16(f.off+26,true)+dv.getUint16(f.off+28,true);const data=buf.slice(st,st+f.cs);if(f.method===0)return new TextDecoder().decode(data);return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();};
+}
+async function readXlsx(file){
+  const get=await unzip(new Uint8Array(await file.arrayBuffer()));
+  const wb=await get('xl/workbook.xml');if(!wb)throw new Error('This file is not an Excel workbook.');
+  const rels=(await get('xl/_rels/workbook.xml.rels'))||'';const relMap={};
+  for(const m of rels.matchAll(/<Relationship\b[^>]*>/g)){const id=(m[0].match(/Id="([^"]+)"/)||[])[1],t=(m[0].match(/Target="([^"]+)"/)||[])[1];if(id&&t)relMap[id]=t.startsWith('/')?t.slice(1):'xl/'+t;}
+  const sheets=[...wb.matchAll(/<sheet\b[^>]*>/g)].map(m=>({name:xdec((m[0].match(/name="([^"]*)"/)||[])[1]||''),path:relMap[(m[0].match(/r:id="([^"]+)"/)||[])[1]]})).filter(s=>s.path);
+  const ss=(await get('xl/sharedStrings.xml'))||'';
+  const strings=[...ss.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m=>xdec([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join('')));
+  const read=async path=>{const x=await get(path);if(!x)return [];const rows=[];
+    for(const r of x.matchAll(/<row\b(?:[^>]*[^\/>])?>([\s\S]*?)<\/row>/g)){const a=[];
+      for(const c of r[1].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){const ref=(c[1].match(/r="([A-Z]+)\d+"/)||[])[1];if(!ref)continue;const t=(c[1].match(/t="(\w+)"/)||[])[1];const body=c[2]||'';let val;
+        if(t==='inlineStr')val=xdec([...body.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join(''));
+        else{const v=body.match(/<v>([\s\S]*?)<\/v>/);if(!v)continue;val=t==='s'?strings[+v[1]]:(t==='str'||t==='e'||t==='b')?xdec(v[1]):+v[1];}
+        a[colIdx(ref)]=val;}
+      rows.push(a);}
+    return rows;};
+  return {sheets,read};
+}
+const isoD=v=>{if(typeof v==='number'&&v>30000&&v<80000)return new Date(Date.UTC(1899,11,30)+Math.round(v)*864e5).toISOString().slice(0,10);
+  if(typeof v==='string'){const s=v.trim();const m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);if(m){const y=m[3].length===2?2000+ +m[3]:+m[3];return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}const m2=s.match(/^\d{4}-\d{2}-\d{2}/);if(m2)return m2[0];}return null;};
+const nv=v=>typeof v==='number'?v:(parseFloat(String(v??'').replace(/[₹,\s]/g,''))||0);
+const sv=v=>v==null?'':String(v).trim().replace(/\s+/g,' ');
+const findCol=(H,res,fb)=>{for(const re of res){const i=H.findIndex(x=>re.test(x.trim()));if(i>=0)return i;}return fb;};
+const headerAt=(rows,re)=>Math.max(0,rows.slice(0,6).findIndex(r=>r.some(c=>typeof c==='string'&&re.test(c))));
+function parseRevenue(rows,sheetDiv){
+  const hi=headerAt(rows,/project|client/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
+  const C={name:findCol(H,[/project/i,/client/i,/name/i],1),budget:findCol(H,[/budget/i,/invoice/i,/billed/i,/value/i],2),date:findCol(H,[/date/i],3),pay:findCol(H,[/payment/i,/advance/i,/terms/i,/remark/i,/status/i],4),amt:findCol(H,[/^amount/i,/received/i],5),tds:findCol(H,[/tds/i],6),bal:findCol(H,[/balance/i,/due/i],7),div:findCol(H,[DIV_HDR],-1)};
+  C.gst=H.findIndex(x=>/gst/i.test(x)&&!/budget|incl|including|total|input/i.test(x));
+  const hdrName=(H[C.name]||'').trim().toLowerCase();
+  const out=[];out.hasGst=C.gst>=0;let proj=null,budget=0,pdiv=null,cur=sheetDiv||null,block=0;
+  for(const r of rows.slice(hi+1)){
+    const b=sv(r[C.name]);
+    if(b&&b.toLowerCase()===hdrName)continue;
+    if(isTotal(b)||(!b&&r.some(c=>typeof c==='string'&&isTotal(c.trim())))){const d=r.map(divOf).find(Boolean);if(d)for(let i=block;i<out.length;i++)if(!out[i][7])out[i][7]=d;block=out.length;proj=null;continue;}
+    const mk=markerOf(r,[C.budget,C.amt,C.tds,C.bal]);
+    if(mk&&!(C.div>=0&&r[C.div]===r.find(c=>c!=null&&String(c).trim()!==''))){cur=mk;block=out.length;proj=null;continue;}
+    const rowDiv=C.div>=0?divOf(r[C.div]):null;
+    if(b){proj=b;budget=nv(r[C.budget]);pdiv=rowDiv||divOf(b)||cur;}
+    if(!proj)continue;
+    const d=isoD(r[C.date]),a=nv(r[C.amt]),t=nv(r[C.tds]),g=C.gst>=0&&b?nv(r[C.gst]):0;
+    if(b||d||a||t)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(t),Math.round(nv(r[C.bal])),rowDiv||pdiv||cur||null,Math.round(g)]);
+  }
+  return out;
+}
+function parseExpenses(rows,sheetDiv){
+  const hi=headerAt(rows,/vendor|amount|particular|expense/i);const H=Array.from(rows[hi]||[],c=>typeof c==='string'?c:'');
+  const C={v:findCol(H,[/vendor/i,/type of exp/i,/paid to/i,/party/i,/name/i],1),note:findCol(H,[/project/i,/particular/i,/description/i,/note/i,/purpose/i],2),date:findCol(H,[/date/i],3),amt:findCol(H,[/^amount/i,/^base/i],4),tds:findCol(H,[/tds/i],5),tot:findCol(H,[/total/i,/net/i],6),div:findCol(H,[DIV_HDR],-1)};
+  const hdrName=(H[C.v]||'').trim().toLowerCase();
+  const out=[];let cur=sheetDiv||null,block=0;
+  for(const r of rows.slice(hi+1)){
+    const b=sv(r[C.v]);
+    if(b&&b.toLowerCase()===hdrName)continue;
+    if(isTotal(b)||(!b&&r.some(c=>typeof c==='string'&&isTotal(c.trim())))){const d=r.map(divOf).find(Boolean);if(d)for(let i=block;i<out.length;i++)if(!out[i][6])out[i][6]=d;block=out.length;continue;}
+    const mk=markerOf(r,[C.amt,C.tds,C.tot]);
+    if(mk){cur=mk;block=out.length;continue;}
+    const a=nv(r[C.amt]),t=nv(r[C.tot]);if(!b&&!a&&!t)continue;
+    const cells=Array.from(r,c=>typeof c==='string'?c:'').filter(Boolean);
+    const rowDiv=(C.div>=0?divOf(r[C.div]):null)||divOf(r[C.note])||divOf(b)||cells.map(divOf).find(Boolean)||null;
+    out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t),rowDiv,cur||null,cells.join(' ')]);
+  }
+  return out;
+}
+const ADDED_KEY='atom-dash-added-v1';
+const today=()=>new Date().toISOString().slice(0,10);
+const FORMS={
+ project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Budget incl. GST (₹)','number','0',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',2,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: budget − received − TDS',2,'']]},
+ revenue:{title:'Add revenue',sub:'Log a payment received against a project.',save:'Add revenue',fields:[['name','Project','text','Pick or type a project',2,'dc-projects'],['date','Payment date','date','',1,''],['payment','Payment note','text','e.g. 50% balance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance remaining (₹)','number','0',2,'']]},
+ expense:{title:'Add expense',sub:'Log a vendor or project cost in the Expenses sheet.',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
+};
+class Component extends DCLogic {
+  state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
+  setImp(o){this.setState(s=>({imp:{...s.imp,...o}}));}
+  async parseFile(file){
+    if(!file)return;
+    if(!/\.xlsx$/i.test(file.name))return this.setImp({err:'Choose an .xlsx file — save .xls or .csv as .xlsx first.',parsed:null});
+    this.setImp({busy:true,err:'',parsed:null});
+    try{
+      const wb=await readXlsx(file);
+      const use=wb.sheets.filter(s=>!SKIP_SHEET.test(s.name));
+      let rS=use.filter(s=>/revenue|income|sales|receipt|collection/i.test(s.name));
+      let eS=use.filter(s=>/expense|cost|spend|payment|outflow|purchase/i.test(s.name)&&!rS.includes(s));
+      if(!rS.length&&wb.sheets[0])rS=[wb.sheets[0]];
+      if(!eS.length){const o=wb.sheets.find(s=>!rS.includes(s));if(o)eS=[o];}
+      const rev=[],exp=[];let hasGst=false;
+      for(const s of rS){const o=parseRevenue(await wb.read(s.path),divOf(s.name));if(o.hasGst)hasGst=true;rev.push(...o);}
+      for(const s of eS)exp.push(...parseExpenses(await wb.read(s.path),divOf(s.name)));
+      if(!rev.length&&!exp.length)throw new Error('No revenue or expense rows found — check the sheets are named Revenue and Expenses.');
+      // match expenses to a division via the project names on the Revenue sheet
+      const keyOf=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const baseOf=n=>n.replace(/[-–—|]\s*(social|n[\s-]?gen|a[\s-]?tom)\b.*$/i,'').replace(/\(.*?\)/g,' ').trim();
+      const STOP=new Set(['batch','retainer','video','videos','project','phase','monthly','shoot','campaign','the','july','august','september','october','november','december','january','february','march','april','may','june']);
+      const keysFor=n=>{const b=baseOf(n);const ks=new Set([keyOf(b),keyOf(b.split(/\s[-–—|]\s/)[0])]);const w=(b.match(/[A-Za-z0-9.]+/)||[''])[0];if(w.replace(/\./g,'').length>=4&&!STOP.has(w.toLowerCase()))ks.add(keyOf(w));return [...ks].filter(k=>k.length>=4);};
+      const km={};rev.forEach(r=>{const d=r[7]||'atom';keysFor(r[0]).forEach(k=>{(km[k]=km[k]||new Set()).add(d);});});
+      const keys=Object.entries(km).filter(([,s])=>s.size===1).map(([k,s])=>[k,[...s][0]]).sort((a,b)=>b[0].length-a[0].length);
+      let matched=0;
+      exp.forEach(e=>{if(e[6])return;const full=keyOf(e[8]||(e[0]+' '+e[1]));const d=(keys.find(([k])=>full.includes(k))||[])[1];if(d&&d!=='atom'){e[6]=d;matched++;}else e[6]=e[7]||null;});
+      const sets={},now=Date.now();
+      for(const d of ['atom','social','ngen']){
+        const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>r.slice(0,7)),ex=exp.filter(e=>(e[6]||'atom')===d).map(e=>e.slice(0,6));
+        if(!rv.length&&!ex.length)continue;
+        const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
+        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:0,gst:hasGst?sum(rev.filter(r=>(r[7]||'atom')===d).map(r=>r[8]||0)):Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex,gstCol:hasGst,gstByProj:hasGst?Object.fromEntries(rev.filter(r=>(r[7]||'atom')===d&&r[8]).map(r=>[r[0],r[8]])):null};
+      }
+      Object.values(sets).forEach(s=>{const t=s.totals.revenue;t.balance=t.budget-t.amount-t.tds;});
+      const exCols=eS.length?(await wb.read(eS[0].path)).slice(0,6).find(r=>r.some(c=>typeof c==='string'&&/vendor|amount|particular|expense/i.test(c)))||[]:[];
+      this.setImp({busy:false,parsed:{source:file.name,sets,expHeaders:Array.from(exCols,c=>typeof c==='string'?c:'').filter(Boolean),expMatched:matched,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
+    }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
+  }
+  async push(payload){
+    try{const r=await fetch('/api/workbook',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+      if(!r.ok)return 'Could not save to the server ('+r.status+').';
+      return null;
+    }catch(e){return 'Could not reach the server — check your connection.';}
+  }
+  async doImport(){
+    const {imp}=this.state;if(!imp.parsed)return;
+    if(this.state.backend){
+      this.setImp({busy:true,err:''});
+      const err=await this.push({imports:imp.parsed.sets,added:this.state.added});
+      if(err)return this.setImp({busy:false,err});
+      try{localStorage.removeItem(IMPORT_KEY);}catch(e){}
+      clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);
+      return this.setState({published:imp.parsed.sets,imports:{},div:'all',updatedAt:Date.now(),imp:{open:false,busy:false,err:'',parsed:null,drag:false},flash:'Published · everyone with the link now sees '+imp.parsed.source});
+    }
+    const next=imp.parsed.sets;let warn='';
+    try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){warn=' (too large to keep after reload)';}
+    clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3500);
+    this.setState({imports:next,div:'all',imp:{open:false,busy:false,err:'',parsed:null,drag:false},flash:'Imported '+imp.parsed.source+warn});
+  }
+  clearAll(){
+    try{localStorage.removeItem(IMPORT_KEY);}catch(e){}
+    clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
+    this.setState(s=>({imports:{},imp:{...s.imp,parsed:null,err:''},flash:'Workbook data cleared'}));
+  }
+  openModal(kind){this.setState(s=>({modal:kind,form:{date:today(),div:s.div==='all'?'atom':s.div},formErr:''}));}
+  async saveModal(){
+    const {modal,form,added}=this.state;const n=k=>parseFloat(form[k])||0;const s=k=>String(form[k]||'').trim();const has=k=>form[k]!=null&&String(form[k]).trim()!=='';
+    const next={revenue:[...added.revenue],expenses:[...added.expenses]};let msg='';
+    if(modal==='expense'){
+      if(!s('vendor'))return this.setState({formErr:'Vendor is required.'});
+      if(!n('amount'))return this.setState({formErr:'Enter an amount.'});
+      next.expenses.unshift([s('vendor'),s('note'),form.date||null,n('amount'),n('tds'),has('total')?n('total'):n('amount')-n('tds'),true,form.div||'atom']);
+      msg=DN[form.div||'atom']+' expense added · '+f(has('total')?n('total'):n('amount')-n('tds'));
+    }else{
+      if(!s('name'))return this.setState({formErr:'Project name is required.'});
+      if(modal==='project'&&!n('budget')&&!n('amount'))return this.setState({formErr:'Enter a budget or an amount received.'});
+      if(modal==='revenue'&&!n('amount'))return this.setState({formErr:'Enter the amount received.'});
+      const budget=modal==='project'?n('budget'):0;
+      const bal=has('balance')?n('balance'):(modal==='project'?Math.max(0,budget-n('amount')-n('tds')):0);
+      next.revenue.unshift([s('name'),budget,form.date||null,s('payment'),n('amount'),n('tds'),bal,true,form.div||'atom']);
+      msg=DN[form.div||'atom']+(modal==='project'?' project added · ':' revenue added · ')+s('name');
+    }
+    if(this.state.backend){const err=await this.push({imports:this.state.published||{},added:next});if(err)return this.setState({formErr:err});}
+    try{localStorage.setItem(ADDED_KEY,JSON.stringify(next));}catch(e){}
+    clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
+    this.setState({added:next,modal:null,form:{},formErr:'',flash:msg});
+  }
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);}
+  componentDidMount(){
+    this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile)this.setState({mobile:m});};
+    window.addEventListener('resize',this.onResize);
+    const sa=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+    this.setState({standalone:!!sa});
+    window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();this.deferred=e;this.setState({canInstall:true});});
+    window.addEventListener('appinstalled',()=>{this.deferred=null;this.setState({canInstall:false,standalone:true});});
+    if('serviceWorker' in navigator&&location.protocol!=='file:'){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+    try{const a=JSON.parse(localStorage.getItem(ADDED_KEY)||'null');if(a&&a.revenue)this.setState({added:a});}catch(e){}
+    try{const im=JSON.parse(localStorage.getItem(IMPORT_KEY)||'null');if(im)this.setState({imports:im});}catch(e){}
+    try{localStorage.removeItem('atom-dash-imports-v1');}catch(e){}
+    fetch('/api/workbook',{cache:'no-store'}).then(r=>r.ok&&/json/.test(r.headers.get('content-type')||'')?r.json():null).then(d=>{if(!d)return;const st={backend:true};if(d.imports&&Object.keys(d.imports).length)st.published=d.imports;if(Array.isArray(d.added&&d.added.revenue))st.added=d.added;if(d.updatedAt)st.updatedAt=d.updatedAt;this.setState(st);}).catch(()=>{});
+    fetch('data/workbook.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(p=>{if(p&&typeof p==='object'&&Object.values(p).some(s=>s&&s.revenue))this.setState(s=>s.backend&&s.published?{}:{published:p});}).catch(()=>{});
+  }
+  renderVals(){
+    const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp,mobile,canInstall,standalone,iosOpen}=this.state;
+    const go=p=>()=>this.setState({page:p,q:'',limit:25,hover:null});
+    const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses']];
+    const base={
+      nav:NAV.map(([id,name])=>{const a=page===id;return {name,go:go(id),icon:ICON[id],mfg:a?'#5b3fd9':'#6f6d85',mbg:a?'#efeaff':'transparent',mfw:a?'600':'500',bg:a?'#2a2846':'transparent',fg:a?'#ffffff':'#c9c8d6',ring:a?'inset 3px 0 0 #7c5cff':'none',chev:a?'1':'0'};}),
+      sourceName:data?data.source:'Loading workbook…',
+      statusDot:err?'#d0644c':data?'#17a589':'#c9c8d6',
+      statusText:err?'Workbook not found':data?'Workbook-connected snapshot':'Loading workbook…',
+      isOverview:page==='overview',hasTable:page!=='overview'
+    };
+    const inDiv=d=>div==='all'||div===d, baseOn=inDiv('atom');
+    const addR=added.revenue.filter(r=>inDiv(rd(r))), addE=added.expenses.filter(e=>inDiv(ed(e)));
+    const exList=String(this.props.excludeProjects??'Cognitive Botics').split(',').map(s=>s.toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean);
+    const excluded=s=>{const k=String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');return !!k&&exList.some(x=>k.includes(x));};
+    const exR=r=>excluded(r[0]), exE=e=>excluded(e[0])||excluded(e[1]);
+    const recalc=s=>{const rv=s.revenue.filter(r=>!exR(r)),ex=s.expenses.filter(e=>!exE(e));if(rv.length===s.revenue.length&&ex.length===s.expenses.length)return s;
+      const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
+      const g=s.gstCol&&s.gstByProj?sum(Object.entries(s.gstByProj).filter(([k])=>!excluded(k)).map(([,v])=>v)):Math.round(b*18/118);
+      return {...s,revenue:rv,expenses:ex,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:g},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};};
+    const hasLocal=Object.keys(imports).length>0, pub=this.state.published;
+    const src=hasLocal?imports:(pub||{});
+    const SETS=Object.fromEntries(Object.entries(src).map(([k,s])=>[k,recalc(s)]));
+    const scopeD=['atom','social','ngen'].filter(inDiv);
+    const R=[...addR.filter(r=>!exR(r)),...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE.filter(e=>!exE(e)),...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
+    const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
+    const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0,gst:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
+    const addRx=addR.filter(r=>!exR(r)),addEx=addE.filter(e=>!exE(e));
+    const TR={budget:TR0.budget+sum(addRx.map(r=>r[1])),amount:TR0.amount+sum(addRx.map(r=>r[4])),tds:TR0.tds+sum(addRx.map(r=>r[5])),gst:0};
+    const gstSep=Object.values(SETS).some(s=>s.gstCol);
+    TR.gst=TR0.gst+Math.round(sum(addRx.map(r=>r[1]))*(gstSep?0.18:18/118));
+    TR.balance=TR.budget-TR.amount-TR.tds;
+    const TE={amount:TE0.amount+sum(addEx.map(e=>e[3])),tds:TE0.tds+sum(addEx.map(e=>e[4])),total:TE0.total+sum(addEx.map(e=>e[5]))};
+    const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d&&!exR(r)),ae=added.expenses.filter(e=>ed(e)===d&&!exE(e));return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
+    const metric=t=>page==='revenue'?t.rev:page==='expenses'?t.exp:t.rev-t.exp;
+    const divTabs=DIVS.map(([id,name])=>{const t=id==='all'?['atom','social','ngen'].map(divTot).reduce((a,b)=>({rev:a.rev+b.rev,exp:a.exp+b.exp}),{rev:0,exp:0}):divTot(id);const a=div===id;return {name,value:f(metric(t))+(page==='overview'?' net':''),go:()=>this.setState({div:id,limit:25}),bg:a?'#17162a':'#fff',fg:a?'#fff':'#17162a',bd:a?'#17162a':'#e3e2ec',sh:a?'0 8px 20px rgba(23,22,42,.16)':'none'};});
+    const fyOf=d=>{if(!d)return null;const y=+d.slice(0,4),m=+d.slice(5,7);return m>=4?y:y-1;};
+    const fys=[...new Set([...R,...E].map(x=>fyOf(x[2])).filter(Boolean))].sort();
+    const FY=this.state.fy&&fys.includes(this.state.fy)?this.state.fy:(fys[fys.length-1]||2025);
+    const mI=d=>{if(!d)return null;const i=(+d.slice(0,4)-FY)*12+(+d.slice(5,7)-1)-3;return i>=0&&i<12?i:null;};
+    const fyLabel='FY '+FY+'–'+String(FY+1).slice(2);
+    const revM=Array(12).fill(0), expM=Array(12).fill(0);
+    R.forEach(r=>{const m=mI(r[2]);if(m!=null)revM[m]+=r[4];});
+    E.forEach(e=>{const m=mI(e[2]);if(m!=null)expM[m]+=(e[5]||e[3]);});
+    const B={};R.forEach(r=>{const b=brandOf(r[0]);B[b]=(B[b]||0)+r[4];});
+    const clients=Object.entries(B).sort((a,b)=>b[1]-a[1]);
+    const V={};E.forEach(e=>{const k=(e[0]||'Unlabelled').trim();const key=k.toLowerCase();V[key]=V[key]||[k,0];V[key][1]+=(e[5]||e[3]);});
+    const vendors=Object.values(V).sort((a,b)=>b[1]-a[1]);
+    const gstPaid=(V['gst']||[0,0])[1];
+    const enter=i=>()=>this.setState({hover:i}), leave=()=>this.setState({hover:null});
+    const chart=(series)=>{
+      const max=Math.max(1,...series.flatMap(s=>s.data));const ticks=niceTicks(max);const top=ticks[0];
+      return {yTicks:ticks.map(lakh),legend:series.map(s=>({label:s.label,c:s.c})),
+        bars:M.map((label,i)=>({label:mobile?label[0]:label,enter:enter(i),leave,tap:()=>this.setState(s=>({hover:s.hover===i?null:i})),hot:hover===i,op:hover==null||hover===i?'1':'.45',
+          h1:(series[0].data[i]/top*100)+'%',two:series.length>1,h2:series[1]?(series[1].data[i]/top*100)+'%':'0%',
+          tipB:(Math.max(...series.map(s=>s.data[i]))/top*100)+'%',
+          tip:[label+' '+(i<9?FY:FY+1),...series.map(s=>s.label+': '+f(s.data[i]))]}))};
+    };
+    const rank=(list,n,o={})=>list.slice(0,n).map(([name,v],i,arr)=>({idx:String(i+1).padStart(2,'0'),name,value:f(v),vc:'#17162a',fw:'400',line:i===Math.min(n,arr.length)-1?'transparent':'#ececf2',w:(v/(list[0]?list[0][1]:1)*100)+'%'}));
+    const kpi=(label,value,note,tile,icon,color)=>({label,value,note,tileBg:TILE[tile][0],tileFg:TILE[tile][1],icon:ICON[icon],color:color||'#17162a'});
+    const search=s=>q?s.toLowerCase().includes(q.toLowerCase()):true;
+    let P={};
+    if(page==='overview'){
+      const net=TR.amount-TE.total;
+      const netRev=TR.amount-gstPaid, opex=TE.total-gstPaid;
+      P={title:'Overview',subtitle:"Cash position across the workbook's Revenue and Expenses sheets.",
+        kpis:[kpi('Total revenue',f(TR.budget),gstSep?'Project budgets excl. GST':'Project budgets incl. GST','purple','receipt'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        chartTitle:'Revenue vs expenses',chartSub:'Monthly totals by transaction date · '+fyLabel,
+        ...chart([{label:'Revenue',c:'#17a589',data:revM},{label:'Expenses',c:'#8b6dff',data:expM}]),
+        sideTitle:'Income snapshot',sideSub:fyLabel+' chart · totals cover the whole workbook',
+        sideRows:[['Gross revenue received',f(TR.amount),'600','#17162a'],['Less: GST remitted',f(-gstPaid),'400','#6f6d85'],['Net revenue',f(netRev),'600','#17162a'],['Operating expenses',f(-opex),'400','#6f6d85'],['Net profit',f(netRev-opex),'700',netRev-opex<0?'#c0392b':'#128a72'],['TDS deducted on revenue',f(TR.tds),'400','#6f6d85'],['Total billed (incl. GST)',f(TR.budget),'400','#6f6d85']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
+        overviewLists:[{title:'Top clients',sub:'By amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)},{title:'Top vendors',sub:'By total recorded spend',link:'View expenses →',go:go('expenses'),bar:'#8b6dff',rows:rank(vendors,6)}]};
+    }
+    if(page==='revenue'){
+      const rows=R.filter(r=>search(r[0]+' '+r[3]));
+      P={title:'Revenue',subtitle:"Project budgets, payments received and balances from the workbook's Revenue sheet.",
+        kpis:[kpi('Total revenue',f(TR.budget),gstSep?'Project budgets excl. GST':'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),gstSep?'GST column total (separate from revenue)':'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        chartTitle:'Monthly revenue',chartSub:'Amount received by payment date · '+fyLabel,...chart([{label:'Revenue',c:'#17a589',data:revM}]),
+        sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
+        searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
+        tCols:'minmax(260px,2.2fr) 110px 130px minmax(160px,1.2fr) 140px 120px 130px',
+        tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['AMOUNT','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[rd(r)],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
+        mRows:rows.slice(0,limit).map(r=>({title:(r[7]?'● ':'')+r[0],fg:r[7]?'#5b3fd9':'#17162a',sub:r[3]||'Payment',meta:fmtDate(r[2])+' · '+DN[rd(r)],value:r[4]?f(r[4]):'—',extra:r[6]?f(r[6])+' due':(r[5]?'TDS '+f(r[5]):''),extraFg:r[6]?'#c0392b':'#8e8ca3'})),
+        ...(()=>{const A=sum(rows.map(r=>r[4])),T=sum(rows.map(r=>r[5])),B=sum(rows.map(r=>r[6])),N=rows.length.toLocaleString('en-IN')+' rows';return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(B),align:'right',fg:B?'#c0392b':'#17162a'}],mFootSub:N+' · TDS '+f(T),mFootValue:f(A),mFootExtra:B?f(B)+' due':'',mFootExtraFg:'#c0392b'};})(),
+        canMore:rows.length>limit};
+      P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
+    }
+    if(page==='expenses'){
+      const rows=E.filter(e=>search((e[0]||'')+' '+(e[1]||'')));
+      P={title:'Expenses',subtitle:"Vendor and project-level costs from the workbook's Expenses sheet.",
+        kpis:[kpi('Expense amount',f(TE.amount),'Column E total','purple','receipt'),kpi('Total expenses',f(TE.total),'Workbook Total Amount','orange','down'),kpi('Expense TDS',f(TE.tds),'Workbook TDS total','blue','bank')],
+        chartTitle:'Monthly expenses',chartSub:'Total Amount by transaction date · '+fyLabel,...chart([{label:'Expenses',c:'#17a589',data:expM}]),
+        sideTitle:'Top vendors',sideSub:'By total recorded spend',sideRows:rank(vendors,7),
+        searchPh:'Search vendor or project',rowCount:rows.length.toLocaleString('en-IN')+' rows',
+        tCols:'minmax(220px,1.6fr) 110px minmax(220px,1.8fr) 130px 130px 110px 130px',
+        tHead:[['VENDOR','left'],['DIVISION','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(e=>[{v:e[6]?'● '+(e[0]||'—'):(e[0]||'—'),align:'left',fg:e[6]?'#5b3fd9':'#17162a'},{v:DN[ed(e)],align:'left',fg:'#4b4962'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
+        mRows:rows.slice(0,limit).map(e=>({title:(e[6]?'● ':'')+(e[0]||'—'),fg:e[6]?'#5b3fd9':'#17162a',sub:e[1]||'—',meta:fmtDate(e[2])+' · '+DN[ed(e)],value:f(e[5]||e[3]),extra:e[4]?'TDS '+f(e[4]):'',extraFg:'#8e8ca3'})),
+        ...(()=>{const A=sum(rows.map(e=>e[3])),T=sum(rows.map(e=>e[4])),G=sum(rows.map(e=>e[5]||e[3])),N=rows.length.toLocaleString('en-IN')+' rows';return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(G),align:'right',fg:'#17162a'}],mFootSub:N+' · amount '+f(A),mFootValue:f(G),mFootExtra:T?'TDS '+f(T):'',mFootExtraFg:'#8e8ca3'};})(),
+        canMore:rows.length>limit};
+      P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
+    }
+    const gl=gq.trim().toLowerCase();let gRes=[];
+    if(gl){
+      const allD=['atom','social','ngen'];
+      const RA=[...added.revenue.filter(r=>!exR(r)),...allD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])];
+      const EA=[...added.expenses.filter(e=>!exE(e)),...allD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
+      const dl=ds=>[...ds].map(d=>DN[d]).join(', ');
+      const PJ={};RA.forEach(r=>{if((r[0]+' '+brandOf(r[0])+' '+(r[3]||'')).toLowerCase().includes(gl)){PJ[r[0]]=PJ[r[0]]||[0,0,new Set()];PJ[r[0]][0]+=r[4];PJ[r[0]][1]++;PJ[r[0]][2].add(rd(r));}});
+      const VJ={};EA.forEach(e=>{if(((e[0]||'')+' '+(e[1]||'')).toLowerCase().includes(gl)){const k=e[0]||'—';VJ[k]=VJ[k]||[0,0,new Set()];VJ[k][0]+=(e[5]||e[3]);VJ[k][1]++;VJ[k][2].add(ed(e));}});
+      gRes=[...Object.entries(PJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c,ds]])=>({kind:'Revenue',kb:'#e3f5ef',kc:'#128a72',name:k,value:f(v),meta:dl(ds)+' · '+c+(c===1?' entry':' entries')+' · received',go:()=>this.setState({page:'revenue',div:'all',q:k,gq:'',limit:25})})),
+        ...Object.entries(VJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c,ds]])=>({kind:'Expense',kb:'#efeaff',kc:'#5b3fd9',name:k,value:f(v),meta:dl(ds)+' · '+c+(c===1?' payment':' payments')+' · spent',go:()=>this.setState({page:'expenses',div:'all',q:gq.trim(),gq:'',limit:25})}))];
+    }
+    const FM=modal?FORMS[modal]:null;
+    const setF=k=>e=>{const v=e.target.value;this.setState(s=>({form:{...s.form,[k]:v},formErr:''}));};
+    const kind=page==='overview'?'project':page==='revenue'?'revenue':'expense';
+    return Object.assign(base,P,{
+      gq,hasGq:!!gl,gRes,gEmpty:!!gl&&gRes.length===0,onGSearch:e=>this.setState({gq:e.target.value}),clearGq:()=>this.setState({gq:''}),
+      actionLabel:FORMS[kind].title,openAction:()=>this.openModal(kind),
+      modalOpen:!!FM,mTitle:FM?FM.title:'',mSub:FM?FM.sub:'',mSave:FM?FM.save:'',
+      fields:FM?FM.fields.map(([key,label,type,ph,span,list])=>({label,type,ph,list,span:span===2?'1 / -1':'auto',value:form[key]??'',onChange:setF(key)})):[],
+      projectOptions:[...new Set(R.map(r=>r[0]))].slice(0,400),vendorOptions:vendors.map(v=>v[0]).slice(0,400),
+      hasErr:!!formErr,formErr,closeModal:()=>this.setState({modal:null}),stop:e=>e.stopPropagation(),saveModal:()=>this.saveModal(),
+      hasFlash:!!flash,flash,divTabs,
+      fyLabel,fyLabelUp:fyLabel.toUpperCase(),fyPill:fyLabel+(fys.length>1?'  ▾':''),fyCur:fys.length>1?'pointer':'default',
+      fyNext:()=>{if(fys.length>1)this.setState({fy:fys[(fys.indexOf(FY)+1)%fys.length]});},
+      isMobile:mobile,isDesk:!mobile,
+      canInstall:canInstall&&!standalone,install:async()=>{const d=this.deferred;if(!d)return;d.prompt();try{await d.userChoice;}catch(e){}this.deferred=null;this.setState({canInstall:false});},
+      showIosHint:mobile&&!standalone&&!canInstall&&/iphone|ipad|ipod/i.test(navigator.userAgent),iosOpen,toggleIos:()=>this.setState(s=>({iosOpen:!s.iosOpen})),
+      ...(mobile?{pad:'20px 16px calc(104px + env(safe-area-inset-bottom))',gap:'18px',titleSize:'32px',subSize:'14px',actW:'100%',btnFlex:'1 1 0',wrap:'nowrap',scrollM:'0 -16px',scrollP:'0 16px',divMin:'128px',
+        kpiCols:'repeat(2,minmax(0,1fr))',kpiGapOuter:'12px',kpiPad:'16px',kpiGap:'12px',tile:'34px',kpiLabel:'13px',kpiVal:'19px',kpiNote:'11px',kpiNoteP:'10px',
+        cardPad:'18px 16px',chartH:'220px',axisGap:'6px',axisW:'48px',barGap:'4px',pairGap:'2px',mFont:'11px',flashB:'calc(88px + env(safe-area-inset-bottom))',
+        ovAlign:'flex-end',ovPad:'0',sheetR:'22px 22px 0 0',sheetPad:'22px 18px calc(22px + env(safe-area-inset-bottom))',sheetMaxH:'92vh',formCols:'minmax(0,1fr)'}
+       :{pad:'40px 36px 64px',gap:'24px',titleSize:'46px',subSize:'16px',actW:'auto',btnFlex:'0 0 auto',wrap:'wrap',scrollM:'0',scrollP:'0',divMin:'160px',
+        kpiCols:'repeat(auto-fit,minmax(240px,1fr))',kpiGapOuter:'20px',kpiPad:'24px 24px 20px',kpiGap:'22px',tile:'44px',kpiLabel:'16px',kpiVal:'32px',kpiNote:'13px',kpiNoteP:'14px',
+        cardPad:'26px 28px',chartH:'290px',axisGap:'12px',axisW:'64px',barGap:'10px',pairGap:'4px',mFont:'14px',flashB:'28px',
+        ovAlign:'center',ovPad:'24px',sheetR:'20px',sheetPad:'28px',sheetMaxH:'calc(100vh - 48px)',formCols:'repeat(2,minmax(0,1fr))'}),
+      openImport:()=>this.setState({imp:{open:true,busy:false,err:'',parsed:null,drag:false}}),
+      impOpen:imp.open,closeImp:()=>this.setImp({open:false}),
+      onFileInput:e=>{const fl=e.target.files&&e.target.files[0];e.target.value='';this.parseFile(fl);},
+      onDragOver:e=>{e.preventDefault();if(!imp.drag)this.setImp({drag:true});},
+      onDragLeave:()=>this.setImp({drag:false}),
+      onDrop:e=>{e.preventDefault();this.setImp({drag:false});this.parseFile(e.dataTransfer.files&&e.dataTransfer.files[0]);},
+      zoneBd:imp.drag?'#6d4aff':imp.parsed?'#9fdcc9':'#cfc8f5',zoneBg:imp.drag?'#f1ecff':imp.parsed?'#f3fbf8':'#faf9ff',
+      zoneTitle:imp.busy?'Reading every row…':imp.parsed?imp.parsed.source:'Drop your .xlsx here or click to browse',
+      zoneSub:imp.parsed?imp.parsed.revN.toLocaleString('en-IN')+' revenue rows · '+imp.parsed.expN.toLocaleString('en-IN')+' expense rows · sheets: '+imp.parsed.sheets.join(', '):'One workbook with a-tom, Social and Ngen — every row is read',
+      impHasParsed:!!imp.parsed,
+      impSummary:imp.parsed?['atom','social','ngen'].map(d=>{const s=imp.parsed.sets[d];return {name:DN[d],rows:s?s.revenue.length.toLocaleString('en-IN')+' revenue · '+s.expenses.length.toLocaleString('en-IN')+' expense rows':'No rows found',rev:s?f(s.totals.revenue.amount):'—',exp:s?f(s.totals.expenses.total):'—',fg:s?'#17162a':'#a9a7bd'};}):[],
+      hasImpNote:!!imp.parsed,impNote:imp.parsed&&imp.parsed.expHeaders?'Expense columns found: '+imp.parsed.expHeaders.join(', ')+'. '+imp.parsed.expMatched+' expense rows linked to Social/Ngen by project name. ':'',impNoteX:'Revenue: division is read from the project name (“… - Social”, “… - Ngen”); unlabelled projects go to a-tom. Expenses: matched to a division when the Project/operational text names a Social or Ngen project (or says Social / Ngen); the rest go to a-tom.',
+      ...(()=>{const S=imp.parsed?Object.values(imp.parsed.sets):[];return {impTotalRows:sum(S.map(s=>s.revenue.length)).toLocaleString('en-IN')+' revenue · '+sum(S.map(s=>s.expenses.length)).toLocaleString('en-IN')+' expense rows',impTotalRev:f(sum(S.map(s=>s.totals.revenue.amount))),impTotalExp:f(sum(S.map(s=>s.totals.expenses.total)))};})(),
+      hasImpErr:!!imp.err,impErr:imp.err,
+      hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),clearLabel:this.state.published?'Remove local import (use published)':'Clear workbook data',
+      doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.busy&&imp.parsed?'Publishing…':imp.parsed?(this.state.backend?'Publish for everyone':'Import & replace'):'Import',
+      noData:!Object.keys(src).length&&!added.revenue.length&&!added.expenses.length,
+      sourceName:(Object.values(src)[0]||{}).source||'No workbook yet — use Import Excel',
+      statusDot:hasLocal?'#e0a23a':pub?'#17a589':'#c9c8d6',
+      statusText:this.state.backend?(hasLocal?'Local import · not published':pub?'Live · shared with everyone'+(this.state.updatedAt?' · updated '+new Date(this.state.updatedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):''):'Live · no workbook published yet'):(hasLocal?'Local import · this device only':pub?'Published workbook':'No workbook imported'),
+      showPublish:hasLocal&&(this.state.backend||JSON.stringify(imports)!==JSON.stringify(pub)),
+      pubTitle:this.state.backend?'Not published yet':'Server not connected — only visible on this device',
+      pubBody:this.state.backend?'This import is only in your browser. Publish it so everyone with the link sees it.':'The site could not reach /api/workbook, so the import is saved only in this browser. Check that the Netlify function is deployed (see Functions tab in Netlify).',
+      pubBtn:this.state.backend?'Publish for everyone':'Download workbook.json',
+      pubAction:this.state.backend?async()=>{const err=await this.push({imports,added:this.state.added});clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);if(err){if(/admin key/i.test(err)){const k=window.prompt('Admin key');if(k){this.setState({keyInput:k},async()=>{const e2=await this.push({imports,added:this.state.added});if(!e2){try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for everyone'});}else this.setState({flash:e2});});}return;}return this.setState({flash:err});}try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for everyone'});}:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
+      needKey:false,keyInput:this.state.keyInput,onKey:e=>this.setState({keyInput:e.target.value}),
+      downloadData:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
+      formDivs:['atom','social','ngen'].map(id=>{const a=(form.div||'atom')===id;return {name:DN[id],go:()=>this.setState(s=>({form:{...s.form,div:id}})),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
+      q,onSearch:e=>this.setState({q:e.target.value,limit:25}),more:()=>this.setState(s=>({limit:s.limit+50}))});
+  }
+}
+</script>
+</body>
+</html>
