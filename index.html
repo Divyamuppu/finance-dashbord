@@ -604,7 +604,7 @@ function parseExpenses(rows,sheetDiv){
 const ADDED_KEY='atom-dash-added-v1';
 const today=()=>new Date().toISOString().slice(0,10);
 const FORMS={
- project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Budget excl. GST (₹)','number','0',1,''],['gst','GST (₹)','number','Auto: 18% of budget',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: budget + GST − received − TDS',2,'']]},
+ project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Revenue excl. GST (₹)','number','0',1,''],['gst','GST (₹)','number','Auto: 18% of revenue',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: revenue + GST − received − TDS',2,'']]},
  revenue:{title:'Add revenue',sub:'Log a payment received against a project.',save:'Add revenue',fields:[['name','Project','text','Pick or type a project',2,'dc-projects'],['date','Payment date','date','',1,''],['payment','Payment note','text','e.g. 50% balance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance remaining (₹)','number','0',2,'']]},
  expense:{title:'Add expense',sub:'Log a cost in the shared Expenses sheet (one pool for all divisions).',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
 };
@@ -681,7 +681,7 @@ class Component extends DCLogic {
       msg='Expense added · '+f(has('total')?n('total'):n('amount')-n('tds'));
     }else{
       if(!s('name'))return this.setState({formErr:'Project name is required.'});
-      if(modal==='project'&&!n('budget')&&!n('amount'))return this.setState({formErr:'Enter a budget or an amount received.'});
+      if(modal==='project'&&!n('budget')&&!n('amount'))return this.setState({formErr:'Enter the revenue or an amount received.'});
       if(modal==='revenue'&&!n('amount'))return this.setState({formErr:'Enter the amount received.'});
       if(['budget','gst','amount','tds'].some(k=>n(k)<0))return this.setState({formErr:'Amounts cannot be negative.'});
       const budget=modal==='project'?n('budget'):0;
@@ -723,7 +723,8 @@ class Component extends DCLogic {
       isOverview:page==='overview',hasTable:page!=='overview'
     };
     // Divisions apply to revenue only (and only on the Revenue page). Expenses are one shared pool.
-    const divOn=page==='revenue';
+    const divOn=page==='revenue'||page==='overview';
+    const oneDiv=divOn&&div!=='all';
     const inDiv=d=>!divOn||div==='all'||div===d;
     const exList=String(this.props.excludeProjects??'Cognitive Botics').split(',').map(s=>s.toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean);
     const excluded=s=>{const k=String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');return !!k&&exList.some(x=>k.includes(x));};
@@ -770,30 +771,39 @@ class Component extends DCLogic {
     const kpi=(label,value,note,tile,icon,color)=>({label,value,note,tileBg:TILE[tile][0],tileFg:TILE[tile][1],icon:ICON[icon],color:color||'#17162a'});
     const search=s=>q?s.toLowerCase().includes(q.toLowerCase()):true;
     let P={};
-    const revKpis=[kpi('Total revenue',f(TR.total),'Budget '+f(TR.budget)+' + GST '+f(TR.gst),'purple','receipt'),kpi('Budget (excl. GST)',f(TR.budget),'Budget column in the workbook','purple','file'),kpi('GST',f(TR.gst),'GST column · '+(TR.budget?(TR.gst/TR.budget*100).toFixed(1):'0')+'% of budget','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up')];
-    if(page==='overview'){
+    const revKpis=[kpi('Revenue',f(TR.total),'Incl. GST · budget '+f(TR.budget)+' + GST '+f(TR.gst),'purple','receipt'),kpi('GST',f(TR.gst),'GST column · '+(TR.budget?(TR.gst/TR.budget*100).toFixed(1):'0')+'% of budget','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up')];
+    if(page==='overview'&&oneDiv){
+      // a single division: revenue only — expenses are one shared pool and live under "All divisions"
+      P={title:'Overview',subtitle:DN[div]+' revenue · expenses are shown only under All divisions.',
+        kpis:[...revKpis,kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        chartTitle:'Monthly revenue',chartSub:'Amount received by payment date · '+fyLabel,...chart([{label:'Revenue',c:'#17a589',data:revM}]),
+        sideTitle:'Revenue snapshot',sideSub:DN[div]+' · whole workbook',
+        sideRows:[['Revenue (incl. GST)',f(TR.total),'700','#17162a'],['GST',f(TR.gst),'400','#6f6d85'],['Amount received',f(TR.amount),'600','#128a72'],['TDS deducted',f(TR.tds),'400','#6f6d85'],['Balance due',f(TR.balance),'600',TR.balance>0?'#c0392b':'#17162a']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
+        overviewLists:[{title:'Top clients',sub:DN[div]+' · by amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)}]};
+    }
+    else if(page==='overview'){
       const net=TR.amount-TE.total;
       const netRev=TR.amount-gstPaid, opex=TE.total-gstPaid;
       P={title:'Overview',subtitle:'Whole collective: revenue from every division against one shared expense pool.',
-        kpis:[...revKpis.filter((_,i)=>i!==1),kpi('Total expenses',f(TE.total),'All divisions · one Expenses sheet','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        kpis:[...revKpis,kpi('Total expenses',f(TE.total),'All divisions · one Expenses sheet','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Revenue vs expenses',chartSub:'Monthly totals by transaction date · '+fyLabel,
         ...chart([{label:'Revenue',c:'#17a589',data:revM},{label:'Expenses',c:'#8b6dff',data:expM}]),
         sideTitle:'Income snapshot',sideSub:fyLabel+' chart · totals cover the whole workbook',
-        sideRows:[['Gross revenue received',f(TR.amount),'600','#17162a'],['Less: GST remitted',f(-gstPaid),'400','#6f6d85'],['Net revenue',f(netRev),'600','#17162a'],['Operating expenses',f(-opex),'400','#6f6d85'],['Net profit',f(netRev-opex),'700',netRev-opex<0?'#c0392b':'#128a72'],['TDS deducted on revenue',f(TR.tds),'400','#6f6d85'],['Total billed (budget + GST)',f(TR.total),'400','#6f6d85']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
-        overviewLists:[{title:'Revenue by division',sub:'Total revenue (budget + GST)',link:'View revenue →',go:go('revenue'),bar:'#6d4aff',rows:rank(['atom','social','ngen'].map(d=>[DN[d],divRev(d).total]).sort((a,b)=>b[1]-a[1]),3)},{title:'Top clients',sub:'By amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)},{title:'Top vendors',sub:'By total recorded spend',link:'View expenses →',go:go('expenses'),bar:'#8b6dff',rows:rank(vendors,6)}]};
+        sideRows:[['Gross revenue received',f(TR.amount),'600','#17162a'],['Less: GST remitted',f(-gstPaid),'400','#6f6d85'],['Net revenue',f(netRev),'600','#17162a'],['Operating expenses',f(-opex),'400','#6f6d85'],['Net profit',f(netRev-opex),'700',netRev-opex<0?'#c0392b':'#128a72'],['TDS deducted on revenue',f(TR.tds),'400','#6f6d85'],['Revenue billed (incl. GST)',f(TR.total),'400','#6f6d85']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
+        overviewLists:[{title:'Revenue by division',sub:'Revenue incl. GST',link:'View revenue →',go:go('revenue'),bar:'#6d4aff',rows:rank(['atom','social','ngen'].map(d=>[DN[d],divRev(d).total]).sort((a,b)=>b[1]-a[1]),3)},{title:'Top clients',sub:'By amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)},{title:'Top vendors',sub:'By total recorded spend',link:'View expenses →',go:go('expenses'),bar:'#8b6dff',rows:rank(vendors,6)}]};
     }
     if(page==='revenue'){
       const rows=R.filter(r=>search(r[0]+' '+r[3]));
-      P={title:'Revenue',subtitle:(div==='all'?'All divisions':DN[div])+' · total revenue = budget + GST, with GST shown separately.',
+      P={title:'Revenue',subtitle:(div==='all'?'All divisions':DN[div])+' · revenue includes GST; GST is also shown on its own.',
         kpis:[...revKpis,kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Monthly revenue',chartSub:'Amount received by payment date · '+fyLabel,...chart([{label:'Revenue',c:'#17a589',data:revM}]),
         sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
         searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
         tCols:'minmax(240px,2fr) 100px 120px minmax(140px,1fr) 130px 110px 130px 110px 120px',
-        tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['BUDGET','right'],['GST','right'],['RECEIVED','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
-        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[r[8]],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[1]?f(r[1]):'—',align:'right',fg:'#4b4962'},{v:r[9]?f(r[9]):'—',align:'right',fg:'#6f6d85'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
-        mRows:rows.slice(0,limit).map(r=>({title:(r[7]?'● ':'')+r[0],fg:r[7]?'#5b3fd9':'#17162a',sub:(r[3]||'Payment')+(r[1]?' · budget '+f(r[1])+' + GST '+f(r[9]):''),meta:fmtDate(r[2])+' · '+DN[r[8]],value:r[4]?f(r[4]):'—',extra:r[6]?f(r[6])+' due':(r[5]?'TDS '+f(r[5]):''),extraFg:r[6]?'#c0392b':'#8e8ca3'})),
-        ...(()=>{const Bu=sum(rows.map(r=>r[1])),G=sum(rows.map(r=>r[9])),A=sum(rows.map(r=>r[4])),T=sum(rows.map(r=>r[5])),B=sum(rows.map(r=>r[6])),N=rows.length.toLocaleString('en-IN')+' rows';const e={v:'',align:'left',fg:'#17162a'};return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},e,e,e,{v:f(Bu),align:'right',fg:'#17162a'},{v:f(G),align:'right',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(B),align:'right',fg:B?'#c0392b':'#17162a'}],mFootSub:N+' · revenue '+f(Bu+G)+' (GST '+f(G)+')',mFootValue:f(A),mFootExtra:B?f(B)+' due':'',mFootExtraFg:'#c0392b'};})(),
+        tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['REVENUE (INCL. GST)','right'],['GST','right'],['RECEIVED','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[r[8]],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[1]?f(r[1]+r[9]):'—',align:'right',fg:'#4b4962'},{v:r[9]?f(r[9]):'—',align:'right',fg:'#6f6d85'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
+        mRows:rows.slice(0,limit).map(r=>({title:(r[7]?'● ':'')+r[0],fg:r[7]?'#5b3fd9':'#17162a',sub:(r[3]||'Payment')+(r[1]?' · revenue '+f(r[1]+r[9])+' incl. GST '+f(r[9]):''),meta:fmtDate(r[2])+' · '+DN[r[8]],value:r[4]?f(r[4]):'—',extra:r[6]?f(r[6])+' due':(r[5]?'TDS '+f(r[5]):''),extraFg:r[6]?'#c0392b':'#8e8ca3'})),
+        ...(()=>{const Bu=sum(rows.map(r=>r[1])),G=sum(rows.map(r=>r[9])),A=sum(rows.map(r=>r[4])),T=sum(rows.map(r=>r[5])),B=sum(rows.map(r=>r[6])),N=rows.length.toLocaleString('en-IN')+' rows';const e={v:'',align:'left',fg:'#17162a'};return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},e,e,e,{v:f(Bu+G),align:'right',fg:'#17162a'},{v:f(G),align:'right',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(B),align:'right',fg:B?'#c0392b':'#17162a'}],mFootSub:N+' · revenue '+f(Bu+G)+' incl. GST '+f(G),mFootValue:f(A),mFootExtra:B?f(B)+' due':'',mFootExtraFg:'#c0392b'};})(),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }

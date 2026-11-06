@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&amp;family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@500&amp;display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#17162a">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -179,11 +179,12 @@ input::placeholder{color:#8e8ca3}
           </div>
           <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:6px">
             <div style="font-size:18px;font-weight:600">Import your FY workbook</div>
-            <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">One .xlsx with a-tom, Social and Ngen revenue and expenses. Every row is read and split by division.</div>
+            <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">One .xlsx with a revenue sheet per division (a-tom, Social, Ngen) and one shared Expenses sheet.</div>
           </div>
           <div onClick="{{ openImport }}" style="font-size:14px;font-weight:600;color:#fff;padding:12px 22px;border-radius:999px;background:#6d4aff;cursor:pointer;white-space:nowrap" style-hover="background:#5b3fd9">Import Excel</div>
         </div>
       </sc-if>
+      <sc-if value="{{ showDivTabs }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;gap:10px;flex-wrap:{{ wrap }};overflow-x:auto;margin:{{ scrollM }};padding:{{ scrollP }};scrollbar-width:none">
         <sc-for list="{{ divTabs }}" as="d" hint-placeholder-count="4">
           <div onClick="{{ d.go }}" style="display:flex;flex-direction:column;gap:4px;padding:12px 18px;border-radius:14px;cursor:pointer;flex-shrink:0;min-width:{{ divMin }};background:{{ d.bg }};border:1px solid {{ d.bd }};color:{{ d.fg }};box-shadow:{{ d.sh }}">
@@ -192,6 +193,7 @@ input::placeholder{color:#8e8ca3}
           </div>
         </sc-for>
       </div>
+      </sc-if>
       <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:{{ kpiGapOuter }}">
         <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
           <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ kpiPad }};display:flex;flex-direction:column;gap:{{ kpiGap }};min-width:0;box-shadow:0 1px 2px rgba(23,22,42,.04)">
@@ -377,7 +379,7 @@ input::placeholder{color:#8e8ca3}
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
             <div style="display:flex;flex-direction:column;gap:6px">
               <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">Import Excel</div>
-              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Upload one .xlsx containing a-tom, Social and Ngen. Every row of the Revenue and Expenses sheets is read and split by division. This replaces the current workbook data; entries added by hand are kept.</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Upload one .xlsx with a revenue sheet per division (a-tom, Social, Ngen) and one Expenses sheet. Revenue is split by sheet; expenses stay one pool for all divisions. This replaces the current workbook data; entries added by hand are kept.</div>
             </div>
             <div onClick="{{ closeImp }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
           </div>
@@ -392,7 +394,7 @@ input::placeholder{color:#8e8ca3}
           <sc-if value="{{ impHasParsed }}" hint-placeholder-val="{{ false }}">
             <div style="border:1px solid #e9e8f0;border-radius:14px;overflow:hidden">
               <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:10px 16px;background:#fafafc;font-size:11px;font-weight:600;letter-spacing:.06em;color:#6f6d85">
-                <span>DIVISION</span><span style="text-align:right">RECEIVED</span><span style="text-align:right">EXPENSES</span>
+                <span>DIVISION</span><span style="text-align:right">REVENUE + GST</span><span style="text-align:right">RECEIVED</span>
               </div>
               <sc-for list="{{ impSummary }}" as="s" hint-placeholder-count="3">
                 <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;padding:12px 16px;border-top:1px solid #f0eff5;align-items:center;color:{{ s.fg }}">
@@ -447,6 +449,7 @@ input::placeholder{color:#8e8ca3}
             </div>
             <div onClick="{{ closeModal }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
           </div>
+          <sc-if value="{{ showFormDiv }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;flex-direction:column;gap:8px">
             <span style="font-size:13px;font-weight:600;color:#3b3953">Division</span>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -455,6 +458,7 @@ input::placeholder{color:#8e8ca3}
               </sc-for>
             </div>
           </div>
+          </sc-if>
           <div style="display:grid;grid-template-columns:{{ formCols }};gap:16px">
             <sc-for list="{{ fields }}" as="fl" hint-placeholder-count="6">
               <label style="display:flex;flex-direction:column;gap:7px;grid-column:{{ fl.span }}">
@@ -507,14 +511,15 @@ const fmtDate=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00Z');return x.t
 const brandOf=n=>{const l=n.toLowerCase();for(const [b,...k] of BRANDS)if(k.some(x=>l.includes(x)))return b;return n.split(/[ (\-–]/)[0]||n;};
 const lakh=v=>{if(!v)return '₹0';if(v>=1e7)return '₹'+String(+(v/1e7).toFixed(2))+' Cr';if(v>=1e5)return '₹'+String(+(v/1e5).toFixed(1))+'L';return '₹'+String(+(v/1e3).toFixed(1))+'K';};
 function niceTicks(max){const steps=[1e3,2e3,2.5e3,5e3,1e4,2e4,2.5e4,5e4,1e5,2e5,2.5e5,5e5,1e6,2e6,2.5e6,5e6,1e7,2e7,2.5e7,5e7,1e8,2e8,5e8];const st=steps.find(s=>s*4>=max)||steps[steps.length-1];return [4,3,2,1,0].map(i=>i*st);}
-const DN={atom:'a-tom',social:'Social',ngen:'Ngen'};
+const DN={atom:'a-tom',social:'Social',ngen:'Ngen',all:'All divisions'};
 const DIVS=[['all','All divisions'],['atom','a-tom'],['social','Social'],['ngen','Ngen']];
 const rd=r=>r[8]||'atom', ed=e=>e[7]||'atom';
 const IMPORT_KEY='atom-dash-imports-v2';
-const divOf=s=>{const l=String(s??'').toLowerCase();if(/\bn[\s-]?gen\b/.test(l))return 'ngen';if(/\bsocial\b/.test(l))return 'social';if(/\ba[\s-]?tom\b/.test(l))return 'atom';return null;};
+const divOf=s=>{const l=String(s??'').toLowerCase();if(/\bn[\s-]?gen\b/.test(l))return 'ngen';if(/social|\bsocail\b|\bscoial\b/.test(l))return 'social';if(/\ba[\s-]?tom\b/.test(l))return 'atom';return null;};
 const nameDiv=s=>{const m=String(s??'').match(/[-–—|]\s*(social|n[\s-]?gen|a[\s-]?tom)\b/i);return m?divOf(m[1]):null;};
 const DIV_HDR=/division|vertical|collective|entity|company|business|department|\bunit\b|segment/i;
-const SKIP_SHEET=/statement|p\s*&\s*l|\bpl\b|quarter|summary|investment|dashboard|pivot|chart/i;
+const SKIP_SHEET=/statement|p\s*&\s*l|\bpl\b|quarter|summary|investment|dashboard|pivot|chart|^\s*instructions?\s*$|^\s*lists?\s*$|readme|^\s*help\s*$/i;
+const GST_RATE=0.18;
 const isTotal=s=>/^(grand\s+|sub[\s-]?)?total\b/i.test(s);
 const markerOf=(r,numCols)=>{const cells=r.filter(c=>c!=null&&String(c).trim()!=='');if(!cells.length||cells.length>2)return null;if(numCols.some(i=>i>=0&&typeof r[i]==='number'&&r[i]!==0))return null;return cells.map(divOf).find(Boolean)||null;};
 const xdec=s=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(+c)).replace(/&amp;/g,'&');
@@ -532,7 +537,7 @@ async function readXlsx(file){
   const wb=await get('xl/workbook.xml');if(!wb)throw new Error('This file is not an Excel workbook.');
   const rels=(await get('xl/_rels/workbook.xml.rels'))||'';const relMap={};
   for(const m of rels.matchAll(/<Relationship\b[^>]*>/g)){const id=(m[0].match(/Id="([^"]+)"/)||[])[1],t=(m[0].match(/Target="([^"]+)"/)||[])[1];if(id&&t)relMap[id]=t.startsWith('/')?t.slice(1):'xl/'+t;}
-  const sheets=[...wb.matchAll(/<sheet\b[^>]*>/g)].map(m=>({name:xdec((m[0].match(/name="([^"]*)"/)||[])[1]||''),path:relMap[(m[0].match(/r:id="([^"]+)"/)||[])[1]]})).filter(s=>s.path);
+  const sheets=[...wb.matchAll(/<sheet\b[^>]*>/g)].map(m=>({name:xdec((m[0].match(/name="([^"]*)"/)||[])[1]||''),path:relMap[(m[0].match(/r:id="([^"]+)"/)||[])[1]],hidden:/state="(hidden|veryHidden)"/.test(m[0])})).filter(s=>s.path);
   const ss=(await get('xl/sharedStrings.xml'))||'';
   const strings=[...ss.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m=>xdec([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join('')));
   const read=async path=>{const x=await get(path);if(!x)return [];const rows=[];
@@ -557,16 +562,22 @@ function parseRevenue(rows,sheetDiv){
   C.gst=H.findIndex(x=>/gst/i.test(x)&&!/budget|incl|including|total|input/i.test(x));
   const hdrName=(H[C.name]||'').trim().toLowerCase();
   const out=[];out.hasGst=C.gst>=0;let proj=null,budget=0,pdiv=null,cur=sheetDiv||null,block=0;
-  for(const r of rows.slice(hi+1)){
-    const b=sv(r[C.name]);
+  for(let ri=hi+1;ri<rows.length;ri++){
+    const r=rows[ri]||[];
+    let b=sv(r[C.name]);
     if(b&&b.toLowerCase()===hdrName)continue;
     if(isTotal(b)||(!b&&r.some(c=>typeof c==='string'&&isTotal(c.trim())))){const d=r.map(divOf).find(Boolean);if(d)for(let i=block;i<out.length;i++)if(!out[i][7])out[i][7]=d;block=out.length;proj=null;continue;}
+    // a row with its own Budget but no Project name is a separate project, not a payment of the one above
+    if(!b&&nv(r[C.budget])>0&&(isoD(r[C.date])||nv(r[C.amt])))b='Unnamed project (row '+(ri+1)+')';
     const mk=markerOf(r,[C.budget,C.amt,C.tds,C.bal]);
-    if(mk&&!(C.div>=0&&r[C.div]===r.find(c=>c!=null&&String(c).trim()!==''))){cur=mk;block=out.length;proj=null;continue;}
+    // on a division's own sheet the sheet decides the division; a stray "Social"/"Ngen" label row is just skipped
+    if(mk&&!(C.div>=0&&r[C.div]===r.find(c=>c!=null&&String(c).trim()!==''))){if(!sheetDiv)cur=mk;block=out.length;proj=null;continue;}
     const rowDiv=C.div>=0?divOf(r[C.div]):null;
-    if(b){proj=b;budget=nv(r[C.budget]);pdiv=rowDiv||divOf(b)||cur;}
+    if(b){proj=b;budget=nv(r[C.budget]);pdiv=rowDiv||(sheetDiv?sheetDiv:(divOf(b)||r.filter(c=>typeof c==='string').map(divOf).find(d=>d&&d!=='atom')||cur));}
     if(!proj)continue;
-    const d=isoD(r[C.date]),a=nv(r[C.amt]),t=nv(r[C.tds]),g=C.gst>=0&&b?nv(r[C.gst]):0;
+    if(!b&&!isoD(r[C.date])&&!sv(r[C.pay])&&!sv(r[0]))continue;
+    // Budget is revenue excl. GST; GST comes from its own column (or 18% of budget when the sheet has no GST column)
+    const d=isoD(r[C.date]),a=nv(r[C.amt]),t=nv(r[C.tds]),g=b?(C.gst>=0?nv(r[C.gst]):budget*GST_RATE):0;
     if(b||d||a||t)out.push([proj,b?Math.round(budget):0,d,sv(r[C.pay]),Math.round(a),Math.round(t),Math.round(nv(r[C.bal])),rowDiv||pdiv||cur||null,Math.round(g)]);
   }
   return out;
@@ -583,6 +594,7 @@ function parseExpenses(rows,sheetDiv){
     const mk=markerOf(r,[C.amt,C.tds,C.tot]);
     if(mk){cur=mk;block=out.length;continue;}
     const a=nv(r[C.amt]),t=nv(r[C.tot]);if(!b&&!a&&!t)continue;
+    if(!b&&!sv(r[C.note])&&!isoD(r[C.date]))continue;
     const cells=Array.from(r,c=>typeof c==='string'?c:'').filter(Boolean);
     const rowDiv=(C.div>=0?divOf(r[C.div]):null)||divOf(r[C.note])||divOf(b)||cells.map(divOf).find(Boolean)||null;
     out.push([b,sv(r[C.note]),isoD(r[C.date]),Math.round(a),Math.round(nv(r[C.tds])),Math.round(t),rowDiv,cur||null,cells.join(' ')]);
@@ -592,9 +604,9 @@ function parseExpenses(rows,sheetDiv){
 const ADDED_KEY='atom-dash-added-v1';
 const today=()=>new Date().toISOString().slice(0,10);
 const FORMS={
- project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Budget incl. GST (₹)','number','0',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',2,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: budget − received − TDS',2,'']]},
+ project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Revenue excl. GST (₹)','number','0',1,''],['gst','GST (₹)','number','Auto: 18% of revenue',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: revenue + GST − received − TDS',2,'']]},
  revenue:{title:'Add revenue',sub:'Log a payment received against a project.',save:'Add revenue',fields:[['name','Project','text','Pick or type a project',2,'dc-projects'],['date','Payment date','date','',1,''],['payment','Payment note','text','e.g. 50% balance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance remaining (₹)','number','0',2,'']]},
- expense:{title:'Add expense',sub:'Log a vendor or project cost in the Expenses sheet.',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
+ expense:{title:'Add expense',sub:'Log a cost in the shared Expenses sheet (one pool for all divisions).',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
 };
 class Component extends DCLogic {
   state={page:this.props.defaultPage??'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:'all',published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
@@ -605,34 +617,30 @@ class Component extends DCLogic {
     this.setImp({busy:true,err:'',parsed:null});
     try{
       const wb=await readXlsx(file);
-      const use=wb.sheets.filter(s=>!SKIP_SHEET.test(s.name));
+      const use=wb.sheets.filter(s=>!s.hidden&&!SKIP_SHEET.test(s.name));
       let rS=use.filter(s=>/revenue|income|sales|receipt|collection/i.test(s.name));
-      let eS=use.filter(s=>/expense|cost|spend|payment|outflow|purchase/i.test(s.name)&&!rS.includes(s));
-      if(!rS.length&&wb.sheets[0])rS=[wb.sheets[0]];
-      if(!eS.length){const o=wb.sheets.find(s=>!rS.includes(s));if(o)eS=[o];}
-      const rev=[],exp=[];let hasGst=false;
-      for(const s of rS){const o=parseRevenue(await wb.read(s.path),divOf(s.name));if(o.hasGst)hasGst=true;rev.push(...o);}
-      for(const s of eS)exp.push(...parseExpenses(await wb.read(s.path),divOf(s.name)));
-      if(!rev.length&&!exp.length)throw new Error('No revenue or expense rows found — check the sheets are named Revenue and Expenses.');
-      // match expenses to a division via the project names on the Revenue sheet
-      const keyOf=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-      const baseOf=n=>n.replace(/[-–—|]\s*(social|n[\s-]?gen|a[\s-]?tom)\b.*$/i,'').replace(/\(.*?\)/g,' ').trim();
-      const STOP=new Set(['batch','retainer','video','videos','project','phase','monthly','shoot','campaign','the','july','august','september','october','november','december','january','february','march','april','may','june']);
-      const keysFor=n=>{const b=baseOf(n);const ks=new Set([keyOf(b),keyOf(b.split(/\s[-–—|]\s/)[0])]);const w=(b.match(/[A-Za-z0-9.]+/)||[''])[0];if(w.replace(/\./g,'').length>=4&&!STOP.has(w.toLowerCase()))ks.add(keyOf(w));return [...ks].filter(k=>k.length>=4);};
-      const km={};rev.forEach(r=>{const d=r[7]||'atom';keysFor(r[0]).forEach(k=>{(km[k]=km[k]||new Set()).add(d);});});
-      const keys=Object.entries(km).filter(([,s])=>s.size===1).map(([k,s])=>[k,[...s][0]]).sort((a,b)=>b[0].length-a[0].length);
-      let matched=0;
-      exp.forEach(e=>{if(e[6])return;const full=keyOf(e[8]||(e[0]+' '+e[1]));const d=(keys.find(([k])=>full.includes(k))||[])[1];if(d&&d!=='atom'){e[6]=d;matched++;}else e[6]=e[7]||null;});
+      let eS=use.filter(s=>/expense|cost|spend|outflow|purchase/i.test(s.name)&&!rS.includes(s));
+      // division sheets (e.g. "a-tom", "Social", "Ngen") are recognised by their header row
+      for(const s of use){if(rS.includes(s)||eS.includes(s))continue;const rows=await wb.read(s.path);const top=rows.slice(0,6).map(r=>Array.from(r||[],c=>typeof c==='string'?c:'').join(' ')).join(' ');
+        if(/vendor|type of exp|paid to/i.test(top))eS.push(s);else if(/project|client/i.test(top)&&/budget|received|amount/i.test(top))rS.push(s);}
+      if(!rS.length&&!eS.length&&use[0])rS=[use[0]];
+      const rev=[],exp=[],sheetMap=[];
+      for(const s of rS){const sd=divOf(s.name);const o=parseRevenue(await wb.read(s.path),sd);rev.push(...o);sheetMap.push(s.name+(sd?' → '+DN[sd]:''));}
+      for(const s of eS)exp.push(...parseExpenses(await wb.read(s.path),null));
+      if(!rev.length&&!exp.length)throw new Error('No revenue or expense rows found — name the sheets Revenue / a-tom / Social / Ngen and Expenses.');
       const sets={},now=Date.now();
+      // revenue is split by division; row = [project, budget excl. GST, date, payment, received, TDS, balance, GST]
       for(const d of ['atom','social','ngen']){
-        const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>r.slice(0,7)),ex=exp.filter(e=>(e[6]||'atom')===d).map(e=>e.slice(0,6));
-        if(!rv.length&&!ex.length)continue;
-        const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
-        sets[d]={source:file.name,importedAt:now,totals:{revenue:{budget:b,amount:a,tds:t,balance:0,gst:hasGst?sum(rev.filter(r=>(r[7]||'atom')===d).map(r=>r[8]||0)):Math.round(b*18/118)},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}},revenue:rv,expenses:ex,gstCol:hasGst,gstByProj:hasGst?Object.fromEntries(rev.filter(r=>(r[7]||'atom')===d&&r[8]).map(r=>[r[0],r[8]])):null};
+        const rv=rev.filter(r=>(r[7]||'atom')===d).map(r=>[r[0],r[1],r[2],r[3],r[4],r[5],r[6],Math.round(r[8]||0)]);
+        if(!rv.length)continue;
+        const b=sum(rv.map(r=>r[1])),g=sum(rv.map(r=>r[7])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
+        sets[d]={v:3,source:file.name,importedAt:now,revenue:rv,totals:{revenue:{budget:b,gst:g,total:b+g,amount:a,tds:t,balance:b+g-a-t}}};
       }
-      Object.values(sets).forEach(s=>{const t=s.totals.revenue;t.balance=t.budget-t.amount-t.tds;});
+      // expenses are one pool for the whole collective — never split by division
+      const ex=exp.map(e=>e.slice(0,6));
+      if(ex.length)sets.expenses={v:3,source:file.name,importedAt:now,expenses:ex,totals:{expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};
       const exCols=eS.length?(await wb.read(eS[0].path)).slice(0,6).find(r=>r.some(c=>typeof c==='string'&&/vendor|amount|particular|expense/i.test(c)))||[]:[];
-      this.setImp({busy:false,parsed:{source:file.name,sets,expHeaders:Array.from(exCols,c=>typeof c==='string'?c:'').filter(Boolean),expMatched:matched,sheets:[...rS,...eS].map(s=>s.name),unassigned:rev.filter(r=>!r[7]).length+exp.filter(e=>!e[6]).length,revN:rev.length,expN:exp.length}});
+      this.setImp({busy:false,parsed:{source:file.name,sets,expHeaders:Array.from(exCols,c=>typeof c==='string'?c:'').filter(Boolean),revSheets:sheetMap,expSheets:eS.map(s=>s.name),sheets:[...rS,...eS].map(s=>s.name),revN:rev.length,expN:exp.length}});
     }catch(e){this.setImp({busy:false,err:e.message||'Could not read this file.'});}
   }
   async push(payload){
@@ -668,15 +676,19 @@ class Component extends DCLogic {
     if(modal==='expense'){
       if(!s('vendor'))return this.setState({formErr:'Vendor is required.'});
       if(!n('amount'))return this.setState({formErr:'Enter an amount.'});
-      next.expenses.unshift([s('vendor'),s('note'),form.date||null,n('amount'),n('tds'),has('total')?n('total'):n('amount')-n('tds'),true,form.div||'atom']);
-      msg=DN[form.div||'atom']+' expense added · '+f(has('total')?n('total'):n('amount')-n('tds'));
+      if(n('amount')<0||n('tds')<0)return this.setState({formErr:'Amounts cannot be negative.'});
+      next.expenses.unshift([s('vendor'),s('note'),form.date||null,n('amount'),n('tds'),has('total')?n('total'):n('amount')-n('tds'),true]);
+      msg='Expense added · '+f(has('total')?n('total'):n('amount')-n('tds'));
     }else{
       if(!s('name'))return this.setState({formErr:'Project name is required.'});
-      if(modal==='project'&&!n('budget')&&!n('amount'))return this.setState({formErr:'Enter a budget or an amount received.'});
+      if(modal==='project'&&!n('budget')&&!n('amount'))return this.setState({formErr:'Enter the revenue or an amount received.'});
       if(modal==='revenue'&&!n('amount'))return this.setState({formErr:'Enter the amount received.'});
+      if(['budget','gst','amount','tds'].some(k=>n(k)<0))return this.setState({formErr:'Amounts cannot be negative.'});
       const budget=modal==='project'?n('budget'):0;
-      const bal=has('balance')?n('balance'):(modal==='project'?Math.max(0,budget-n('amount')-n('tds')):0);
-      next.revenue.unshift([s('name'),budget,form.date||null,s('payment'),n('amount'),n('tds'),bal,true,form.div||'atom']);
+      const gst=modal==='project'?(has('gst')?n('gst'):Math.round(budget*GST_RATE)):0;
+      const bal=has('balance')?n('balance'):(modal==='project'?Math.max(0,budget+gst-n('amount')-n('tds')):0);
+      // row: [project, budget excl. GST, date, payment, received, TDS, balance, added, division, GST]
+      next.revenue.unshift([s('name'),budget,form.date||null,s('payment'),n('amount'),n('tds'),bal,true,form.div||'atom',gst]);
       msg=DN[form.div||'atom']+(modal==='project'?' project added · ':' revenue added · ')+s('name');
     }
     if(this.state.backend){const err=await this.push({imports:this.state.published||{},added:next});if(err)return this.setState({formErr:err});}
@@ -710,33 +722,31 @@ class Component extends DCLogic {
       statusText:err?'Workbook not found':data?'Workbook-connected snapshot':'Loading workbook…',
       isOverview:page==='overview',hasTable:page!=='overview'
     };
-    const inDiv=d=>div==='all'||div===d, baseOn=inDiv('atom');
-    const addR=added.revenue.filter(r=>inDiv(rd(r))), addE=added.expenses.filter(e=>inDiv(ed(e)));
+    // Divisions apply to revenue only (and only on the Revenue page). Expenses are one shared pool.
+    const divOn=page==='revenue'||page==='overview';
+    const oneDiv=divOn&&div!=='all';
+    const inDiv=d=>!divOn||div==='all'||div===d;
     const exList=String(this.props.excludeProjects??'Cognitive Botics').split(',').map(s=>s.toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean);
     const excluded=s=>{const k=String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');return !!k&&exList.some(x=>k.includes(x));};
     const exR=r=>excluded(r[0]), exE=e=>excluded(e[0])||excluded(e[1]);
-    const recalc=s=>{const rv=s.revenue.filter(r=>!exR(r)),ex=s.expenses.filter(e=>!exE(e));if(rv.length===s.revenue.length&&ex.length===s.expenses.length)return s;
-      const b=sum(rv.map(r=>r[1])),a=sum(rv.map(r=>r[4])),t=sum(rv.map(r=>r[5]));
-      const g=s.gstCol&&s.gstByProj?sum(Object.entries(s.gstByProj).filter(([k])=>!excluded(k)).map(([,v])=>v)):Math.round(b*18/118);
-      return {...s,revenue:rv,expenses:ex,totals:{revenue:{budget:b,amount:a,tds:t,balance:b-a-t,gst:g},expenses:{amount:sum(ex.map(e=>e[3])),tds:sum(ex.map(e=>e[4])),total:sum(ex.map(e=>e[5]||e[3]))}}};};
     const hasLocal=Object.keys(imports).length>0, pub=this.state.published;
     const src=hasLocal?imports:(pub||{});
-    const SETS=Object.fromEntries(Object.entries(src).map(([k,s])=>[k,recalc(s)]));
-    const scopeD=['atom','social','ngen'].filter(inDiv);
-    const R=[...addR.filter(r=>!exR(r)),...scopeD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])], E=[...addE.filter(e=>!exE(e)),...scopeD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
-    const addT=(k,z)=>scopeD.reduce((a,d)=>{const t=SETS[d]&&SETS[d].totals[k];if(!t)return a;const o={};for(const x in a)o[x]=a[x]+(t[x]||0);return o;},z);
-    const TR0=addT('revenue',{budget:0,amount:0,tds:0,balance:0,gst:0}), TE0=addT('expenses',{amount:0,tds:0,total:0});
-    const addRx=addR.filter(r=>!exR(r)),addEx=addE.filter(e=>!exE(e));
-    const TR={budget:TR0.budget+sum(addRx.map(r=>r[1])),amount:TR0.amount+sum(addRx.map(r=>r[4])),tds:TR0.tds+sum(addRx.map(r=>r[5])),gst:0};
-    const gstSep=Object.values(SETS).some(s=>s.gstCol);
-    TR.gst=TR0.gst+Math.round(sum(addRx.map(r=>r[1]))*(gstSep?0.18:18/118));
-    TR.balance=TR.budget-TR.amount-TR.tds;
-    const TE={amount:TE0.amount+sum(addEx.map(e=>e[3])),tds:TE0.tds+sum(addEx.map(e=>e[4])),total:TE0.total+sum(addEx.map(e=>e[5]))};
-    const divTot=d=>{const b=SETS[d];const ar=added.revenue.filter(r=>rd(r)===d&&!exR(r)),ae=added.expenses.filter(e=>ed(e)===d&&!exE(e));return {rev:(b?b.totals.revenue.amount:0)+sum(ar.map(r=>r[4])),exp:(b?b.totals.expenses.total:0)+sum(ae.map(e=>e[5]))};};
-    const metric=t=>page==='revenue'?t.rev:page==='expenses'?t.exp:t.rev-t.exp;
-    const divTabs=DIVS.map(([id,name])=>{const t=id==='all'?['atom','social','ngen'].map(divTot).reduce((a,b)=>({rev:a.rev+b.rev,exp:a.exp+b.exp}),{rev:0,exp:0}):divTot(id);const a=div===id;return {name,value:f(metric(t))+(page==='overview'?' net':''),go:()=>this.setState({div:id,limit:25}),bg:a?'#17162a':'#fff',fg:a?'#fff':'#17162a',bd:a?'#17162a':'#e3e2ec',sh:a?'0 8px 20px rgba(23,22,42,.16)':'none'};});
+    // GST for a stored revenue row: v3 rows carry it at [7]; older published data falls back to its GST map, else 18% of budget
+    const gstOfRow=(s,r)=>{if(typeof r[7]==='number')return r[7];if(!r[1])return 0;if(s.gstCol&&s.gstByProj)return nv(s.gstByProj[r[0]]);return Math.round(r[1]*GST_RATE);};
+    // all revenue rows → [project, budget excl. GST, date, payment, received, TDS, balance, added, division, GST]
+    const RA=[...added.revenue.filter(r=>!exR(r)).map(r=>[...r.slice(0,7),true,rd(r),typeof r[9]==='number'?r[9]:Math.round((r[1]||0)*GST_RATE)]),
+      ...['atom','social','ngen'].flatMap(d=>{const s=src[d];return s&&Array.isArray(s.revenue)?s.revenue.filter(r=>!exR(r)).map(r=>[...r.slice(0,7),false,d,gstOfRow(s,r)]):[];})];
+    const R=RA.filter(r=>inDiv(r[8]));
+    // all expenses → [vendor, note, date, amount, TDS, total, added]; old per-division data is merged into the one pool
+    const expSrc=src.expenses&&Array.isArray(src.expenses.expenses)?src.expenses.expenses:['atom','social','ngen'].flatMap(d=>src[d]&&Array.isArray(src[d].expenses)?src[d].expenses:[]);
+    const E=[...added.expenses.filter(e=>!exE(e)).map(e=>[...e.slice(0,6),true]),...expSrc.filter(e=>!exE(e)).map(e=>[...e.slice(0,6),false])];
+    const revTot=rows=>{const budget=sum(rows.map(r=>r[1])),gst=sum(rows.map(r=>r[9])),amount=sum(rows.map(r=>r[4])),tds=sum(rows.map(r=>r[5]));return {budget,gst,total:budget+gst,amount,tds,balance:budget+gst-amount-tds};};
+    const TR=revTot(R), TRall=revTot(RA);
+    const TE={amount:sum(E.map(e=>e[3])),tds:sum(E.map(e=>e[4])),total:sum(E.map(e=>e[5]||e[3]))};
+    const divRev=d=>revTot(RA.filter(r=>r[8]===d));
+    const divTabs=DIVS.map(([id,name])=>{const t=id==='all'?TRall:divRev(id);const a=div===id;return {name,value:f(t.total),go:()=>this.setState({div:id,limit:25}),bg:a?'#17162a':'#fff',fg:a?'#fff':'#17162a',bd:a?'#17162a':'#e3e2ec',sh:a?'0 8px 20px rgba(23,22,42,.16)':'none'};});
     const fyOf=d=>{if(!d)return null;const y=+d.slice(0,4),m=+d.slice(5,7);return m>=4?y:y-1;};
-    const fys=[...new Set([...R,...E].map(x=>fyOf(x[2])).filter(Boolean))].sort();
+    const fys=[...new Set([...RA,...E].map(x=>fyOf(x[2])).filter(Boolean))].sort();
     const FY=this.state.fy&&fys.includes(this.state.fy)?this.state.fy:(fys[fys.length-1]||2025);
     const mI=d=>{if(!d)return null;const i=(+d.slice(0,4)-FY)*12+(+d.slice(5,7)-1)-3;return i>=0&&i<12?i:null;};
     const fyLabel='FY '+FY+'–'+String(FY+1).slice(2);
@@ -761,55 +771,62 @@ class Component extends DCLogic {
     const kpi=(label,value,note,tile,icon,color)=>({label,value,note,tileBg:TILE[tile][0],tileFg:TILE[tile][1],icon:ICON[icon],color:color||'#17162a'});
     const search=s=>q?s.toLowerCase().includes(q.toLowerCase()):true;
     let P={};
-    if(page==='overview'){
+    const revKpis=[kpi('Revenue',f(TR.total),'Incl. GST · budget '+f(TR.budget)+' + GST '+f(TR.gst),'purple','receipt'),kpi('GST',f(TR.gst),'GST column · '+(TR.budget?(TR.gst/TR.budget*100).toFixed(1):'0')+'% of budget','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up')];
+    if(page==='overview'&&oneDiv){
+      // a single division: revenue only — expenses are one shared pool and live under "All divisions"
+      P={title:'Overview',subtitle:DN[div]+' revenue · expenses are shown only under All divisions.',
+        kpis:[...revKpis,kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+        chartTitle:'Monthly revenue',chartSub:'Amount received by payment date · '+fyLabel,...chart([{label:'Revenue',c:'#17a589',data:revM}]),
+        sideTitle:'Revenue snapshot',sideSub:DN[div]+' · whole workbook',
+        sideRows:[['Revenue (incl. GST)',f(TR.total),'700','#17162a'],['GST',f(TR.gst),'400','#6f6d85'],['Amount received',f(TR.amount),'600','#128a72'],['TDS deducted',f(TR.tds),'400','#6f6d85'],['Balance due',f(TR.balance),'600',TR.balance>0?'#c0392b':'#17162a']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
+        overviewLists:[{title:'Top clients',sub:DN[div]+' · by amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)}]};
+    }
+    else if(page==='overview'){
       const net=TR.amount-TE.total;
       const netRev=TR.amount-gstPaid, opex=TE.total-gstPaid;
-      P={title:'Overview',subtitle:"Cash position across the workbook's Revenue and Expenses sheets.",
-        kpis:[kpi('Total revenue',f(TR.budget),gstSep?'Project budgets excl. GST':'Project budgets incl. GST','purple','receipt'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total expenses',f(TE.total),'Expenses sheet · Total Amount','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+      P={title:'Overview',subtitle:'Whole collective: revenue from every division against one shared expense pool.',
+        kpis:[...revKpis,kpi('Total expenses',f(TE.total),'All divisions · one Expenses sheet','orange','down'),kpi('Net cash position',f(net),(TR.amount?(net/TR.amount*100).toFixed(1):'0')+'% of amount received','purple','wallet',net<0?'#c0392b':'#17162a'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Revenue vs expenses',chartSub:'Monthly totals by transaction date · '+fyLabel,
         ...chart([{label:'Revenue',c:'#17a589',data:revM},{label:'Expenses',c:'#8b6dff',data:expM}]),
         sideTitle:'Income snapshot',sideSub:fyLabel+' chart · totals cover the whole workbook',
-        sideRows:[['Gross revenue received',f(TR.amount),'600','#17162a'],['Less: GST remitted',f(-gstPaid),'400','#6f6d85'],['Net revenue',f(netRev),'600','#17162a'],['Operating expenses',f(-opex),'400','#6f6d85'],['Net profit',f(netRev-opex),'700',netRev-opex<0?'#c0392b':'#128a72'],['TDS deducted on revenue',f(TR.tds),'400','#6f6d85'],['Total billed (incl. GST)',f(TR.budget),'400','#6f6d85']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
-        overviewLists:[{title:'Top clients',sub:'By amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)},{title:'Top vendors',sub:'By total recorded spend',link:'View expenses →',go:go('expenses'),bar:'#8b6dff',rows:rank(vendors,6)}]};
+        sideRows:[['Gross revenue received',f(TR.amount),'600','#17162a'],['Less: GST remitted',f(-gstPaid),'400','#6f6d85'],['Net revenue',f(netRev),'600','#17162a'],['Operating expenses',f(-opex),'400','#6f6d85'],['Net profit',f(netRev-opex),'700',netRev-opex<0?'#c0392b':'#128a72'],['TDS deducted on revenue',f(TR.tds),'400','#6f6d85'],['Revenue billed (incl. GST)',f(TR.total),'400','#6f6d85']].map(([name,value,fw,vc],i,a)=>({idx:'',name,value,fw,vc,line:i===a.length-1?'transparent':'#ececf2'})),
+        overviewLists:[{title:'Revenue by division',sub:'Revenue incl. GST',link:'View revenue →',go:go('revenue'),bar:'#6d4aff',rows:rank(['atom','social','ngen'].map(d=>[DN[d],divRev(d).total]).sort((a,b)=>b[1]-a[1]),3)},{title:'Top clients',sub:'By amount received',link:'View revenue →',go:go('revenue'),bar:'#17a589',rows:rank(clients,6)},{title:'Top vendors',sub:'By total recorded spend',link:'View expenses →',go:go('expenses'),bar:'#8b6dff',rows:rank(vendors,6)}]};
     }
     if(page==='revenue'){
       const rows=R.filter(r=>search(r[0]+' '+r[3]));
-      P={title:'Revenue',subtitle:"Project budgets, payments received and balances from the workbook's Revenue sheet.",
-        kpis:[kpi('Total revenue',f(TR.budget),gstSep?'Project budgets excl. GST':'Project budgets incl. GST','purple','receipt'),kpi('GST',f(TR.gst),gstSep?'GST column total (separate from revenue)':'18% GST included in total revenue','blue','bank'),kpi('Amount received',f(TR.amount),'Advances, balances & full payments','green','up'),kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
+      P={title:'Revenue',subtitle:(div==='all'?'All divisions':DN[div])+' · revenue includes GST; GST is also shown on its own.',
+        kpis:[...revKpis,kpi('Total TDS deducted',f(TR.tds),'Deducted by clients','orange','down'),kpi('Balance',f(TR.balance),'Total revenue − received − TDS','blue','clock',TR.balance>0?'#c0392b':'#17162a')],
         chartTitle:'Monthly revenue',chartSub:'Amount received by payment date · '+fyLabel,...chart([{label:'Revenue',c:'#17a589',data:revM}]),
         sideTitle:'Top clients',sideSub:'By amount received, grouped by brand',sideRows:rank(clients,7),
         searchPh:'Search project or payment',rowCount:rows.length.toLocaleString('en-IN')+' rows',
-        tCols:'minmax(260px,2.2fr) 110px 130px minmax(160px,1.2fr) 140px 120px 130px',
-        tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['AMOUNT','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
-        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[rd(r)],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
-        mRows:rows.slice(0,limit).map(r=>({title:(r[7]?'● ':'')+r[0],fg:r[7]?'#5b3fd9':'#17162a',sub:r[3]||'Payment',meta:fmtDate(r[2])+' · '+DN[rd(r)],value:r[4]?f(r[4]):'—',extra:r[6]?f(r[6])+' due':(r[5]?'TDS '+f(r[5]):''),extraFg:r[6]?'#c0392b':'#8e8ca3'})),
-        ...(()=>{const A=sum(rows.map(r=>r[4])),T=sum(rows.map(r=>r[5])),B=sum(rows.map(r=>r[6])),N=rows.length.toLocaleString('en-IN')+' rows';return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(B),align:'right',fg:B?'#c0392b':'#17162a'}],mFootSub:N+' · TDS '+f(T),mFootValue:f(A),mFootExtra:B?f(B)+' due':'',mFootExtraFg:'#c0392b'};})(),
+        tCols:'minmax(240px,2fr) 100px 120px minmax(140px,1fr) 130px 110px 130px 110px 120px',
+        tHead:[['PROJECT','left'],['DIVISION','left'],['DATE','left'],['PAYMENT','left'],['REVENUE (INCL. GST)','right'],['GST','right'],['RECEIVED','right'],['TDS','right'],['BALANCE','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(r=>[{v:r[7]?'● '+r[0]:r[0],align:'left',fg:r[7]?'#5b3fd9':'#17162a'},{v:DN[r[8]],align:'left',fg:'#4b4962'},{v:fmtDate(r[2]),align:'left',fg:'#4b4962'},{v:r[3]||'—',align:'left',fg:'#4b4962'},{v:r[1]?f(r[1]+r[9]):'—',align:'right',fg:'#4b4962'},{v:r[9]?f(r[9]):'—',align:'right',fg:'#6f6d85'},{v:r[4]?f(r[4]):'—',align:'right',fg:'#17162a'},{v:r[5]?f(r[5]):'—',align:'right',fg:'#6f6d85'},{v:r[6]?f(r[6]):'—',align:'right',fg:r[6]?'#c0392b':'#6f6d85'}]),
+        mRows:rows.slice(0,limit).map(r=>({title:(r[7]?'● ':'')+r[0],fg:r[7]?'#5b3fd9':'#17162a',sub:(r[3]||'Payment')+(r[1]?' · revenue '+f(r[1]+r[9])+' incl. GST '+f(r[9]):''),meta:fmtDate(r[2])+' · '+DN[r[8]],value:r[4]?f(r[4]):'—',extra:r[6]?f(r[6])+' due':(r[5]?'TDS '+f(r[5]):''),extraFg:r[6]?'#c0392b':'#8e8ca3'})),
+        ...(()=>{const Bu=sum(rows.map(r=>r[1])),G=sum(rows.map(r=>r[9])),A=sum(rows.map(r=>r[4])),T=sum(rows.map(r=>r[5])),B=sum(rows.map(r=>r[6])),N=rows.length.toLocaleString('en-IN')+' rows';const e={v:'',align:'left',fg:'#17162a'};return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},e,e,e,{v:f(Bu+G),align:'right',fg:'#17162a'},{v:f(G),align:'right',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(B),align:'right',fg:B?'#c0392b':'#17162a'}],mFootSub:N+' · revenue '+f(Bu+G)+' incl. GST '+f(G),mFootValue:f(A),mFootExtra:B?f(B)+' due':'',mFootExtraFg:'#c0392b'};})(),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }
     if(page==='expenses'){
       const rows=E.filter(e=>search((e[0]||'')+' '+(e[1]||'')));
-      P={title:'Expenses',subtitle:"Vendor and project-level costs from the workbook's Expenses sheet.",
-        kpis:[kpi('Expense amount',f(TE.amount),'Column E total','purple','receipt'),kpi('Total expenses',f(TE.total),'Workbook Total Amount','orange','down'),kpi('Expense TDS',f(TE.tds),'Workbook TDS total','blue','bank')],
+      P={title:'Expenses',subtitle:'One expense pool for the whole collective — not split by division.',
+        kpis:[kpi('Expense amount',f(TE.amount),'Amount column, before TDS','purple','receipt'),kpi('Total expenses',f(TE.total),'All divisions · Total Amount','orange','down'),kpi('Expense TDS',f(TE.tds),'TDS column total','blue','bank')],
         chartTitle:'Monthly expenses',chartSub:'Total Amount by transaction date · '+fyLabel,...chart([{label:'Expenses',c:'#17a589',data:expM}]),
         sideTitle:'Top vendors',sideSub:'By total recorded spend',sideRows:rank(vendors,7),
         searchPh:'Search vendor or project',rowCount:rows.length.toLocaleString('en-IN')+' rows',
-        tCols:'minmax(220px,1.6fr) 110px minmax(220px,1.8fr) 130px 130px 110px 130px',
-        tHead:[['VENDOR','left'],['DIVISION','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
-        tCells:rows.slice(0,limit).flatMap(e=>[{v:e[6]?'● '+(e[0]||'—'):(e[0]||'—'),align:'left',fg:e[6]?'#5b3fd9':'#17162a'},{v:DN[ed(e)],align:'left',fg:'#4b4962'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
-        mRows:rows.slice(0,limit).map(e=>({title:(e[6]?'● ':'')+(e[0]||'—'),fg:e[6]?'#5b3fd9':'#17162a',sub:e[1]||'—',meta:fmtDate(e[2])+' · '+DN[ed(e)],value:f(e[5]||e[3]),extra:e[4]?'TDS '+f(e[4]):'',extraFg:'#8e8ca3'})),
-        ...(()=>{const A=sum(rows.map(e=>e[3])),T=sum(rows.map(e=>e[4])),G=sum(rows.map(e=>e[5]||e[3])),N=rows.length.toLocaleString('en-IN')+' rows';return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(G),align:'right',fg:'#17162a'}],mFootSub:N+' · amount '+f(A),mFootValue:f(G),mFootExtra:T?'TDS '+f(T):'',mFootExtraFg:'#8e8ca3'};})(),
+        tCols:'minmax(220px,1.6fr) minmax(220px,1.8fr) 130px 130px 110px 130px',
+        tHead:[['VENDOR','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
+        tCells:rows.slice(0,limit).flatMap(e=>[{v:e[6]?'● '+(e[0]||'—'):(e[0]||'—'),align:'left',fg:e[6]?'#5b3fd9':'#17162a'},{v:e[1]||'—',align:'left',fg:'#4b4962'},{v:fmtDate(e[2]),align:'left',fg:'#4b4962'},{v:f(e[3]),align:'right',fg:'#17162a'},{v:e[4]?f(e[4]):'—',align:'right',fg:'#6f6d85'},{v:f(e[5]||e[3]),align:'right',fg:'#17162a'}]),
+        mRows:rows.slice(0,limit).map(e=>({title:(e[6]?'● ':'')+(e[0]||'—'),fg:e[6]?'#5b3fd9':'#17162a',sub:e[1]||'—',meta:fmtDate(e[2]),value:f(e[5]||e[3]),extra:e[4]?'TDS '+f(e[4]):'',extraFg:'#8e8ca3'})),
+        ...(()=>{const A=sum(rows.map(e=>e[3])),T=sum(rows.map(e=>e[4])),G=sum(rows.map(e=>e[5]||e[3])),N=rows.length.toLocaleString('en-IN')+' rows';return {tFoot:[{v:'Total · '+N,align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:'',align:'left',fg:'#17162a'},{v:f(A),align:'right',fg:'#17162a'},{v:f(T),align:'right',fg:'#17162a'},{v:f(G),align:'right',fg:'#17162a'}],mFootSub:N+' · amount '+f(A),mFootValue:f(G),mFootExtra:T?'TDS '+f(T):'',mFootExtraFg:'#8e8ca3'};})(),
         canMore:rows.length>limit};
       P.moreLabel='Show more ('+(rows.length-Math.min(limit,rows.length)).toLocaleString('en-IN')+' remaining)';
     }
     const gl=gq.trim().toLowerCase();let gRes=[];
     if(gl){
-      const allD=['atom','social','ngen'];
-      const RA=[...added.revenue.filter(r=>!exR(r)),...allD.flatMap(d=>SETS[d]?SETS[d].revenue.map(r=>[...r.slice(0,7),false,d]):[])];
-      const EA=[...added.expenses.filter(e=>!exE(e)),...allD.flatMap(d=>SETS[d]?SETS[d].expenses.map(e=>[...e.slice(0,6),false,d]):[])];
       const dl=ds=>[...ds].map(d=>DN[d]).join(', ');
-      const PJ={};RA.forEach(r=>{if((r[0]+' '+brandOf(r[0])+' '+(r[3]||'')).toLowerCase().includes(gl)){PJ[r[0]]=PJ[r[0]]||[0,0,new Set()];PJ[r[0]][0]+=r[4];PJ[r[0]][1]++;PJ[r[0]][2].add(rd(r));}});
-      const VJ={};EA.forEach(e=>{if(((e[0]||'')+' '+(e[1]||'')).toLowerCase().includes(gl)){const k=e[0]||'—';VJ[k]=VJ[k]||[0,0,new Set()];VJ[k][0]+=(e[5]||e[3]);VJ[k][1]++;VJ[k][2].add(ed(e));}});
+      const PJ={};RA.forEach(r=>{if((r[0]+' '+brandOf(r[0])+' '+(r[3]||'')).toLowerCase().includes(gl)){PJ[r[0]]=PJ[r[0]]||[0,0,new Set()];PJ[r[0]][0]+=r[4];PJ[r[0]][1]++;PJ[r[0]][2].add(r[8]);}});
+      const VJ={};E.forEach(e=>{if(((e[0]||'')+' '+(e[1]||'')).toLowerCase().includes(gl)){const k=e[0]||'—';VJ[k]=VJ[k]||[0,0,new Set(['all'])];VJ[k][0]+=(e[5]||e[3]);VJ[k][1]++;}});
       gRes=[...Object.entries(PJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c,ds]])=>({kind:'Revenue',kb:'#e3f5ef',kc:'#128a72',name:k,value:f(v),meta:dl(ds)+' · '+c+(c===1?' entry':' entries')+' · received',go:()=>this.setState({page:'revenue',div:'all',q:k,gq:'',limit:25})})),
         ...Object.entries(VJ).sort((a,b)=>b[1][0]-a[1][0]).slice(0,6).map(([k,[v,c,ds]])=>({kind:'Expense',kb:'#efeaff',kc:'#5b3fd9',name:k,value:f(v),meta:dl(ds)+' · '+c+(c===1?' payment':' payments')+' · spent',go:()=>this.setState({page:'expenses',div:'all',q:gq.trim(),gq:'',limit:25})}))];
     }
@@ -823,7 +840,7 @@ class Component extends DCLogic {
       fields:FM?FM.fields.map(([key,label,type,ph,span,list])=>({label,type,ph,list,span:span===2?'1 / -1':'auto',value:form[key]??'',onChange:setF(key)})):[],
       projectOptions:[...new Set(R.map(r=>r[0]))].slice(0,400),vendorOptions:vendors.map(v=>v[0]).slice(0,400),
       hasErr:!!formErr,formErr,closeModal:()=>this.setState({modal:null}),stop:e=>e.stopPropagation(),saveModal:()=>this.saveModal(),
-      hasFlash:!!flash,flash,divTabs,
+      hasFlash:!!flash,flash,divTabs,showDivTabs:divOn,showFormDiv:modal!=='expense',
       fyLabel,fyLabelUp:fyLabel.toUpperCase(),fyPill:fyLabel+(fys.length>1?'  ▾':''),fyCur:fys.length>1?'pointer':'default',
       fyNext:()=>{if(fys.length>1)this.setState({fy:fys[(fys.indexOf(FY)+1)%fys.length]});},
       isMobile:mobile,isDesk:!mobile,
@@ -845,11 +862,11 @@ class Component extends DCLogic {
       onDrop:e=>{e.preventDefault();this.setImp({drag:false});this.parseFile(e.dataTransfer.files&&e.dataTransfer.files[0]);},
       zoneBd:imp.drag?'#6d4aff':imp.parsed?'#9fdcc9':'#cfc8f5',zoneBg:imp.drag?'#f1ecff':imp.parsed?'#f3fbf8':'#faf9ff',
       zoneTitle:imp.busy?'Reading every row…':imp.parsed?imp.parsed.source:'Drop your .xlsx here or click to browse',
-      zoneSub:imp.parsed?imp.parsed.revN.toLocaleString('en-IN')+' revenue rows · '+imp.parsed.expN.toLocaleString('en-IN')+' expense rows · sheets: '+imp.parsed.sheets.join(', '):'One workbook with a-tom, Social and Ngen — every row is read',
+      zoneSub:imp.parsed?imp.parsed.revN.toLocaleString('en-IN')+' revenue rows · '+imp.parsed.expN.toLocaleString('en-IN')+' expense rows · sheets: '+imp.parsed.sheets.join(', '):'Revenue sheets per division (a-tom, Social, Ngen) + one Expenses sheet',
       impHasParsed:!!imp.parsed,
-      impSummary:imp.parsed?['atom','social','ngen'].map(d=>{const s=imp.parsed.sets[d];return {name:DN[d],rows:s?s.revenue.length.toLocaleString('en-IN')+' revenue · '+s.expenses.length.toLocaleString('en-IN')+' expense rows':'No rows found',rev:s?f(s.totals.revenue.amount):'—',exp:s?f(s.totals.expenses.total):'—',fg:s?'#17162a':'#a9a7bd'};}):[],
-      hasImpNote:!!imp.parsed,impNote:imp.parsed&&imp.parsed.expHeaders?'Expense columns found: '+imp.parsed.expHeaders.join(', ')+'. '+imp.parsed.expMatched+' expense rows linked to Social/Ngen by project name. ':'',impNoteX:'Revenue: division is read from the project name (“… - Social”, “… - Ngen”); unlabelled projects go to a-tom. Expenses: matched to a division when the Project/operational text names a Social or Ngen project (or says Social / Ngen); the rest go to a-tom.',
-      ...(()=>{const S=imp.parsed?Object.values(imp.parsed.sets):[];return {impTotalRows:sum(S.map(s=>s.revenue.length)).toLocaleString('en-IN')+' revenue · '+sum(S.map(s=>s.expenses.length)).toLocaleString('en-IN')+' expense rows',impTotalRev:f(sum(S.map(s=>s.totals.revenue.amount))),impTotalExp:f(sum(S.map(s=>s.totals.expenses.total)))};})(),
+      impSummary:imp.parsed?['atom','social','ngen'].map(d=>{const s=imp.parsed.sets[d];const t=s&&s.totals.revenue;return {name:DN[d],rows:s?s.revenue.length.toLocaleString('en-IN')+' rows · GST '+f(t.gst):'No revenue rows found',rev:s?f(t.total):'—',exp:s?f(t.amount):'—',fg:s?'#17162a':'#a9a7bd'};}):[],
+      hasImpNote:!!imp.parsed,impNote:imp.parsed?(()=>{const x=imp.parsed.sets.expenses;return 'Revenue sheets: '+(imp.parsed.revSheets||[]).join(', ')+'. Expenses: '+(x?x.expenses.length.toLocaleString('en-IN')+' rows · '+f(x.totals.expenses.total)+' from '+(imp.parsed.expSheets||[]).join(', '):'no Expenses sheet found')+' — kept as one pool for all divisions.';})():'',
+      ...(()=>{const S=imp.parsed?['atom','social','ngen'].map(d=>imp.parsed.sets[d]).filter(Boolean):[];return {impTotalRows:sum(S.map(s=>s.revenue.length)).toLocaleString('en-IN')+' revenue rows · GST '+f(sum(S.map(s=>s.totals.revenue.gst))),impTotalRev:f(sum(S.map(s=>s.totals.revenue.total))),impTotalExp:f(sum(S.map(s=>s.totals.revenue.amount)))};})(),
       hasImpErr:!!imp.err,impErr:imp.err,
       hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),clearLabel:this.state.published?'Remove local import (use published)':'Clear workbook data',
       doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.busy&&imp.parsed?'Publishing…':imp.parsed?(this.state.backend?'Publish for everyone':'Import & replace'):'Import',
