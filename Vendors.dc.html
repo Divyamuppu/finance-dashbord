@@ -569,7 +569,8 @@ class Component extends DCLogic {
     const ql=s.q.trim().toLowerCase();
     const match=r=>!ql||[r.vendorName,r.service,r.project,r.poc,r.approvedBy].join(' ').toLowerCase().includes(ql);
     const byDue=(a,b)=>(b.deadline||'').localeCompare(a.deadline||'')||b.createdAt-a.createdAt; // latest due date on top
-    const pending=rows.filter(r=>r.bal>0),paidRows=rows.filter(r=>r.bal===0);
+    // Pending = anything with a balance left; Paid = anything with money paid (full, half or custom) — a part-paid invoice shows in both
+    const pending=rows.filter(r=>r.bal>0),paidRows=rows.filter(r=>r.paid>0);
     const overdue=pending.filter(r=>r.late>0);
     const sum=a=>a.reduce((x,y)=>x+y,0);
     const dueText=r=>r.late>0?r.late+(r.late===1?' day overdue':' days overdue'):r.bal===0?'Settled':r.left===0?'Due today':'Due in '+r.left+(r.left===1?' day':' days');
@@ -581,10 +582,10 @@ class Component extends DCLogic {
     const buildList=(key,title,list,dot,pillBg,pillFg,emptyText,totalText)=>{
       const shown=list.filter(match).sort(byDue);
       const cells=shown.flatMap(r=>{const conf=s.rowDel===r.id;const c=(v,go,o={})=>({v,go,align:o.align||'left',fg:o.fg||'#17162a',fw:o.fw||'400',bg:conf?'#fff5f4':'transparent'});
-        return [c(r.vendorName,view(r),{fw:'500'}),c(r.service,view(r),{fg:'#4b4962'}),c(fmtD(r.deadline)+(r.late?' · overdue':''),view(r),{fg:r.late?'#c0392b':'#4b4962',fw:r.late?'600':'400'}),c(money(key==='pending'?r.bal:r.amount),view(r),{align:'right',fw:'600'}),
+        return [c(r.vendorName,view(r),{fw:'500'}),c(r.service,view(r),{fg:'#4b4962'}),c(fmtD(r.deadline)+(key==='paid'&&r.bal>0?' · '+(r.paymentStatus==='half'?'half paid':'part paid'):r.late?' · overdue':''),view(r),{fg:key==='paid'?(r.bal>0?'#b5651d':'#4b4962'):r.late?'#c0392b':'#4b4962',fw:r.late&&key!=='paid'?'600':'400'}),c(money(key==='pending'?r.bal:r.paid),view(r),{align:'right',fw:'600'}),
           conf?c('Cancel',cancelRow,{align:'right',fg:'#4b4962',fw:'600'}):c('View info →',view(r),{align:'right',fg:'#5b3fd9',fw:'600'}),
           conf?c(s.deleting?'Deleting…':'Confirm delete',delRow(r),{align:'right',fg:'#c0392b',fw:'700'}):c('Delete',askRow(r),{align:'right',fg:'#c0392b',fw:'500'})];});
-      const cards=shown.map(r=>{const conf=s.rowDel===r.id;return {view:view(r),title:r.vendorName,sub:r.service,meta:'Due '+fmtD(r.deadline)+(r.late?' · overdue':''),metaFg:r.late?'#c0392b':'#6f6d85',value:money(key==='pending'?r.bal:r.amount),bg:conf?'#fff5f4':'#fff',
+      const cards=shown.map(r=>{const conf=s.rowDel===r.id;return {view:view(r),title:r.vendorName,sub:r.service,meta:'Due '+fmtD(r.deadline)+(key==='paid'&&r.bal>0?' · '+(r.paymentStatus==='half'?'half paid':'part paid')+' · '+money(r.bal)+' left':r.late&&key!=='paid'?' · overdue':''),metaFg:key==='paid'?(r.bal>0?'#b5651d':'#6f6d85'):r.late?'#c0392b':'#6f6d85',value:money(key==='pending'?r.bal:r.paid),bg:conf?'#fff5f4':'#fff',
         left:conf?cancelRow:view(r),leftLabel:conf?'Cancel':'View info',leftBg:conf?'#f2f1f7':'#f1ecff',leftFg:conf?'#4b4962':'#5b3fd9',
         right:conf?delRow(r):askRow(r),rightLabel:conf?(s.deleting?'Deleting…':'Confirm delete'):'Delete',rightBg:conf?'#c0392b':'#fdecea',rightFg:conf?'#fff':'#c0392b'};});
       return {title,count:String(shown.length),dot,pillBg,pillFg,total:totalText,cells,cards,empty:!shown.length,emptyText:list.length&&!shown.length?'No matches for this search.':emptyText,showDesk:!m&&!!shown.length,showMobile:m&&!!shown.length};
@@ -607,8 +608,8 @@ class Component extends DCLogic {
       openAdd:()=>this.openAdd(),
       q:s.q,onSearch:e=>this.setState({q:e.target.value}),
       lists:[
-        buildList('pending','Pending',pending,'#ee8a2a','#fff1e4','#b5651d','No pending vendors — everything is paid.',money(sum(pending.map(r=>r.bal)))+' due'),
-        buildList('paid','Paid',paidRows,'#17a589','#e3f5ef','#128a72','No paid vendors yet.',money(sum(paidRows.map(r=>r.amount)))+' paid')],
+        buildList('pending','Pending',pending,'#ee8a2a','#fff1e4','#b5651d','No pending vendors — everything is fully paid.',money(sum(pending.map(r=>r.bal)))+' due'),
+        buildList('paid','Paid',paidRows,'#17a589','#e3f5ef','#128a72','Nothing paid yet.',money(sum(paidRows.map(r=>r.paid)))+' paid')],
       viewOpen:!!V,closeView:()=>this.setState({viewId:null,confirmDel:false}),stop:e=>e.stopPropagation(),
       ...(V?(()=>{const st=STATUS[V.paymentStatus]||STATUS.unpaid;return {vSno:String(V.sno),vTitle:V.vendorName,vPill:st[0],vPillBg:st[1],vPillFg:st[2],vDue:dueText(V),vDueBg:V.late?'#fdecea':V.bal===0?'#e3f5ef':'#f2f1f7',vDueFg:dueFg(V),
         vRows:[['S.No',String(V.sno)],['Project',V.project],['Name of the vendor',V.vendorName],['Service',V.service],['Invoice date',fmtD(V.invoiceDate)],['Due date',fmtD(V.deadline)],['Shoot date',fmtD(V.shootDate)],['Overdue',dueText(V),dueFg(V)],['Amount',money(V.amount),'#17162a','700'],['Paid',money(V.paid),'#128a72','600'],['Balance',money(V.bal),V.bal?'#c0392b':'#17162a','600'],['Quarter',V.quarter],['POC',V.poc],['Bank details',V.bankDetails],['Contact number',V.contactNumber],['Payment status',st[0],st[2],'600'],['Approved by / PM',V.approvedBy],['Last updated',new Date(V.updatedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})]].map(([label,value,fg,fw])=>({label,value:value||'—',fg:fg||'#17162a',fw:fw||'400'})),
