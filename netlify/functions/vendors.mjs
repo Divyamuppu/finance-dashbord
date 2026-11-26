@@ -15,6 +15,8 @@ import { requireRole } from "../lib/auth.mjs";
 const STORE = "atom-vendors";
 const MAX_PDF_BYTES = 4.5 * 1024 * 1024; // Netlify function payloads are capped at 6 MB
 const STATUSES = ["unpaid", "half", "custom", "paid"];
+// can be left blank; everything else is required
+const OPTIONAL = new Set(["vendorName", "poc", "contactNumber", "invoiceDate", "shootDate", "deadline"]);
 
 const json = (body, status = 200) =>
   Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -52,7 +54,9 @@ function validate(input) {
   const e = {};
   const v = {};
   for (const k of ["project", "vendorName", "service", "poc", "approvedBy"]) {
-    if (!text(input[k], 1, 200)) e[k] = `${FIELD_LABELS[k]} is required (max 200 characters).`;
+    const blank = String(input[k] ?? "").trim() === "";
+    if (blank && OPTIONAL.has(k)) v[k] = "";
+    else if (!text(input[k], 1, 200)) e[k] = `${FIELD_LABELS[k]} is required (max 200 characters).`;
     else v[k] = input[k].trim().replace(/\s+/g, " ");
   }
   if (!text(input.bankDetails, 6, 1000)) e.bankDetails = "Bank details are required (account no., IFSC, bank name).";
@@ -60,11 +64,13 @@ function validate(input) {
 
   const phone = String(input.contactNumber ?? "").trim();
   const digits = phone.replace(/\D/g, "");
-  if (!/^[+\d][\d\s\-()]{6,19}$/.test(phone) || digits.length < 7 || digits.length > 15) e.contactNumber = "Enter a valid contact number (7–15 digits).";
+  if (!phone) v.contactNumber = "";
+  else if (!/^[+\d][\d\s\-()]{6,19}$/.test(phone) || digits.length < 7 || digits.length > 15) e.contactNumber = "Enter a valid contact number (7–15 digits).";
   else v.contactNumber = phone;
 
   for (const k of ["invoiceDate", "shootDate", "deadline"]) {
-    if (!isoDate(input[k])) e[k] = `${FIELD_LABELS[k]} is required.`;
+    if (!String(input[k] ?? "").trim()) v[k] = "";
+    else if (!isoDate(input[k])) e[k] = `${FIELD_LABELS[k]}: enter a valid date.`;
     else v[k] = input[k];
   }
   if (v.invoiceDate && v.deadline && v.deadline < v.invoiceDate) e.deadline = "Due date can't be before the invoice date.";
