@@ -1,6 +1,6 @@
 // Vendor payables API for the a-tom Finance dashboard.
 //
-// Routes (open to anyone with the site link — no access key):
+// Routes (need a signed-in person with Vendors access):
 //   GET    /api/vendors                 list vendors (viewer or editor)
 //   POST   /api/vendors                 create — multipart: "data" (JSON) + optional "invoice" (PDF; omitted for manual entries)
 //   PUT    /api/vendors/:id             update  (editor) — multipart: "data" (JSON) + optional "invoice" (PDF)
@@ -10,6 +10,7 @@
 
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "node:crypto";
+import { requireRole } from "../lib/auth.mjs";
 
 const STORE = "atom-vendors";
 const MAX_PDF_BYTES = 4.5 * 1024 * 1024; // Netlify function payloads are capped at 6 MB
@@ -118,6 +119,8 @@ async function parseBody(req) {
 }
 
 export default async (req) => {
+  const auth = await requireRole(req, "vendors");
+  if (auth.error) return auth.error;
   const store = getStore(STORE);
   const parts = new URL(req.url).pathname.replace(/^\/api\/vendors\/?/, "").split("/").filter(Boolean);
   const id = parts[0] ? decodeURIComponent(parts[0]) : null;
@@ -144,7 +147,7 @@ export default async (req) => {
       const { errors, value } = validate(body.data);
       if (Object.keys(errors).length) return json({ error: "Some required fields are missing or invalid.", fields: errors }, 400);
       const now = Date.now();
-      const rec = { id: randomUUID(), ...value, invoice: body.pdf ? { name: body.pdf.name, size: body.pdf.size } : null, createdAt: now, updatedAt: now };
+      const rec = { id: randomUUID(), ...value, createdBy: auth.user.email, invoice: body.pdf ? { name: body.pdf.name, size: body.pdf.size } : null, createdAt: now, updatedAt: now };
       if (body.pdf) await store.set(`inv/${rec.id}`, body.pdf.buf, { metadata: { name: body.pdf.name } });
       await store.setJSON(`v/${rec.id}`, rec);
       return json({ vendor: rec }, 201);
@@ -157,7 +160,7 @@ export default async (req) => {
       if (body.error) return body.error;
       const { errors, value } = validate(body.data);
       if (Object.keys(errors).length) return json({ error: "Some required fields are missing or invalid.", fields: errors }, 400);
-      const rec = { ...existing, ...value, updatedAt: Date.now() };
+      const rec = { ...existing, ...value, updatedAt: Date.now(), updatedBy: auth.user.email };
       if (body.pdf) {
         await store.set(`inv/${id}`, body.pdf.buf, { metadata: { name: body.pdf.name } });
         rec.invoice = { name: body.pdf.name, size: body.pdf.size };

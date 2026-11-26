@@ -72,9 +72,10 @@ input::placeholder,textarea::placeholder{color:#a3a1b8}
         <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="Search vendor, service, project or POC" style="flex:1;border:none;outline:none;font:inherit;font-size:16px;background:transparent;min-width:0">
       </div>
 
-      <!-- Pending list, then Paid list -->
+      <!-- Pending and Paid, side by side -->
+      <div style="display:grid;grid-template-columns:{{ listCols }};gap:{{ boxGap }};align-items:start">
       <sc-for list="{{ lists }}" as="l" hint-placeholder-count="2">
-        <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:10px">
               <span style="width:10px;height:10px;border-radius:50%;background:{{ l.dot }}"></span>
@@ -84,42 +85,54 @@ input::placeholder,textarea::placeholder{color:#a3a1b8}
             <span style="font-size:14px;color:#6f6d85;font-variant-numeric:tabular-nums">{{ l.total }}</span>
           </div>
           <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;overflow:hidden">
+            <div style="display:{{ headDisplay }};grid-template-columns:{{ rowCols }};gap:12px;padding:11px 14px;background:#fafafc;border-bottom:1px solid #ececf2;font-size:11px;font-weight:600;letter-spacing:.06em;color:#6f6d85">
+              <span>VENDOR · SERVICE · DUE DATE</span><span style="text-align:right">{{ l.amountHead }}</span><span>PAYMENT STATUS</span><span></span>
+            </div>
             <sc-if value="{{ l.empty }}" hint-placeholder-val="{{ false }}">
               <div style="padding:26px;text-align:center;font-size:14px;color:#8e8ca3">{{ l.emptyText }}</div>
             </sc-if>
-            <sc-if value="{{ l.showDesk }}" hint-placeholder-val="{{ true }}">
-              <div style="overflow-x:auto">
-                <div style="display:grid;grid-template-columns:{{ tCols }};min-width:820px">
-                  <sc-for list="{{ tHead }}" as="h" hint-placeholder-count="6">
-                    <div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#6f6d85;padding:13px 14px;background:#fafafc;border-bottom:1px solid #ececf2;text-align:{{ h.align }};white-space:nowrap">{{ h.label }}</div>
-                  </sc-for>
-                  <sc-for list="{{ l.cells }}" as="c" hint-placeholder-count="18">
-                    <div onClick="{{ c.go }}" style="font-size:14px;padding:12px 14px;border-bottom:1px solid #f0eff5;text-align:{{ c.align }};color:{{ c.fg }};font-weight:{{ c.fw }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;background:{{ c.bg }}">{{ c.v }}</div>
-                  </sc-for>
+            <sc-for list="{{ l.rows }}" as="r" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:{{ rowCols }};gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #f0eff5;background:{{ r.bg }}">
+                <div onClick="{{ r.view }}" style="display:flex;flex-direction:column;gap:3px;min-width:0;cursor:pointer">
+                  <span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                  <span style="font-size:13px;color:#4b4962;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.service }}</span>
+                  <span style="font-size:12px;color:{{ r.dueFg }};font-weight:{{ r.dueFw }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.due }}</span>
+                </div>
+                <div onClick="{{ r.view }}" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;cursor:pointer">
+                  <span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.amount }}</span>
+                  <span style="font-size:11px;color:#8e8ca3;white-space:nowrap">{{ r.amountNote }}</span>
+                </div>
+                <select value="{{ r.status }}" onChange="{{ r.onStatus }}" disabled="{{ r.busy }}" title="Change payment status" style="height:36px;border:1px solid {{ r.stBd }};background:{{ r.stBg }};color:{{ r.stFg }};border-radius:10px;padding:0 8px;font:inherit;font-size:13px;font-weight:600;outline:none;width:100%;min-width:0;cursor:pointer">
+                  <sc-for list="{{ statusOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                  <span onClick="{{ r.left }}" style="font-size:13px;font-weight:600;color:{{ r.leftFg }};cursor:pointer;white-space:nowrap">{{ r.leftLabel }}</span>
+                  <span onClick="{{ r.right }}" style="font-size:12px;font-weight:{{ r.rightFw }};color:#c0392b;cursor:pointer;white-space:nowrap">{{ r.rightLabel }}</span>
                 </div>
               </div>
-            </sc-if>
-            <sc-if value="{{ l.showMobile }}" hint-placeholder-val="{{ false }}">
-              <sc-for list="{{ l.cards }}" as="r" hint-placeholder-count="3">
-                <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-bottom:1px solid #f0eff5;background:{{ r.bg }}">
-                  <div onClick="{{ r.view }}" style="display:flex;gap:12px;cursor:pointer">
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
-                      <span style="font-size:15px;font-weight:600;overflow-wrap:anywhere">{{ r.title }}</span>
-                      <span style="font-size:13px;color:#4b4962;overflow-wrap:anywhere">{{ r.sub }}</span>
-                      <span style="font-size:12px;color:{{ r.metaFg }}">{{ r.meta }}</span>
-                    </div>
-                    <span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0">{{ r.value }}</span>
-                  </div>
-                  <div style="display:flex;gap:8px;justify-content:flex-end">
-                    <div onClick="{{ r.left }}" style="font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:{{ r.leftBg }};color:{{ r.leftFg }};cursor:pointer">{{ r.leftLabel }}</div>
-                    <div onClick="{{ r.right }}" style="font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:{{ r.rightBg }};color:{{ r.rightFg }};cursor:pointer">{{ r.rightLabel }}</div>
-                  </div>
-                </div>
-              </sc-for>
-            </sc-if>
+            </sc-for>
           </div>
         </div>
       </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Custom amount paid -->
+  <sc-if value="{{ customOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCustom }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:85">
+      <div onClick="{{ stop }}" style="width:100%;max-width:420px;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:20px;font-weight:600">Custom amount paid</div>
+          <div style="font-size:14px;color:#6f6d85">{{ customSub }}</div>
+        </div>
+        <input type="number" value="{{ customValue }}" onChange="{{ onCustom }}" onKeyDown="{{ onCustomKey }}" placeholder="Amount paid (₹)" inputmode="decimal" style="height:46px;border:1px solid {{ customBd }};border-radius:12px;padding:0 14px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+        <sc-if value="{{ hasCustomErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#c0392b">{{ customErr }}</div></sc-if>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <div onClick="{{ closeCustom }}" style="font-size:14px;padding:11px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer">Cancel</div>
+          <div onClick="{{ saveCustom }}" style="font-size:14px;font-weight:600;padding:11px 20px;border-radius:999px;background:#6d4aff;color:#fff;cursor:pointer">{{ customSave }}</div>
+        </div>
+      </div>
     </div>
   </sc-if>
 
@@ -485,7 +498,7 @@ const EMPTY=()=>({project:'',vendorName:'',service:'',invoiceDate:'',shootDate:'
 
 class Component extends DCLogic {
   state={status:'loading',vendors:[],offlineText:'',q:'',
-    viewId:null,viewErr:'',confirmDel:false,rowDel:null,deleting:false,
+    viewId:null,viewErr:'',confirmDel:false,rowDel:null,deleting:false,statusBusy:null,custom:null,
     formOpen:false,mode:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,drag:false,extract:null,preview:null,saving:false,flash:'',
     mobile:typeof window!=='undefined'&&window.innerWidth<820};
   componentDidMount(){this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile)this.setState({mobile:m});};window.addEventListener('resize',this.onResize);this.load();}
@@ -550,6 +563,33 @@ class Component extends DCLogic {
     this.setState(s=>({saving:false,formOpen:false,preview:null,vendors:editId?s.vendors.map(x=>x.id===v.id?v:x):[...s.vendors,v],viewId:v.id}));
     this.toast(editId?'Vendor updated':'Vendor added · '+v.vendorName);
   }
+  // change payment status straight from the list (the full record is re-saved so the server re-checks it)
+  changeStatus(r,status){
+    if(!STATUS[status]||status===r.paymentStatus)return;
+    if(status==='custom')return this.setState({custom:{id:r.id,value:r.paymentStatus==='custom'&&r.amountPaid?String(r.amountPaid):'',err:'',saving:false}});
+    this.saveStatus(r.id,status);
+  }
+  async saveStatus(id,status,amountPaid){
+    const v=this.state.vendors.find(x=>x.id===id);if(!v)return {error:'Vendor not found.'};
+    this.setState({statusBusy:id});
+    const data={};for(const k of Object.keys(EMPTY()))if(v[k]!=null)data[k]=v[k];
+    data.paymentStatus=status;data.amountPaid=status==='custom'?Number(amountPaid):undefined;
+    const fd=new FormData();fd.append('data',JSON.stringify(data));
+    const res=await this.api('/'+id,{method:'PUT',body:fd});
+    if(res.offline||!res.ok){this.setState({statusBusy:null});const msg=res.error||'Could not update the status.';this.toast(msg);return {error:(res.body&&res.body.fields&&(res.body.fields.amountPaid||res.body.fields.paymentStatus))||msg};}
+    const nv=res.body.vendor;
+    this.setState(s=>({statusBusy:null,vendors:s.vendors.map(x=>x.id===id?nv:x)}));
+    this.toast(nv.vendorName+' · '+STATUS[status][0]);
+    return {ok:true};
+  }
+  async saveCustom(){
+    const c=this.state.custom;if(!c||c.saving)return;
+    const v=this.state.vendors.find(x=>x.id===c.id);const p=Number(c.value),amt=Number(v&&v.amount)||0;
+    if(!(p>0)||!(p<amt))return this.setState({custom:{...c,err:'Enter an amount more than ₹0 and less than '+money(amt)+'.'}});
+    this.setState({custom:{...c,saving:true,err:''}});
+    const res=await this.saveStatus(c.id,'custom',p);
+    if(res.ok)this.setState({custom:null});else this.setState(s=>({custom:s.custom&&{...s.custom,saving:false,err:res.error}}));
+  }
   async remove(id){
     if(!id||this.state.deleting)return;
     this.setState({deleting:true,viewErr:''});
@@ -581,14 +621,15 @@ class Component extends DCLogic {
     const delRow=r=>()=>this.remove(r.id);
     const buildList=(key,title,list,dot,pillBg,pillFg,emptyText,totalText)=>{
       const shown=list.filter(match).sort(byDue);
-      const cells=shown.flatMap(r=>{const conf=s.rowDel===r.id;const c=(v,go,o={})=>({v,go,align:o.align||'left',fg:o.fg||'#17162a',fw:o.fw||'400',bg:conf?'#fff5f4':'transparent'});
-        return [c(r.vendorName,view(r),{fw:'500'}),c(r.service,view(r),{fg:'#4b4962'}),c(fmtD(r.deadline)+(key==='paid'&&r.bal>0?' · '+(r.paymentStatus==='half'?'half paid':'part paid'):r.late?' · overdue':''),view(r),{fg:key==='paid'?(r.bal>0?'#b5651d':'#4b4962'):r.late?'#c0392b':'#4b4962',fw:r.late&&key!=='paid'?'600':'400'}),c(money(key==='pending'?r.bal:r.paid),view(r),{align:'right',fw:'600'}),
-          conf?c('Cancel',cancelRow,{align:'right',fg:'#4b4962',fw:'600'}):c('View info →',view(r),{align:'right',fg:'#5b3fd9',fw:'600'}),
-          conf?c(s.deleting?'Deleting…':'Confirm delete',delRow(r),{align:'right',fg:'#c0392b',fw:'700'}):c('Delete',askRow(r),{align:'right',fg:'#c0392b',fw:'500'})];});
-      const cards=shown.map(r=>{const conf=s.rowDel===r.id;return {view:view(r),title:r.vendorName,sub:r.service,meta:'Due '+fmtD(r.deadline)+(key==='paid'&&r.bal>0?' · '+(r.paymentStatus==='half'?'half paid':'part paid')+' · '+money(r.bal)+' left':r.late&&key!=='paid'?' · overdue':''),metaFg:key==='paid'?(r.bal>0?'#b5651d':'#6f6d85'):r.late?'#c0392b':'#6f6d85',value:money(key==='pending'?r.bal:r.paid),bg:conf?'#fff5f4':'#fff',
-        left:conf?cancelRow:view(r),leftLabel:conf?'Cancel':'View info',leftBg:conf?'#f2f1f7':'#f1ecff',leftFg:conf?'#4b4962':'#5b3fd9',
-        right:conf?delRow(r):askRow(r),rightLabel:conf?(s.deleting?'Deleting…':'Confirm delete'):'Delete',rightBg:conf?'#c0392b':'#fdecea',rightFg:conf?'#fff':'#c0392b'};});
-      return {title,count:String(shown.length),dot,pillBg,pillFg,total:totalText,cells,cards,empty:!shown.length,emptyText:list.length&&!shown.length?'No matches for this search.':emptyText,showDesk:!m&&!!shown.length,showMobile:m&&!!shown.length};
+      const rowsOut=shown.map(r=>{const conf=s.rowDel===r.id;const st=STATUS[r.paymentStatus]||STATUS.unpaid;const busy=s.statusBusy===r.id;
+        const partPaid=key==='paid'&&r.bal>0;
+        return {name:r.vendorName,service:r.service,view:view(r),bg:conf?'#fff5f4':'#fff',
+          due:'Due '+fmtD(r.deadline)+(key==='pending'&&r.late?' · '+dueText(r):''),dueFg:key==='pending'&&r.late?'#c0392b':'#6f6d85',dueFw:key==='pending'&&r.late?'600':'400',
+          amount:money(key==='pending'?r.bal:r.paid),amountNote:key==='pending'?(r.paid>0?'of '+money(r.amount):''):(partPaid?money(r.bal)+' left':'in full'),
+          status:r.paymentStatus,busy,onStatus:e=>this.changeStatus(r,e.target.value),stBg:st[1],stFg:st[2],stBd:st[1],
+          left:conf?cancelRow:view(r),leftLabel:conf?'Cancel':(busy?'Saving…':'View info →'),leftFg:conf?'#4b4962':'#5b3fd9',
+          right:conf?delRow(r):askRow(r),rightLabel:conf?(s.deleting?'Deleting…':'Confirm delete'):'Delete',rightFw:conf?'700':'500'};});
+      return {title,count:String(shown.length),dot,pillBg,pillFg,total:totalText,amountHead:key==='pending'?'DUE':'PAID',rows:rowsOut,empty:!shown.length,emptyText:list.length&&!shown.length?'No matches for this search.':emptyText};
     };
     const V=s.viewId?rows.find(r=>r.id===s.viewId):null;
     const f=s.form,ex=s.extract,found=new Set((ex&&ex.found)||[]),editing=!!s.editId;
@@ -599,8 +640,8 @@ class Component extends DCLogic {
     return {
       gap:m?'18px':'22px',titleSize:m?'32px':'46px',subSize:m?'14px':'16px',
       boxCols:m?'minmax(0,1fr)':'repeat(3,minmax(0,1fr))',boxGap:m?'12px':'18px',boxPad:m?'16px':'22px',boxVal:m?'26px':'34px',boxValSm:m?'16px':'19px',
-      tCols:'minmax(190px,1.5fr) minmax(170px,1.3fr) 200px 130px 120px 130px',
-      tHead:[['VENDOR NAME','left'],['SERVICE','left'],['DUE DATE','left'],['AMOUNT','right'],['','right'],['','right']].map(([label,align])=>({label,align})),
+      listCols:m?'minmax(0,1fr)':'repeat(2,minmax(0,1fr))',rowCols:m?'minmax(0,1fr) auto':'minmax(0,1fr) auto 150px auto',headDisplay:m?'none':'grid',
+      statusOptions:Object.entries(STATUS).map(([value,[label]])=>({value,label})),
       ovAlign:m?'flex-end':'center',ovPad:m?'0':'24px',sheetR:m?'22px 22px 0 0':'20px',sheetPad:m?'22px 18px calc(22px + env(safe-area-inset-bottom))':'28px',sheetMaxH:m?'94vh':'calc(100vh - 48px)',flashB:m?'calc(96px + env(safe-area-inset-bottom))':'28px',
       isLoading:s.status==='loading',isOffline:s.status==='offline',isReady:s.status==='ready',offlineText:s.offlineText,retry:()=>this.load(),
       pendingCount:String(pending.length),pendingNote:overdue.length?overdue.length+(overdue.length===1?' vendor is':' vendors are')+' past the due date':'None past the due date',pendingNoteFg:overdue.length?'#c0392b':'#6f6d85',
@@ -647,6 +688,9 @@ class Component extends DCLogic {
       paidSummary:amt?'Paid '+money(paidNow)+' · balance '+money(Math.max(0,amt-paidNow)):'Enter the amount to see the balance.',
       hasStatusErr:!!(s.errors.paymentStatus||s.errors.amountPaid),statusErr:s.errors.paymentStatus||s.errors.amountPaid||'',
       hasFormErr:!!s.formErr,formErr:s.formErr,save:()=>this.save(),saveLabel:s.saving?'Saving…':editing?'Save changes':'Add vendor',saveBg:s.saving?'#a99cf0':'#6d4aff',saveCur:s.saving?'wait':'pointer',
+      ...(()=>{const c=s.custom;const v=c&&s.vendors.find(x=>x.id===c.id);return {customOpen:!!(c&&v),closeCustom:()=>{if(!(c&&c.saving))this.setState({custom:null});},
+        customSub:v?v.vendorName+' · invoice '+money(v.amount)+' — how much has been paid?':'',customValue:c?c.value:'',onCustom:e=>{const val=e.target.value;this.setState(st=>({custom:st.custom&&{...st.custom,value:val,err:''}}));},onCustomKey:e=>{if(e.key==='Enter')this.saveCustom();},
+        customBd:c&&c.err?'#c0392b':'#e3e2ec',hasCustomErr:!!(c&&c.err),customErr:c?c.err:'',saveCustom:()=>this.saveCustom(),customSave:c&&c.saving?'Saving…':'Save'};})(),
       hasFlash:!!s.flash,flash:s.flash
     };
   }

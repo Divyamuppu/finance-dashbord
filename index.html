@@ -26,6 +26,55 @@ a{color:#5b3fd9;text-decoration:none}a:hover{color:#17162a}
 input::placeholder{color:#8e8ca3}
 </style>
 </helmet>
+<sc-if value="{{ showAuthScreen }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(900px 500px at 100% 0%,#f1ecff 0%,rgba(248,248,251,0) 70%),#f8f8fb">
+    <div style="width:100%;max-width:420px;background:#fff;border:1px solid #e9e8f0;border-radius:22px;padding:32px 28px;display:flex;flex-direction:column;gap:20px;box-shadow:0 20px 60px rgba(23,22,42,.08)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9b7bff,#6d4aff);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;flex-shrink:0">a</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="font-weight:600;font-size:17px">atom collective</div>
+          <div style="font-size:12px;color:#6f6d85">Financial reporting</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">{{ authTitle }}</div>
+        <div style="font-size:14px;color:#5d5b72;text-wrap:pretty">{{ authSub }}</div>
+      </div>
+
+      <sc-if value="{{ authIsOut }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-if value="{{ hasGoogle }}" hint-placeholder-val="{{ true }}">
+            <div id="gsi-btn" style="min-height:44px;display:flex;justify-content:center"></div>
+          </sc-if>
+          <sc-if value="{{ noGoogle }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border-radius:10px;padding:10px 12px">Google sign-in isn't set up yet — add GOOGLE_CLIENT_ID in Netlify. Password sign-in still works for people who set one.</div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:10px;color:#a3a1b8;font-size:12px"><span style="flex:1;height:1px;background:#ececf2"></span>or with your password<span style="flex:1;height:1px;background:#ececf2"></span></div>
+          <input type="email" value="{{ loginEmail }}" onChange="{{ onLoginEmail }}" placeholder="Email" autocomplete="username" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+          <input type="password" value="{{ loginPw }}" onChange="{{ onLoginPw }}" onKeyDown="{{ onLoginKey }}" placeholder="Password" autocomplete="current-password" style="height:46px;border:1px solid #e3e2ec;border-radius:12px;padding:0 14px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+          <div onClick="{{ doPasswordLogin }}" style="height:46px;border-radius:12px;background:#17162a;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#2a2846">{{ loginBtn }}</div>
+          <div style="font-size:12px;color:#8e8ca3;text-wrap:pretty">First time? Sign in with Google. After you're approved you can set a password from your account.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ authIsWaiting }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ececf2;border-radius:14px">
+            <div style="width:36px;height:36px;border-radius:50%;background:#efeaff;color:#5b3fd9;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">{{ userInitial }}</div>
+            <div style="display:flex;flex-direction:column;min-width:0"><span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userName }}</span><span style="font-size:13px;color:#6f6d85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userEmail }}</span></div>
+          </div>
+          <div onClick="{{ recheck }}" style="height:44px;border-radius:12px;border:1px solid #e3e2ec;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#f6f6fa">Check again</div>
+          <div onClick="{{ logout }}" style="text-align:center;font-size:13px;color:#5b3fd9;cursor:pointer">Use a different account</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:13px;color:#c0392b;background:#fdecea;border-radius:10px;padding:10px 12px;text-wrap:pretty">{{ authErr }}</div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ authed }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;min-height:100vh">
   <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
   <aside style="width:264px;flex-shrink:0;background:#17162a;color:#c9c8d6;display:flex;flex-direction:column;padding:22px 14px 16px;position:sticky;top:0;height:100vh;overflow-y:auto">
@@ -45,12 +94,24 @@ input::placeholder{color:#8e8ca3}
         </div>
       </sc-for>
     </nav>
-    <div style="margin-top:auto;border:1px solid #2c2a44;background:#1e1d34;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start">
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">
+    <div style="border:1px solid #2c2a44;background:#1e1d34;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center">
+      <div style="width:34px;height:34px;border-radius:50%;background:#6d4aff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">{{ userInitial }}</div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+        <span style="color:#fff;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userName }}</span>
+        <span style="font-size:11px;color:#a9a7bd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ roleLine }}</span>
+      </div>
+      <span onClick="{{ openAccount }}" title="Account, password and log out" style="font-size:12px;font-weight:600;color:#c9c8d6;padding:6px 10px;border:1px solid #2c2a44;border-radius:999px;cursor:pointer;white-space:nowrap" style-hover="color:#fff;border-color:#6d4aff">Account</span>
+    </div>
+    <sc-if value="{{ canFinance }}" hint-placeholder-val="{{ true }}">
+    <div style="border:1px solid #2c2a44;background:#1e1d34;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a48bff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
       <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
         <div style="color:#fff;font-size:13px;font-weight:600">Connected source</div>
         <div style="font-size:12px;color:#a9a7bd;line-height:1.45;word-break:break-word">{{ sourceName }}</div>
       </div>
+    </div>
+    </sc-if>
     </div>
     <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ install }}" style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;background:#6d4aff;color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#5b3fd9">
@@ -70,6 +131,7 @@ input::placeholder{color:#8e8ca3}
             <div style="font-weight:600;font-size:16px;white-space:nowrap">atom collective</div>
             <div style="font-size:11px;color:#a9a7bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fyLabel }} · {{ statusText }}</div>
           </div>
+          <div onClick="{{ openAccount }}" title="Account" style="width:34px;height:34px;border-radius:50%;background:#6d4aff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;cursor:pointer">{{ userInitial }}</div>
           <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
             <div onClick="{{ install }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#6d4aff;white-space:nowrap;cursor:pointer">Install</div>
           </sc-if>
@@ -148,6 +210,9 @@ input::placeholder{color:#8e8ca3}
     <div style="width:100%;max-width:1320px;margin:0 auto;padding:{{ pad }};display:flex;flex-direction:column;gap:{{ gap }}">
       <sc-if value="{{ isVendors }}" hint-placeholder-val="{{ false }}">
         <dc-import name="Vendors" hint-size="100%,640px"></dc-import>
+      </sc-if>
+      <sc-if value="{{ isAccess }}" hint-placeholder-val="{{ false }}">
+        <dc-import name="Access" hint-size="100%,640px"></dc-import>
       </sc-if>
       <sc-if value="{{ notVendors }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;flex-direction:column;gap:{{ gap }}">
@@ -364,7 +429,7 @@ input::placeholder{color:#8e8ca3}
       </sc-if>
     </div>
     <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
-      <nav style="position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #e9e8f0;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom))">
+      <nav style="position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #e9e8f0;display:grid;grid-template-columns:repeat({{ navCount }},1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom))">
         <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
           <div onClick="{{ n.go }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;min-height:52px;cursor:pointer;color:{{ n.mfg }}">
             <div style="width:52px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:{{ n.mbg }}">
@@ -492,8 +557,39 @@ input::placeholder{color:#8e8ca3}
         </div>
       </div>
     </sc-if>
+    <sc-if value="{{ acctOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeAccount }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:95">
+        <div onClick="{{ stop }}" style="width:100%;max-width:440px;max-height:{{ sheetMaxH }};overflow-y:auto;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:16px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1.1">Your account</div>
+            <div onClick="{{ closeAccount }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ececf2;border-radius:14px">
+            <div style="width:40px;height:40px;border-radius:50%;background:#efeaff;color:#5b3fd9;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">{{ userInitial }}</div>
+            <div style="display:flex;flex-direction:column;min-width:0;gap:2px"><span style="font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userName }}</span><span style="font-size:13px;color:#6f6d85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userEmail }}</span><span style="font-size:12px;color:#5b3fd9">{{ roleLine }}</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:15px;font-weight:600">{{ pwTitle }}</div>
+            <div style="font-size:13px;color:#6f6d85;text-wrap:pretty">Lets you sign in with your email and this password instead of Google. Only you know it.</div>
+            <sc-if value="{{ needCurrentPw }}" hint-placeholder-val="{{ false }}">
+              <input type="password" value="{{ pwCurrent }}" onChange="{{ onPwCurrent }}" placeholder="Current password" autocomplete="current-password" style="height:44px;border:1px solid #e3e2ec;border-radius:12px;padding:0 12px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+            </sc-if>
+            <input type="password" value="{{ pwNew }}" onChange="{{ onPwNew }}" placeholder="New password (8+ characters, with a number)" autocomplete="new-password" style="height:44px;border:1px solid #e3e2ec;border-radius:12px;padding:0 12px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+            <input type="password" value="{{ pwNew2 }}" onChange="{{ onPwNew2 }}" onKeyDown="{{ onPwKey }}" placeholder="Type it again" autocomplete="new-password" style="height:44px;border:1px solid #e3e2ec;border-radius:12px;padding:0 12px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+            <sc-if value="{{ hasPwErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#c0392b">{{ pwErr }}</div></sc-if>
+            <sc-if value="{{ hasPwOk }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#128a72">{{ pwOk }}</div></sc-if>
+            <div onClick="{{ savePassword }}" style="align-self:flex-start;font-size:14px;font-weight:600;padding:11px 20px;border-radius:999px;background:#6d4aff;color:#fff;cursor:pointer" style-hover="background:#5b3fd9">{{ pwBtn }}</div>
+          </div>
+          <div style="border-top:1px solid #ececf2;padding-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <span style="font-size:12px;color:#8e8ca3">You stay signed in on this device until you log out.</span>
+            <div onClick="{{ logout }}" style="font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;border:1px solid #f3c4bd;color:#c0392b;cursor:pointer;white-space:nowrap" style-hover="background:#fdecea">Log out</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
   </main>
 </div>
+</sc-if>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;defaultPage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;overview&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;revenue&quot;,&quot;expenses&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;excludeProjects&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Cognitive Botics&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -508,7 +604,8 @@ const ICON={
   wallet:'M3 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13h2',
   clock:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 3',
   file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5',
-  vendors:'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M9 11h.01M15 11h.01'
+  vendors:'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M9 11h.01M15 11h.01',
+  access:'M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM9 12l2 2 4-4'
 };
 const TILE={purple:['#efeaff','#6d4aff'],orange:['#fff1e4','#ee8a2a'],blue:['#e8f0ff','#2f6fdb'],green:['#e3f5ef','#17a589']};
 const BRANDS=[['Think Ebikego','think ebikego','ebg','think9'],['Paytm','paytm'],['Medanta','medanta'],['Zomato','zomato'],['Sattva','sattva'],['Nxtwave','nxtwave'],['JioStar','jio'],['Jumpp','jumpp'],['Hala Mobility','hala'],['ITC','itc','sunrise'],['TCS','tcs'],['Karya & Gravity Zip','karya','gravity'],['Advance Auto Parts','advance auto','women'],['Kuku TV','kuku'],['Wattpower','wattpower'],['Dabbahwala','dabbahwala'],['Unispeed','unispeed'],['WLDD','wldd','snapdeal','audible'],['Rapture / Sonic Lamb','rapture','sonic'],['Shadi.com','shadi'],['Chandana Shopping Mall','chandana'],['Select (Celeket)','select'],['B New','b new'],['Batchmates','batchmates'],['24 Organic Mantra','24 organic']];
@@ -612,8 +709,10 @@ function parseExpenses(rows,sheetDiv){
   return out;
 }
 const ADDED_KEY='atom-dash-added-v1';
+// which pages a person can open: Finance → Overview/Revenue/Expenses, Vendors → Vendors, Admin → Access
+const pagesFor=r=>[...(r&&r.finance?['overview','revenue','expenses']:[]),...(r&&r.vendors?['vendors']:[]),...(r&&r.admin?['access']:[])];
 // deep links from the P&L app: ?page=revenue&div=social
-const urlParams=()=>{try{const p=new URLSearchParams(location.search);const page=p.get('page'),div=p.get('div');return {page:['overview','revenue','expenses','vendors'].includes(page)?page:null,div:['all','atom','social','ngen'].includes(div)?div:null};}catch(e){return {page:null,div:null};}};
+const urlParams=()=>{try{const p=new URLSearchParams(location.search);const page=p.get('page'),div=p.get('div');return {page:['overview','revenue','expenses','vendors','access'].includes(page)?page:null,div:['all','atom','social','ngen'].includes(div)?div:null};}catch(e){return {page:null,div:null};}};
 const today=()=>new Date().toISOString().slice(0,10);
 const FORMS={
  project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Revenue excl. GST (₹)','number','0',1,''],['gst','GST (₹)','number','Auto: 18% of revenue',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: revenue + GST − received − TDS',2,'']]},
@@ -621,7 +720,7 @@ const FORMS={
  expense:{title:'Add expense',sub:'Log a cost in the shared Expenses sheet (one pool for all divisions).',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
 };
 class Component extends DCLogic {
-  state={page:urlParams().page||this.props.defaultPage||'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:urlParams().div||'all',published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
+  state={auth:{status:'loading'},login:{email:'',password:'',err:'',busy:false},authErr:'',acct:null,page:urlParams().page||this.props.defaultPage||'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:urlParams().div||'all',published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
   setImp(o){this.setState(s=>({imp:{...s.imp,...o}}));}
   async parseFile(file){
     if(!file)return;
@@ -657,6 +756,8 @@ class Component extends DCLogic {
   }
   async push(payload){
     try{const r=await fetch('/api/workbook',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+      if(r.status===401)return 'Your session ended — sign in again.';
+      if(r.status===403)return 'You need Finance access to publish.';
       if(!r.ok)return 'Could not save to the server ('+r.status+').';
       return null;
     }catch(e){return 'Could not reach the server — check your connection.';}
@@ -669,7 +770,7 @@ class Component extends DCLogic {
       if(err)return this.setImp({busy:false,err});
       try{localStorage.removeItem(IMPORT_KEY);}catch(e){}
       clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);
-      return this.setState({published:imp.parsed.sets,imports:{},div:'all',updatedAt:Date.now(),imp:{open:false,busy:false,err:'',parsed:null,drag:false},flash:'Published · everyone with the link now sees '+imp.parsed.source});
+      return this.setState({published:imp.parsed.sets,imports:{},div:'all',updatedAt:Date.now(),imp:{open:false,busy:false,err:'',parsed:null,drag:false},flash:'Published for your team · '+imp.parsed.source});
     }
     const next=imp.parsed.sets;let warn='';
     try{localStorage.setItem(IMPORT_KEY,JSON.stringify(next));}catch(e){warn=' (too large to keep after reload)';}
@@ -708,6 +809,79 @@ class Component extends DCLogic {
     clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),3000);
     this.setState({added:next,modal:null,form:{},formErr:'',flash:msg});
   }
+  // ---------- sign-in ----------
+  async authFetch(url,opts={}){
+    let r;try{r=await fetch(url,{cache:'no-store',credentials:'same-origin',...opts,headers:{'content-type':'application/json',...(opts.headers||{})}});}catch(e){return {offline:true};}
+    if(!/json/.test(r.headers.get('content-type')||''))return {offline:true,status:r.status};
+    let body={};try{body=await r.json();}catch(e){}
+    return {ok:r.ok,status:r.status,body,error:body.error};
+  }
+  async checkAuth(){
+    const res=await this.authFetch('/api/auth/me');
+    if(res.offline)return this.setState({auth:{status:'offline'}});
+    const b=res.body||{};
+    if(b.setupError)return this.setState({auth:{status:'setup',error:b.setupError,clientId:b.googleClientId}});
+    this.applyUser(b.user,b.googleClientId);
+  }
+  applyUser(user,clientId){
+    const cid=clientId!==undefined?clientId:(this.state.auth&&this.state.auth.clientId);
+    if(!user){this.setState({auth:{status:'out',clientId:cid}});this.loadGsi(cid);return;}
+    if(user.status!=='active'){this.setState({auth:{status:user.status==='denied'?'denied':'pending',user,clientId:cid}});return;}
+    const allowed=pagesFor(user.roles);
+    const page=allowed.includes(this.state.page)?this.state.page:allowed[0];
+    this.setState({auth:{status:'in',user,clientId:cid},page,login:{email:'',password:'',err:'',busy:false}});
+    if(user.roles.finance)this.loadWorkbook();
+  }
+  loadWorkbook(){
+    fetch('/api/workbook',{cache:'no-store',credentials:'same-origin'}).then(r=>{if(r.status===401){this.checkAuth();return null;}return r.ok&&/json/.test(r.headers.get('content-type')||'')?r.json():null;}).then(d=>{if(!d)return;const st={backend:true};if(d.imports&&Object.keys(d.imports).length)st.published=d.imports;if(Array.isArray(d.added&&d.added.revenue))st.added=d.added;if(d.updatedAt)st.updatedAt=d.updatedAt;this.setState(st);}).catch(()=>{});
+  }
+  loadGsi(clientId){
+    if(!clientId||this.gsiLoading)return this.renderGsi();
+    const ready=()=>{if(!window.google||!google.accounts||!google.accounts.id)return;if(this.gsiFor!==clientId){google.accounts.id.initialize({client_id:clientId,callback:r=>this.googleLogin(r&&r.credential),ux_mode:'popup',auto_select:false,cancel_on_tap_outside:true});this.gsiFor=clientId;}this.renderGsi();};
+    if(window.google&&window.google.accounts&&window.google.accounts.id)return ready();
+    this.gsiLoading=true;
+    const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=()=>{this.gsiLoading=false;ready();};s.onerror=()=>{this.gsiLoading=false;this.setState({authErr:'Could not load Google sign-in — check your connection or use your password.'});};
+    document.head.appendChild(s);
+  }
+  renderGsi(){
+    const el=document.getElementById('gsi-btn');
+    if(!el||el.childElementCount||!this.gsiFor||!window.google||!google.accounts||!google.accounts.id)return;
+    google.accounts.id.renderButton(el,{theme:'outline',size:'large',shape:'pill',text:'signin_with',logo_alignment:'left',width:Math.min(340,el.clientWidth||340)});
+  }
+  componentDidUpdate(){if(this.state.auth&&this.state.auth.status==='out')this.renderGsi();}
+  async googleLogin(credential){
+    if(!credential)return;
+    this.setState({authErr:''});
+    const res=await this.authFetch('/api/auth/google',{method:'POST',body:JSON.stringify({credential})});
+    if(!res.ok)return this.setState({authErr:res.error||'Google sign-in failed — try again.'});
+    this.applyUser(res.body.user);
+  }
+  async passwordLogin(){
+    const l=this.state.login;if(l.busy)return;
+    if(!l.email.trim()||!l.password)return this.setState({login:{...l,err:''},authErr:'Enter your email and password.'});
+    this.setState({login:{...l,busy:true},authErr:''});
+    const res=await this.authFetch('/api/auth/login',{method:'POST',body:JSON.stringify({email:l.email.trim(),password:l.password})});
+    if(!res.ok)return this.setState(s=>({login:{...s.login,busy:false,password:''},authErr:res.error||'Could not sign in.'}));
+    this.applyUser(res.body.user);
+  }
+  async logout(){
+    await this.authFetch('/api/auth/logout',{method:'POST',body:'{}'});
+    try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
+    // finance data must not linger on a shared device
+    try{localStorage.removeItem(IMPORT_KEY);localStorage.removeItem(ADDED_KEY);}catch(e){}
+    this.setState({auth:{status:'out',clientId:this.state.auth&&this.state.auth.clientId},published:null,imports:{},added:{revenue:[],expenses:[]},backend:false,updatedAt:null,acct:null,authErr:'',page:'overview',div:'all'},()=>this.loadGsi(this.state.auth.clientId));
+  }
+  async savePassword(){
+    const a=this.state.acct||{};if(a.busy)return;
+    const u=this.state.auth.user;
+    if(u.hasPassword&&!a.current)return this.setState({acct:{...a,err:'Enter your current password.',ok:''}});
+    if(!a.pw||a.pw.length<8||!/[A-Za-z]/.test(a.pw)||!/\d/.test(a.pw))return this.setState({acct:{...a,err:'Use at least 8 characters with letters and a number.',ok:''}});
+    if(a.pw!==a.pw2)return this.setState({acct:{...a,err:"The two passwords don't match.",ok:''}});
+    this.setState({acct:{...a,busy:true,err:'',ok:''}});
+    const res=await this.authFetch('/api/auth/password',{method:'POST',body:JSON.stringify({password:a.pw,current:a.current||undefined})});
+    if(!res.ok)return this.setState(s=>({acct:{...s.acct,busy:false,err:res.error||'Could not save the password.'}}));
+    this.setState(s=>({auth:{...s.auth,user:res.body.user},acct:{open:true,current:'',pw:'',pw2:'',busy:false,err:'',ok:'Password saved — you can now sign in with your email and this password.'}}));
+  }
   componentWillUnmount(){window.removeEventListener('resize',this.onResize);}
   componentDidMount(){
     this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile)this.setState({mobile:m});};
@@ -720,13 +894,14 @@ class Component extends DCLogic {
     try{const a=JSON.parse(localStorage.getItem(ADDED_KEY)||'null');if(a&&a.revenue)this.setState({added:a});}catch(e){}
     try{const im=JSON.parse(localStorage.getItem(IMPORT_KEY)||'null');if(im)this.setState({imports:im});}catch(e){}
     try{localStorage.removeItem('atom-dash-imports-v1');}catch(e){}
-    fetch('/api/workbook',{cache:'no-store'}).then(r=>r.ok&&/json/.test(r.headers.get('content-type')||'')?r.json():null).then(d=>{if(!d)return;const st={backend:true};if(d.imports&&Object.keys(d.imports).length)st.published=d.imports;if(Array.isArray(d.added&&d.added.revenue))st.added=d.added;if(d.updatedAt)st.updatedAt=d.updatedAt;this.setState(st);}).catch(()=>{});
-    fetch('data/workbook.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(p=>{if(p&&typeof p==='object'&&Object.values(p).some(s=>s&&s.revenue))this.setState(s=>s.backend&&s.published?{}:{published:p});}).catch(()=>{});
+    this.checkAuth();
   }
   renderVals(){
     const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp,mobile,canInstall,standalone,iosOpen}=this.state;
     const go=p=>()=>this.setState({page:p,q:'',limit:25,hover:null});
-    const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses'],['vendors','Vendors']];
+    const au=this.state.auth||{status:'loading'},me=au.user||null,roles=(me&&me.roles)||{};
+    const allowed=pagesFor(roles);
+    const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses'],['vendors','Vendors'],['access','Access']].filter(([id])=>allowed.includes(id));
     const base={
       nav:NAV.map(([id,name])=>{const a=page===id;return {name,go:go(id),icon:ICON[id],mfg:a?'#5b3fd9':'#6f6d85',mbg:a?'#efeaff':'transparent',mfw:a?'600':'500',bg:a?'#2a2846':'transparent',fg:a?'#ffffff':'#c9c8d6',ring:a?'inset 3px 0 0 #7c5cff':'none',chev:a?'1':'0'};}),
       sourceName:data?data.source:'Loading workbook…',
@@ -853,7 +1028,22 @@ class Component extends DCLogic {
       projectOptions:[...new Set(R.map(r=>r[0]))].slice(0,400),vendorOptions:vendors.map(v=>v[0]).slice(0,400),
       hasErr:!!formErr,formErr,closeModal:()=>this.setState({modal:null}),stop:e=>e.stopPropagation(),saveModal:()=>this.saveModal(),
       hasFlash:!!flash,flash,divTabs,showDivTabs:divOn,showFormDiv:modal!=='expense',
-      isVendors:page==='vendors',notVendors:page!=='vendors',
+      isVendors:page==='vendors'&&allowed.includes('vendors'),isAccess:page==='access'&&allowed.includes('access'),notVendors:page!=='vendors'&&page!=='access'&&allowed.includes(page),
+      ...(()=>{const st=au.status,acct=this.state.acct||{},l=this.state.login;const nm=me?(me.name||me.email.split('@')[0]):'';
+        return {authed:st==='in',showAuthScreen:st!=='in',authIsOut:st==='out',authIsWaiting:st==='pending'||st==='denied',
+          authTitle:st==='loading'?'Loading…':st==='pending'?'Access requested':st==='denied'?'Access not approved':st==='setup'?'Sign-in not set up':st==='offline'?'Sign in on your live site':'Sign in',
+          authSub:st==='loading'?'Checking your sign-in…':st==='pending'?'An admin needs to approve your access. You will get in as soon as they do — then click Check again.':st==='denied'?'An admin has not given this account access. Ask them, or use a different account.':st==='setup'?(au.error||'Add SESSION_SECRET in Netlify environment variables.'):st==='offline'?'This preview has no server. Open your deployed Netlify dashboard to sign in.':'Only approved people can see finances and vendors.',
+          hasGoogle:!!au.clientId,noGoogle:st==='out'&&!au.clientId,
+          loginEmail:l.email,loginPw:l.password,onLoginEmail:e=>{const v=e.target.value;this.setState(s=>({login:{...s.login,email:v},authErr:''}));},onLoginPw:e=>{const v=e.target.value;this.setState(s=>({login:{...s.login,password:v},authErr:''}));},onLoginKey:e=>{if(e.key==='Enter')this.passwordLogin();},
+          doPasswordLogin:()=>this.passwordLogin(),loginBtn:l.busy?'Signing in…':'Sign in with password',hasAuthErr:!!this.state.authErr,authErr:this.state.authErr,recheck:()=>this.checkAuth(),logout:()=>this.logout(),
+          userInitial:(nm||'?').trim().charAt(0).toUpperCase(),userName:nm,userEmail:me?me.email:'',
+          roleLine:[roles.finance&&'Finance',roles.vendors&&'Vendors',roles.admin&&'Admin'].filter(Boolean).join(' · ')||'No access yet',
+          canFinance:!!roles.finance,navCount:String(Math.max(1,allowed.length)),
+          openAccount:()=>this.setState({acct:{open:true,current:'',pw:'',pw2:'',err:'',ok:''}}),closeAccount:()=>{if(!acct.busy)this.setState({acct:null});},acctOpen:!!acct.open,
+          pwTitle:me&&me.hasPassword?'Change your password':'Set a password',needCurrentPw:!!(me&&me.hasPassword),
+          pwCurrent:acct.current||'',pwNew:acct.pw||'',pwNew2:acct.pw2||'',
+          onPwCurrent:e=>{const v=e.target.value;this.setState(s=>({acct:{...s.acct,current:v,err:''}}));},onPwNew:e=>{const v=e.target.value;this.setState(s=>({acct:{...s.acct,pw:v,err:'',ok:''}}));},onPwNew2:e=>{const v=e.target.value;this.setState(s=>({acct:{...s.acct,pw2:v,err:''}}));},onPwKey:e=>{if(e.key==='Enter')this.savePassword();},
+          hasPwErr:!!acct.err,pwErr:acct.err||'',hasPwOk:!!acct.ok,pwOk:acct.ok||'',pwBtn:acct.busy?'Saving…':(me&&me.hasPassword?'Change password':'Save password'),savePassword:()=>this.savePassword()};})(),
       fyLabel,fyLabelUp:fyLabel.toUpperCase(),fyPill:fyLabel+(fys.length>1?'  ▾':''),fyCur:fys.length>1?'pointer':'default',
       fyNext:()=>{if(fys.length>1)this.setState({fy:fys[(fys.indexOf(FY)+1)%fys.length]});},
       isMobile:mobile,isDesk:!mobile,
@@ -882,16 +1072,16 @@ class Component extends DCLogic {
       ...(()=>{const S=imp.parsed?['atom','social','ngen'].map(d=>imp.parsed.sets[d]).filter(Boolean):[];return {impTotalRows:sum(S.map(s=>s.revenue.length)).toLocaleString('en-IN')+' revenue rows · GST '+f(sum(S.map(s=>s.totals.revenue.gst))),impTotalRev:f(sum(S.map(s=>s.totals.revenue.total))),impTotalExp:f(sum(S.map(s=>s.totals.revenue.amount)))};})(),
       hasImpErr:!!imp.err,impErr:imp.err,
       hasImports:Object.keys(imports).length>0,clearAll:()=>this.clearAll(),clearLabel:this.state.published?'Remove local import (use published)':'Clear workbook data',
-      doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.busy&&imp.parsed?'Publishing…':imp.parsed?(this.state.backend?'Publish for everyone':'Import & replace'):'Import',
+      doImport:()=>this.doImport(),impBtnBg:imp.parsed?'#6d4aff':'#c9c2f0',impBtnCur:imp.parsed?'pointer':'not-allowed',impBtnLabel:imp.busy&&imp.parsed?'Publishing…':imp.parsed?(this.state.backend?'Publish':'Import & replace'):'Import',
       noData:!Object.keys(src).length&&!added.revenue.length&&!added.expenses.length,
       sourceName:(Object.values(src)[0]||{}).source||'No workbook yet — use Import Excel',
       statusDot:hasLocal?'#e0a23a':pub?'#17a589':'#c9c8d6',
-      statusText:this.state.backend?(hasLocal?'Local import · not published':pub?'Live · shared with everyone'+(this.state.updatedAt?' · updated '+new Date(this.state.updatedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):''):'Live · no workbook published yet'):(hasLocal?'Local import · this device only':pub?'Published workbook':'No workbook imported'),
+      statusText:this.state.backend?(hasLocal?'Local import · not published':pub?'Live · shared with your team'+(this.state.updatedAt?' · updated '+new Date(this.state.updatedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):''):'Live · no workbook published yet'):(hasLocal?'Local import · this device only':pub?'Published workbook':'No workbook imported'),
       showPublish:hasLocal&&(this.state.backend||JSON.stringify(imports)!==JSON.stringify(pub)),
       pubTitle:this.state.backend?'Not published yet':'Server not connected — only visible on this device',
-      pubBody:this.state.backend?'This import is only in your browser. Publish it so everyone with the link sees it.':'The site could not reach /api/workbook, so the import is saved only in this browser. Check that the Netlify function is deployed (see Functions tab in Netlify).',
-      pubBtn:this.state.backend?'Publish for everyone':'Download workbook.json',
-      pubAction:this.state.backend?async()=>{const err=await this.push({imports,added:this.state.added});clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);if(err){if(/admin key/i.test(err)){const k=window.prompt('Admin key');if(k){this.setState({keyInput:k},async()=>{const e2=await this.push({imports,added:this.state.added});if(!e2){try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for everyone'});}else this.setState({flash:e2});});}return;}return this.setState({flash:err});}try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for everyone'});}:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
+      pubBody:this.state.backend?'This import is only in your browser. Publish it so everyone with Finance access sees it.':'The site could not reach /api/workbook, so the import is saved only in this browser. Check that the Netlify function is deployed (see Functions tab in Netlify).',
+      pubBtn:this.state.backend?'Publish':'Download workbook.json',
+      pubAction:this.state.backend?async()=>{const err=await this.push({imports,added:this.state.added});clearTimeout(this.ft);this.ft=setTimeout(()=>this.setState({flash:''}),4000);if(err){if(/admin key/i.test(err)){const k=window.prompt('Admin key');if(k){this.setState({keyInput:k},async()=>{const e2=await this.push({imports,added:this.state.added});if(!e2){try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for your team'});}else this.setState({flash:e2});});}return;}return this.setState({flash:err});}try{localStorage.removeItem(IMPORT_KEY);}catch(e){}this.setState({published:imports,imports:{},updatedAt:Date.now(),flash:'Published for your team'});}:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
       needKey:false,keyInput:this.state.keyInput,onKey:e=>this.setState({keyInput:e.target.value}),
       downloadData:()=>{const b=new Blob([JSON.stringify(imports)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='workbook.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);},
       formDivs:['atom','social','ngen'].map(id=>{const a=(form.div||'atom')===id;return {name:DN[id],go:()=>this.setState(s=>({form:{...s.form,div:id}})),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
