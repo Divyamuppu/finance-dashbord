@@ -45,13 +45,6 @@ input::placeholder{color:#8e8ca3}
         </div>
       </sc-for>
     </nav>
-    <sc-if value="{{ hasVendorLink }}" hint-placeholder-val="{{ false }}">
-      <a href="{{ vendorHref }}" target="_blank" rel="noopener" title="{{ vendorTitle }}" style="margin-top:14px;display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:12px;border:1px solid #2c2a44;color:#c9c8d6;text-decoration:none;font-size:15px" style-hover="color:#ffffff;background:#1e1d34">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"></path></svg>
-        <span style="flex:1">{{ vendorLabel }}</span>
-        <span style="font-size:14px">↗</span>
-      </a>
-    </sc-if>
     <div style="margin-top:auto;border:1px solid #2c2a44;background:#1e1d34;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a48bff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg>
       <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
@@ -77,9 +70,6 @@ input::placeholder{color:#8e8ca3}
             <div style="font-weight:600;font-size:16px;white-space:nowrap">atom collective</div>
             <div style="font-size:11px;color:#a9a7bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fyLabel }} · {{ statusText }}</div>
           </div>
-          <sc-if value="{{ hasVendorLink }}" hint-placeholder-val="{{ false }}">
-            <a href="{{ vendorHref }}" target="_blank" rel="noopener" title="{{ vendorTitle }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#2a2846;color:#fff;text-decoration:none;white-space:nowrap">Vendors ↗</a>
-          </sc-if>
           <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
             <div onClick="{{ install }}" style="font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;background:#6d4aff;white-space:nowrap;cursor:pointer">Install</div>
           </sc-if>
@@ -156,6 +146,11 @@ input::placeholder{color:#8e8ca3}
     </sc-if>
 
     <div style="width:100%;max-width:1320px;margin:0 auto;padding:{{ pad }};display:flex;flex-direction:column;gap:{{ gap }}">
+      <sc-if value="{{ isVendors }}" hint-placeholder-val="{{ false }}">
+        <dc-import name="Vendors" hint-size="100%,640px"></dc-import>
+      </sc-if>
+      <sc-if value="{{ notVendors }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:{{ gap }}">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
         <div style="display:flex;flex-direction:column;gap:10px">
           <div style="font-size:12px;font-weight:700;letter-spacing:.16em;color:#5b3fd9">{{ fyLabelUp }} REPORTING</div>
@@ -365,9 +360,11 @@ input::placeholder{color:#8e8ca3}
           </div>
         </div>
       </sc-if>
+      </div>
+      </sc-if>
     </div>
     <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
-      <nav style="position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #e9e8f0;display:grid;grid-template-columns:repeat(3,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom))">
+      <nav style="position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #e9e8f0;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom))">
         <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
           <div onClick="{{ n.go }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;min-height:52px;cursor:pointer;color:{{ n.mfg }}">
             <div style="width:52px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:{{ n.mbg }}">
@@ -510,7 +507,8 @@ const ICON={
   up:'M3 17l6-6 4 4 8-8M15 7h6v6',
   wallet:'M3 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13h2',
   clock:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 3',
-  file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5'
+  file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5',
+  vendors:'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M9 11h.01M15 11h.01'
 };
 const TILE={purple:['#efeaff','#6d4aff'],orange:['#fff1e4','#ee8a2a'],blue:['#e8f0ff','#2f6fdb'],green:['#e3f5ef','#17a589']};
 const BRANDS=[['Think Ebikego','think ebikego','ebg','think9'],['Paytm','paytm'],['Medanta','medanta'],['Zomato','zomato'],['Sattva','sattva'],['Nxtwave','nxtwave'],['JioStar','jio'],['Jumpp','jumpp'],['Hala Mobility','hala'],['ITC','itc','sunrise'],['TCS','tcs'],['Karya & Gravity Zip','karya','gravity'],['Advance Auto Parts','advance auto','women'],['Kuku TV','kuku'],['Wattpower','wattpower'],['Dabbahwala','dabbahwala'],['Unispeed','unispeed'],['WLDD','wldd','snapdeal','audible'],['Rapture / Sonic Lamb','rapture','sonic'],['Shadi.com','shadi'],['Chandana Shopping Mall','chandana'],['Select (Celeket)','select'],['B New','b new'],['Batchmates','batchmates'],['24 Organic Mantra','24 organic']];
@@ -614,10 +612,8 @@ function parseExpenses(rows,sheetDiv){
   return out;
 }
 const ADDED_KEY='atom-dash-added-v1';
-// Linked Vendors / P&L app: its address comes from /api/config (Netlify env VENDOR_DASHBOARD_URL); hidden when unset
-const safeUrl=v=>{try{const u=new URL(String(v||'').trim());return /^https?:$/.test(u.protocol)?u.origin+u.pathname.replace(/\/+$/,''):null;}catch(e){return null;}};
 // deep links from the P&L app: ?page=revenue&div=social
-const urlParams=()=>{try{const p=new URLSearchParams(location.search);const page=p.get('page'),div=p.get('div');return {page:['overview','revenue','expenses'].includes(page)?page:null,div:['all','atom','social','ngen'].includes(div)?div:null};}catch(e){return {page:null,div:null};}};
+const urlParams=()=>{try{const p=new URLSearchParams(location.search);const page=p.get('page'),div=p.get('div');return {page:['overview','revenue','expenses','vendors'].includes(page)?page:null,div:['all','atom','social','ngen'].includes(div)?div:null};}catch(e){return {page:null,div:null};}};
 const today=()=>new Date().toISOString().slice(0,10);
 const FORMS={
  project:{title:'Add project',sub:'Creates a new project in the Revenue sheet.',save:'Add project',fields:[['name','Project name','text','e.g. Zomato – Diwali TVC',2,''],['budget','Revenue excl. GST (₹)','number','0',1,''],['gst','GST (₹)','number','Auto: 18% of revenue',1,''],['date','First payment date','date','',1,''],['payment','Payment note','text','e.g. 50% advance',1,''],['amount','Amount received (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['balance','Balance (₹)','number','Auto: revenue + GST − received − TDS',2,'']]},
@@ -625,7 +621,7 @@ const FORMS={
  expense:{title:'Add expense',sub:'Log a cost in the shared Expenses sheet (one pool for all divisions).',save:'Add expense',fields:[['vendor','Vendor','text','e.g. Casting Wire LLP',2,'dc-vendors'],['note','Project / note','text','e.g. Paytm Gold TVC – casting',2,''],['date','Date','date','',1,''],['amount','Amount (₹)','number','0',1,''],['tds','TDS (₹)','number','0',1,''],['total','Total amount (₹)','number','Auto: amount − TDS',1,'']]}
 };
 class Component extends DCLogic {
-  state={page:urlParams().page||this.props.defaultPage||'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:urlParams().div||'all',vendorUrl:null,published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
+  state={page:urlParams().page||this.props.defaultPage||'overview',data:null,err:null,q:'',limit:25,hover:null,modal:null,form:{},formErr:'',added:{revenue:[],expenses:[]},gq:'',flash:'',div:urlParams().div||'all',published:null,backend:false,saving:false,keyInput:'',adminKey:(()=>{try{return localStorage.getItem('atom-dash-admin-key')||'';}catch(e){return '';}})(),mobile:typeof window!=='undefined'&&window.innerWidth<820,canInstall:false,standalone:false,iosOpen:false,imports:{},imp:{open:false,busy:false,err:'',parsed:null,drag:false}};
   setImp(o){this.setState(s=>({imp:{...s.imp,...o}}));}
   async parseFile(file){
     if(!file)return;
@@ -724,14 +720,13 @@ class Component extends DCLogic {
     try{const a=JSON.parse(localStorage.getItem(ADDED_KEY)||'null');if(a&&a.revenue)this.setState({added:a});}catch(e){}
     try{const im=JSON.parse(localStorage.getItem(IMPORT_KEY)||'null');if(im)this.setState({imports:im});}catch(e){}
     try{localStorage.removeItem('atom-dash-imports-v1');}catch(e){}
-    fetch('/api/config',{cache:'no-store'}).then(r=>r.ok&&/json/.test(r.headers.get('content-type')||'')?r.json():null).then(c=>{const u=c&&safeUrl(c.vendorUrl);if(u)this.setState({vendorUrl:u});}).catch(()=>{});
     fetch('/api/workbook',{cache:'no-store'}).then(r=>r.ok&&/json/.test(r.headers.get('content-type')||'')?r.json():null).then(d=>{if(!d)return;const st={backend:true};if(d.imports&&Object.keys(d.imports).length)st.published=d.imports;if(Array.isArray(d.added&&d.added.revenue))st.added=d.added;if(d.updatedAt)st.updatedAt=d.updatedAt;this.setState(st);}).catch(()=>{});
     fetch('data/workbook.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(p=>{if(p&&typeof p==='object'&&Object.values(p).some(s=>s&&s.revenue))this.setState(s=>s.backend&&s.published?{}:{published:p});}).catch(()=>{});
   }
   renderVals(){
     const {page,data,err,q,limit,hover,modal,form,formErr,added,gq,flash,div,imports,imp,mobile,canInstall,standalone,iosOpen}=this.state;
     const go=p=>()=>this.setState({page:p,q:'',limit:25,hover:null});
-    const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses']];
+    const NAV=[['overview','Overview'],['revenue','Revenue'],['expenses','Expenses'],['vendors','Vendors']];
     const base={
       nav:NAV.map(([id,name])=>{const a=page===id;return {name,go:go(id),icon:ICON[id],mfg:a?'#5b3fd9':'#6f6d85',mbg:a?'#efeaff':'transparent',mfw:a?'600':'500',bg:a?'#2a2846':'transparent',fg:a?'#ffffff':'#c9c8d6',ring:a?'inset 3px 0 0 #7c5cff':'none',chev:a?'1':'0'};}),
       sourceName:data?data.source:'Loading workbook…',
@@ -829,7 +824,7 @@ class Component extends DCLogic {
       P={title:'Expenses',subtitle:'One expense pool for the whole collective — not split by division.',
         kpis:[kpi('Expense amount',f(TE.amount),'Amount column, before TDS','purple','receipt'),kpi('Total expenses',f(TE.total),'All divisions · Total Amount','orange','down'),kpi('Expense TDS',f(TE.tds),'TDS column total','blue','bank')],
         chartTitle:'Monthly expenses',chartSub:'Total Amount by transaction date · '+fyLabel,...chart([{label:'Expenses',c:'#17a589',data:expM}]),
-        sideTitle:'Top vendors',sideSub:'By total recorded spend',sideRows:rank(vendors,7),
+        sideTitle:'Overall expenses',sideSub:'By total recorded spend',sideRows:rank(vendors,7),
         searchPh:'Search vendor or project',rowCount:rows.length.toLocaleString('en-IN')+' rows',
         tCols:'minmax(220px,1.6fr) minmax(220px,1.8fr) 130px 130px 110px 130px',
         tHead:[['VENDOR','left'],['PROJECT / NOTE','left'],['DATE','left'],['AMOUNT','right'],['TDS','right'],['TOTAL','right']].map(([label,align])=>({label,align})),
@@ -857,10 +852,8 @@ class Component extends DCLogic {
       fields:FM?FM.fields.map(([key,label,type,ph,span,list])=>({label,type,ph,list,span:span===2?'1 / -1':'auto',value:form[key]??'',onChange:setF(key)})):[],
       projectOptions:[...new Set(R.map(r=>r[0]))].slice(0,400),vendorOptions:vendors.map(v=>v[0]).slice(0,400),
       hasErr:!!formErr,formErr,closeModal:()=>this.setState({modal:null}),stop:e=>e.stopPropagation(),saveModal:()=>this.saveModal(),
-      hasFlash:!!flash,flash,divTabs,showDivTabs:divOn,
-      ...(()=>{const base=this.state.vendorUrl;if(!base)return {hasVendorLink:false,vendorHref:'',vendorLabel:'',vendorTitle:''};
-        const toDiv=oneDiv?'/?view=vertical&division='+encodeURIComponent(div):page==='expenses'?'/?view=vendors':'/';
-        return {hasVendorLink:true,vendorHref:base+toDiv,vendorLabel:oneDiv?DN[div]+' in P&L':page==='expenses'?'Vendor payables':'Vendors & P&L',vendorTitle:'Open the Collective P&L / Vendors dashboard in a new tab'};})(),showFormDiv:modal!=='expense',
+      hasFlash:!!flash,flash,divTabs,showDivTabs:divOn,showFormDiv:modal!=='expense',
+      isVendors:page==='vendors',notVendors:page!=='vendors',
       fyLabel,fyLabelUp:fyLabel.toUpperCase(),fyPill:fyLabel+(fys.length>1?'  ▾':''),fyCur:fys.length>1?'pointer':'default',
       fyNext:()=>{if(fys.length>1)this.setState({fy:fys[(fys.indexOf(FY)+1)%fys.length]});},
       isMobile:mobile,isDesk:!mobile,

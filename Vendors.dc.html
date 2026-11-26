@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vendors</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f8f8fb;color:#17162a;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+input::placeholder,textarea::placeholder{color:#a3a1b8}
+</style>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:{{ gap }};width:100%">
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:12px;font-weight:700;letter-spacing:.16em;color:#5b3fd9">VENDOR PAYABLES</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:{{ titleSize }};line-height:1.05;letter-spacing:-.01em">Vendors</div>
+    <div style="font-size:{{ subSize }};color:#5d5b72;text-wrap:pretty">Pending and paid vendor invoices. Add one from the invoice PDF or enter it by hand.</div>
+  </div>
+
+  <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:40px;text-align:center;color:#6f6d85;font-size:15px">Loading vendors…</div>
+  </sc-if>
+
+  <sc-if value="{{ isOffline }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#fff;border:1.5px dashed #cfc8f5;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:18px;font-weight:600">Vendor list is on your live site</div>
+      <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">{{ offlineText }}</div>
+      <div onClick="{{ retry }}" style="align-self:flex-start;margin-top:6px;font-size:14px;font-weight:600;color:#5b3fd9;cursor:pointer">Try again</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:{{ gap }}">
+
+      <!-- 3 boxes -->
+      <div style="display:grid;grid-template-columns:{{ boxCols }};gap:{{ boxGap }}">
+        <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ boxPad }};display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:12px;background:#fff1e4;color:#ee8a2a;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 3"></path></svg></div>
+            <div style="font-size:15px;font-weight:600;color:#3b3953">Pending vendors</div>
+          </div>
+          <div style="font-size:{{ boxVal }};font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ pendingCount }}</div>
+          <div style="border-top:1px solid #ececf2;padding-top:10px;font-size:13px;color:{{ pendingNoteFg }}">{{ pendingNote }}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;padding:{{ boxPad }};display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:12px;background:#fdecea;color:#c0392b;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13h2"></path></svg></div>
+            <div style="font-size:15px;font-weight:600;color:#3b3953">Due amount</div>
+          </div>
+          <div style="font-size:{{ boxVal }};font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ dueFg }};overflow-wrap:anywhere">{{ dueAmount }}</div>
+          <div style="border-top:1px solid #ececf2;padding-top:10px;font-size:13px;color:#6f6d85">{{ dueNote }}</div>
+        </div>
+        <div onClick="{{ openAdd }}" style="border:1.5px dashed #b9a8ff;background:#f6f3ff;border-radius:18px;padding:{{ boxPad }};display:flex;flex-direction:column;gap:10px;min-width:0;cursor:pointer" style-hover="background:#efeaff;border-color:#6d4aff">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:12px;background:#6d4aff;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;line-height:1">+</div>
+            <div style="font-size:15px;font-weight:600;color:#3b3953">Add new vendor</div>
+          </div>
+          <div style="font-size:{{ boxValSm }};font-weight:600;color:#5b3fd9;line-height:1.25">Upload an invoice or enter it manually</div>
+          <div style="border-top:1px solid #ddd3ff;padding-top:10px;font-size:13px;color:#6f6d85">Every field is required</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e3e2ec;border-radius:14px;padding:0 16px;height:48px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f6d85" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="Search vendor, service, project or POC" style="flex:1;border:none;outline:none;font:inherit;font-size:16px;background:transparent;min-width:0">
+      </div>
+
+      <!-- Pending list, then Paid list -->
+      <sc-for list="{{ lists }}" as="l" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:10px;height:10px;border-radius:50%;background:{{ l.dot }}"></span>
+              <span style="font-size:20px;font-weight:600">{{ l.title }}</span>
+              <span style="font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;background:{{ l.pillBg }};color:{{ l.pillFg }}">{{ l.count }}</span>
+            </div>
+            <span style="font-size:14px;color:#6f6d85;font-variant-numeric:tabular-nums">{{ l.total }}</span>
+          </div>
+          <div style="background:#fff;border:1px solid #e9e8f0;border-radius:18px;overflow:hidden">
+            <sc-if value="{{ l.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:26px;text-align:center;font-size:14px;color:#8e8ca3">{{ l.emptyText }}</div>
+            </sc-if>
+            <sc-if value="{{ l.showDesk }}" hint-placeholder-val="{{ true }}">
+              <div style="overflow-x:auto">
+                <div style="display:grid;grid-template-columns:{{ tCols }};min-width:820px">
+                  <sc-for list="{{ tHead }}" as="h" hint-placeholder-count="6">
+                    <div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#6f6d85;padding:13px 14px;background:#fafafc;border-bottom:1px solid #ececf2;text-align:{{ h.align }};white-space:nowrap">{{ h.label }}</div>
+                  </sc-for>
+                  <sc-for list="{{ l.cells }}" as="c" hint-placeholder-count="18">
+                    <div onClick="{{ c.go }}" style="font-size:14px;padding:12px 14px;border-bottom:1px solid #f0eff5;text-align:{{ c.align }};color:{{ c.fg }};font-weight:{{ c.fw }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;background:{{ c.bg }}">{{ c.v }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ l.showMobile }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ l.cards }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-bottom:1px solid #f0eff5;background:{{ r.bg }}">
+                  <div onClick="{{ r.view }}" style="display:flex;gap:12px;cursor:pointer">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                      <span style="font-size:15px;font-weight:600;overflow-wrap:anywhere">{{ r.title }}</span>
+                      <span style="font-size:13px;color:#4b4962;overflow-wrap:anywhere">{{ r.sub }}</span>
+                      <span style="font-size:12px;color:{{ r.metaFg }}">{{ r.meta }}</span>
+                    </div>
+                    <span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0">{{ r.value }}</span>
+                  </div>
+                  <div style="display:flex;gap:8px;justify-content:flex-end">
+                    <div onClick="{{ r.left }}" style="font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:{{ r.leftBg }};color:{{ r.leftFg }};cursor:pointer">{{ r.leftLabel }}</div>
+                    <div onClick="{{ r.right }}" style="font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:{{ r.rightBg }};color:{{ r.rightFg }};cursor:pointer">{{ r.rightLabel }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- View info -->
+  <sc-if value="{{ viewOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeView }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;justify-content:flex-end;z-index:70">
+      <div onClick="{{ stop }}" style="width:100%;max-width:520px;height:100%;overflow-y:auto;background:#fff;padding:{{ sheetPad }};display:flex;flex-direction:column;gap:18px;box-shadow:-20px 0 60px rgba(23,22,42,.25)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+            <div style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#5b3fd9">VIEW INFO · S.NO {{ vSno }}</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1.1;overflow-wrap:anywhere">{{ vTitle }}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:{{ vPillBg }};color:{{ vPillFg }}">{{ vPill }}</span>
+              <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:{{ vDueBg }};color:{{ vDueFg }}">{{ vDue }}</span>
+            </div>
+          </div>
+          <div onClick="{{ closeView }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+        </div>
+        <div style="display:flex;flex-direction:column;border:1px solid #ececf2;border-radius:14px;overflow:hidden">
+          <sc-for list="{{ vRows }}" as="r" hint-placeholder-count="14">
+            <div style="display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:14px;padding:11px 14px;border-bottom:1px solid #f0eff5">
+              <span style="font-size:13px;color:#6f6d85">{{ r.label }}</span>
+              <span style="font-size:14px;font-weight:{{ r.fw }};color:{{ r.fg }};white-space:pre-line;overflow-wrap:anywhere;font-variant-numeric:tabular-nums">{{ r.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ vHasInvoice }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ openInvoice }}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #d9d2ff;background:#f6f3ff;border-radius:12px;cursor:pointer;font-size:14px;color:#3b3953" style-hover="background:#efeaff">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6d4aff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ vInvoiceLabel }}</span>
+            <span style="font-size:13px;font-weight:600;color:#5b3fd9">Open ↗</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ vNoInvoice }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:#8e8ca3;padding:4px 2px">Entered manually — no invoice PDF attached.</div>
+        </sc-if>
+        <sc-if value="{{ hasViewErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#c0392b">{{ viewErr }}</div></sc-if>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #ececf2;padding-top:16px;align-items:center">
+          <sc-if value="{{ confirmingDelete }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:13px;color:#c0392b">Delete this vendor and its invoice?</span>
+            <div onClick="{{ doDelete }}" style="font-size:14px;font-weight:600;padding:10px 16px;border-radius:999px;background:#c0392b;color:#fff;cursor:pointer">{{ deleteLabel }}</div>
+            <div onClick="{{ cancelDelete }}" style="font-size:14px;padding:10px 16px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer">Keep</div>
+          </sc-if>
+          <sc-if value="{{ notConfirmingDelete }}" hint-placeholder-val="{{ true }}">
+            <span onClick="{{ askDelete }}" style="font-size:13px;color:#c0392b;cursor:pointer">Delete</span>
+            <div style="flex:1"></div>
+            <div onClick="{{ openEdit }}" style="font-size:14px;font-weight:600;padding:11px 20px;border-radius:999px;background:#6d4aff;color:#fff;cursor:pointer" style-hover="background:#5b3fd9">Edit</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Add / edit -->
+  <sc-if value="{{ formOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeForm }}" style="position:fixed;inset:0;background:rgba(23,22,42,.45);display:flex;align-items:{{ ovAlign }};justify-content:center;padding:{{ ovPad }};z-index:80">
+      <div onClick="{{ stop }}" style="width:100%;max-width:{{ modalW }};max-height:{{ sheetMaxH }};overflow-y:auto;background:#fff;border-radius:{{ sheetR }};padding:{{ sheetPad }};display:flex;flex-direction:column;gap:18px;box-shadow:0 30px 80px rgba(23,22,42,.3)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-family:'DM Serif Display',serif;font-size:30px;line-height:1.1">{{ formTitle }}</div>
+            <div style="font-size:14px;color:#6f6d85">{{ formSub }}</div>
+          </div>
+          <div onClick="{{ closeForm }}" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6f6d85;font-size:20px;flex-shrink:0" style-hover="background:#f2f1f7">×</div>
+        </div>
+
+        <!-- step 1: choose how -->
+        <sc-if value="{{ isChoose }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:{{ chooseCols }};gap:14px">
+            <div onClick="{{ chooseUpload }}" style="border:1.5px solid #d9d2ff;background:#f6f3ff;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px;cursor:pointer" style-hover="border-color:#6d4aff">
+              <div style="width:44px;height:44px;border-radius:12px;background:#6d4aff;color:#fff;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg></div>
+              <div style="font-size:17px;font-weight:600">Upload invoice</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">We read the PDF, fill what it contains and show it beside the form so you can check before saving.</div>
+            </div>
+            <div onClick="{{ chooseManual }}" style="border:1.5px solid #e3e2ec;background:#fff;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px;cursor:pointer" style-hover="border-color:#6d4aff">
+              <div style="width:44px;height:44px;border-radius:12px;background:#f2f1f7;color:#3b3953;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
+              <div style="font-size:17px;font-weight:600">Enter manually</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Type in every field yourself — no invoice PDF needed.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- step 2: form (with invoice preview when uploading) -->
+        <sc-if value="{{ isFormStep }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:{{ formGrid }};gap:20px;align-items:start">
+
+            <sc-if value="{{ showPreviewCol }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px;min-width:0;position:{{ previewPos }};top:0">
+                <label onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px dashed {{ zoneBd }};border-radius:14px;background:{{ zoneBg }};cursor:pointer">
+                  <input type="file" accept="application/pdf,.pdf" onChange="{{ onFile }}" style="display:none">
+                  <div style="width:36px;height:36px;border-radius:10px;background:#efeaff;color:#6d4aff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg></div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ zoneTitle }}</span>
+                    <span style="font-size:12px;color:#6f6d85;overflow-wrap:anywhere">{{ zoneSub }}</span>
+                  </div>
+                </label>
+                <div style="border:1px solid #e3e2ec;border-radius:14px;background:#f4f3f8;height:{{ previewH }};overflow:auto;display:flex;flex-direction:column;gap:10px;padding:10px">
+                  <sc-if value="{{ previewEmpty }}" hint-placeholder-val="{{ true }}">
+                    <div style="margin:auto;text-align:center;font-size:13px;color:#8e8ca3;padding:20px;text-wrap:pretty">{{ previewMsg }}</div>
+                  </sc-if>
+                  <sc-for list="{{ previewPages }}" as="pg" hint-placeholder-count="0">
+                    <img src="{{ pg.src }}" alt="{{ pg.alt }}" style="width:100%;height:auto;display:block;background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(23,22,42,.12)">
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+              <sc-if value="{{ hasFoundNote }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;color:#0f6e58;background:#e3f5ef;border-radius:10px;padding:10px 12px;text-wrap:pretty">{{ foundNote }}</div>
+              </sc-if>
+              <sc-if value="{{ hasMissingNote }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border:1px solid #f3d9a8;border-radius:10px;padding:10px 12px;text-wrap:pretty">⚠ {{ missingNote }}</div>
+              </sc-if>
+              <div style="display:grid;grid-template-columns:{{ formCols }};gap:12px">
+                <sc-for list="{{ fields }}" as="fl" hint-placeholder-count="12">
+                  <label style="display:flex;flex-direction:column;gap:6px;grid-column:{{ fl.span }};min-width:0">
+                    <span style="font-size:13px;font-weight:600;color:#3b3953;display:flex;gap:6px;align-items:center;flex-wrap:wrap">{{ fl.label }} <span style="color:#c0392b">*</span><span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:{{ fl.tagBg }};color:{{ fl.tagFg }}">{{ fl.tag }}</span></span>
+                    <sc-if value="{{ fl.isInput }}" hint-placeholder-val="{{ true }}">
+                      <input type="{{ fl.type }}" value="{{ fl.value }}" onChange="{{ fl.onChange }}" placeholder="{{ fl.ph }}" inputmode="{{ fl.mode }}" style="height:44px;border:1px solid {{ fl.bd }};background:{{ fl.bg }};border-radius:12px;padding:0 12px;font:inherit;font-size:16px;color:#17162a;outline:none;width:100%;min-width:0;-webkit-appearance:none" style-focus="border-color:#7c5cff">
+                    </sc-if>
+                    <sc-if value="{{ fl.isArea }}" hint-placeholder-val="{{ false }}">
+                      <textarea value="{{ fl.value }}" onChange="{{ fl.onChange }}" placeholder="{{ fl.ph }}" rows="3" style="border:1px solid {{ fl.bd }};background:{{ fl.bg }};border-radius:12px;padding:10px 12px;font:inherit;font-size:15px;color:#17162a;outline:none;width:100%;min-width:0;resize:vertical" style-focus="border-color:#7c5cff"></textarea>
+                    </sc-if>
+                    <sc-if value="{{ fl.isSelect }}" hint-placeholder-val="{{ false }}">
+                      <select value="{{ fl.value }}" onChange="{{ fl.onChange }}" style="height:44px;border:1px solid {{ fl.bd }};background:{{ fl.bg }};border-radius:12px;padding:0 10px;font:inherit;font-size:16px;color:#17162a;outline:none;width:100%">
+                        <sc-for list="{{ fl.options }}" as="o" hint-placeholder-count="4"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{ fl.hasErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#c0392b">{{ fl.err }}</span></sc-if>
+                  </label>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <span style="font-size:13px;font-weight:600;color:#3b3953">Payment status <span style="color:#c0392b">*</span></span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ statusChips }}" as="s" hint-placeholder-count="4">
+                    <div onClick="{{ s.go }}" style="padding:10px 16px;border-radius:999px;font-size:14px;cursor:pointer;white-space:nowrap;border:1px solid {{ s.bd }};background:{{ s.bg }};color:{{ s.fg }}">{{ s.label }}</div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}">
+                  <label style="display:flex;flex-direction:column;gap:6px;max-width:320px">
+                    <span style="font-size:13px;font-weight:600;color:#3b3953">Amount paid (₹) <span style="color:#c0392b">*</span></span>
+                    <input type="number" value="{{ paidValue }}" onChange="{{ onPaid }}" placeholder="0" inputmode="decimal" style="height:44px;border:1px solid {{ paidBd }};border-radius:12px;padding:0 12px;font:inherit;font-size:16px;outline:none;width:100%" style-focus="border-color:#7c5cff">
+                  </label>
+                </sc-if>
+                <span style="font-size:13px;color:#6f6d85">{{ paidSummary }}</span>
+                <sc-if value="{{ hasStatusErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#c0392b">{{ statusErr }}</span></sc-if>
+              </div>
+            </div>
+          </div>
+
+          <sc-if value="{{ hasFormErr }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#c0392b;background:#fdecea;border-radius:10px;padding:10px 12px;text-wrap:pretty">{{ formErr }}</div>
+          </sc-if>
+          <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #ececf2;padding-top:16px;flex-wrap:wrap;align-items:center">
+            <sc-if value="{{ canGoBack }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ goBack }}" style="font-size:13px;color:#5b3fd9;cursor:pointer;margin-right:auto">← Change how to add</span>
+            </sc-if>
+            <div onClick="{{ closeForm }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
+            <div onClick="{{ save }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:{{ saveBg }};color:#fff;cursor:{{ saveCur }}">{{ saveLabel }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasFlash }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:{{ flashB }};max-width:calc(100vw - 32px);left:50%;transform:translateX(-50%);background:#17162a;color:#fff;font-size:14px;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px rgba(23,22,42,.25);z-index:90;display:flex;align-items:center;gap:10px">
+      <span style="width:8px;height:8px;border-radius:50%;background:#17a589"></span>{{ flash }}
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+const API='/api/vendors';
+const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const MAX_PDF=4.5*1024*1024;
+const STATUS={unpaid:['Unpaid','#fdecea','#b03a2e'],half:['Half paid','#fff1e4','#b5651d'],custom:['Custom amount','#e8f0ff','#2f5fb3'],paid:['Paid','#e3f5ef','#128a72']};
+// [key, label, input type, placeholder, span, inputmode]
+const FIELDS=[
+  ['project','Project','text','e.g. Zomato – Diwali TVC',2,'text'],
+  ['vendorName','Name of the vendor','text','e.g. Casting Wire LLP',1,'text'],
+  ['service','Service of the vendor','text','e.g. Casting, DOP, Edit',1,'text'],
+  ['invoiceDate','Invoice date','date','',1,''],
+  ['deadline','Due date','date','',1,''],
+  ['shootDate','Shoot date','date','',1,''],
+  ['amount','Amount (₹)','number','0',1,'decimal'],
+  ['quarter','Quarter','select','',1,''],
+  ['poc','POC','text','Who handled this vendor',1,'text'],
+  ['contactNumber','Contact number of vendor','tel','+91 98765 43210',1,'tel'],
+  ['approvedBy','Approved by / Project manager','text','Name',1,'text'],
+  ['bankDetails','Bank details','area','A/c name, A/c no., IFSC, bank',2,'']
+];
+const LABEL=Object.fromEntries(FIELDS.map(f=>[f[0],f[1]]));
+LABEL.paymentStatus='Payment status';LABEL.amountPaid='Amount paid';LABEL.invoice='Invoice PDF';
+
+const money=n=>'₹'+Math.round(Number(n)||0).toLocaleString('en-IN');
+const fmtD=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00Z');return isNaN(x)?'—':x.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});};
+const todayISO=()=>{const t=new Date();return new Date(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())).toISOString().slice(0,10);};
+const dayDiff=(a,b)=>Math.round((Date.parse(a+'T00:00:00Z')-Date.parse(b+'T00:00:00Z'))/864e5);
+const quarterOf=iso=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||''))return '';const y=+iso.slice(0,4),m=+iso.slice(5,7);const fy=m>=4?y:y-1;const q=m<=3?4:m<=6?1:m<=9?2:3;return 'Q'+q+' FY'+String(fy).slice(2)+'-'+String(fy+1).slice(2);};
+const quarterOptions=extra=>{const y=new Date().getFullYear();const out=[];for(let fy=y-2;fy<=y+1;fy++)for(let q=1;q<=4;q++)out.push('Q'+q+' FY'+String(fy).slice(2)+'-'+String(fy+1).slice(2));if(extra&&!out.includes(extra))out.unshift(extra);return out;};
+const paidOf=v=>v.paymentStatus==='paid'?Number(v.amount)||0:v.paymentStatus==='half'?Math.round((Number(v.amount)||0)*50)/100:v.paymentStatus==='custom'?Number(v.amountPaid)||0:0;
+
+// ---------- validation: same rules as the server ----------
+function validate(f,{needInvoice}){
+  const e={};const t=k=>String(f[k]??'').trim();
+  for(const k of ['project','vendorName','service','poc','approvedBy'])if(!t(k))e[k]=LABEL[k]+' is required.';else if(t(k).length>200)e[k]='Keep it under 200 characters.';
+  if(t('bankDetails').length<6)e.bankDetails='Bank details are required (account no., IFSC, bank name).';
+  const ph=t('contactNumber'),dg=ph.replace(/\D/g,'');
+  if(!/^[+\d][\d\s\-()]{6,19}$/.test(ph)||dg.length<7||dg.length>15)e.contactNumber='Enter a valid contact number (7–15 digits).';
+  for(const k of ['invoiceDate','shootDate','deadline'])if(!/^\d{4}-\d{2}-\d{2}$/.test(t(k)))e[k]=LABEL[k]+' is required.';
+  if(!e.invoiceDate&&!e.deadline&&t('deadline')<t('invoiceDate'))e.deadline="Due date can't be before the invoice date.";
+  const amt=Number(f.amount);if(!(amt>0)||amt>1e10)e.amount='Amount must be more than 0.';
+  if(!/^Q[1-4] FY\d{2}-\d{2}$/.test(t('quarter')))e.quarter='Quarter is required.';
+  if(!STATUS[f.paymentStatus])e.paymentStatus='Choose a payment status.';
+  else if(f.paymentStatus==='custom'){const p=Number(f.amountPaid);if(!(p>0)||!(p<amt))e.amountPaid='Custom amount must be more than 0 and less than the invoice amount.';}
+  if(needInvoice)e.invoice='Upload the invoice PDF.';
+  return e;
+}
+
+// ---------- invoice PDF reading and preview (in the browser; nothing is uploaded until you save) ----------
+let pdfLibPromise=null;
+function loadPdfJs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(!pdfLibPromise)pdfLibPromise=new Promise((res,rej)=>{const s=document.createElement('script');s.src=PDFJS+'pdf.min.js';s.onload=()=>{if(!window.pdfjsLib)return rej(new Error('PDF reader failed to start.'));window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';res(window.pdfjsLib);};s.onerror=()=>{pdfLibPromise=null;rej(new Error('Could not load the PDF reader — check your internet connection.'));};document.head.appendChild(s);});
+  return pdfLibPromise;
+}
+async function readPdf(bytes){
+  const lib=await loadPdfJs();
+  const doc=await lib.getDocument({data:bytes}).promise;
+  const lines=[],pages=[];
+  const n=Math.min(doc.numPages,4);
+  for(let p=1;p<=n;p++){
+    const page=await doc.getPage(p);
+    const tc=await page.getTextContent();
+    const rows=[];
+    for(const it of tc.items){if(!it.str||!it.str.trim())continue;const y=it.transform[5],x=it.transform[4];let row=rows.find(r=>Math.abs(r.y-y)<3);if(!row){row={y,items:[]};rows.push(row);}row.items.push({x,s:it.str});}
+    rows.sort((a,b)=>b.y-a.y).forEach(r=>lines.push(r.items.sort((a,b)=>a.x-b.x).map(i=>i.s).join(' ').replace(/\s+/g,' ').trim()));
+    // render a picture of the page for the side-by-side check
+    const base=page.getViewport({scale:1});const scale=Math.min(2,1100/base.width);const vp=page.getViewport({scale});
+    const canvas=document.createElement('canvas');canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    pages.push(canvas.toDataURL('image/jpeg',0.85));
+  }
+  return {text:lines.filter(Boolean).join('\n'),pages,total:doc.numPages};
+}
+const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+const iso=(y,m,d)=>{const t=new Date(Date.UTC(y,m,d));return isNaN(t)||t.getUTCDate()!==d||y<2000||y>2100?null:t.toISOString().slice(0,10);};
+const DATE_RES=[
+  [/\b(20\d{2})[-\/.](0?[1-9]|1[0-2])[-\/.](0?[1-9]|[12]\d|3[01])\b/g,m=>iso(+m[1],+m[2]-1,+m[3])],
+  [/\b(0?[1-9]|[12]\d|3[01])[-\/.](0?[1-9]|1[0-2])[-\/.](20\d{2})\b/g,m=>iso(+m[3],+m[2]-1,+m[1])],
+  [/\b(0?[1-9]|[12]\d|3[01])[-\/.](0?[1-9]|1[0-2])[-\/.](\d{2})\b/g,m=>iso(2000+ +m[3],+m[2]-1,+m[1])],
+  [/\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-,]+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s\-,]+(20\d{2})\b/gi,m=>iso(+m[3],MON[m[2].slice(0,3).toLowerCase()],+m[1])],
+  [/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s\-]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?,?[\s\-]+(20\d{2})\b/gi,m=>iso(+m[3],MON[m[1].slice(0,3).toLowerCase()],+m[2])]
+];
+// every date in the document, in reading order
+function allDates(text){
+  const hits=[];
+  for(const [re,fn] of DATE_RES){re.lastIndex=0;let m;while((m=re.exec(text))){const d=fn(m);if(d&&!hits.some(h=>m.index<h.end&&m.index+m[0].length>h.start))hits.push({start:m.index,end:m.index+m[0].length,d});}}
+  return hits.sort((a,b)=>a.start-b.start).map(h=>h.d);
+}
+const firstDate=s=>s?allDates(s)[0]||null:null;
+const dateNear=(text,re)=>{const m=text.match(re);return m?firstDate(m[1]):null;};
+const parseAmt=raw=>{const s=String(raw).trim();let n=s;if(s.includes(',')&&s.includes('.'))n=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');else if(s.includes(','))n=s.replace(/,/g,'');const v=Number(n);return isFinite(v)?v:null;};
+const labelled=(text,re)=>{const m=text.match(re);if(!m)return null;const v=m[m.length-1].trim().replace(/\s{2,}.*$/,'');return v.length>1&&v.length<160?v:null;};
+function extractFields(text){
+  const out={};
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  out.vendorName=labelled(text,/^(?:from|bill\s*from|vendor|billed\s*by|supplier|seller|payee|company\s*name)\s*[:\-]\s*(.+)$/im);
+  if(!out.vendorName){const skip=/^(tax\s*invoice|invoice|receipt|bill\s*to|bill|original|copy|due|date|invoice\s*(no|date)|gstin|pan|page|to\b)/i;out.vendorName=lines.slice(0,8).find(l=>!skip.test(l)&&!/^\d+$/.test(l)&&l.length>2&&l.length<60&&!/@|www\.|\d{6}/.test(l))||null;}
+  out.service=labelled(text,/^(?:service|services|description|particulars|work\s*performed|nature\s*of\s*service|item)\s*(?:of\s*service)?\s*[:\-]\s*(.+)$/im);
+  if(!out.service){const i=lines.findIndex(l=>/^(description|particulars|item|services?)\b/i.test(l));if(i>=0&&lines[i+1]&&!/^\d+(\.\d+)?$/.test(lines[i+1]))out.service=lines[i+1].replace(/\s+[\d,]+(\.\d+)?$/,'').slice(0,120)||null;}
+  out.project=labelled(text,/^(?:project|project\s*name|campaign|job\s*name|production|po\s*ref(?:erence)?|reference)\s*[:\-]\s*(.+)$/im);
+  out.poc=labelled(text,/^(?:poc|contact\s*person|kind\s*attn\.?|attn\.?|attention)\s*[:\-]\s*(.+)$/im);
+  out.approvedBy=labelled(text,/^(?:approved\s*by|project\s*manager|producer)\s*[:\-]\s*(.+)$/im);
+  // dates: use labels when the invoice has them…
+  out.invoiceDate=dateNear(text,/(?:invoice|bill|inv\.?)\s*date\s*[:\-]?\s*([^\n]{6,30})/i)||dateNear(text,/^\s*date(?:d)?\s*[:\-]\s*([^\n]{6,30})/im);
+  out.deadline=dateNear(text,/(?:due\s*date|due\s*on|payment\s*due(?:\s*date)?|pay\s*by|payable\s*by|deadline|last\s*date)\s*[:\-]?\s*([^\n]{6,30})/i);
+  out.shootDate=dateNear(text,/(?:shoot(?:ing)?\s*date|date\s*of\s*shoot|shoot\s*on|event\s*date)\s*[:\-]?\s*([^\n]{6,30})/i);
+  // …otherwise go by order: the 1st date on the invoice is the invoice date, the 2nd is the due date
+  const seq=[...new Set(allDates(text))].filter(d=>d!==out.shootDate);
+  if(!out.invoiceDate&&seq.length)out.invoiceDate=seq[0];
+  if(!out.deadline&&out.invoiceDate){const after=seq.slice(seq.indexOf(out.invoiceDate)+1).find(d=>d>=out.invoiceDate);if(after)out.deadline=after;}
+  const am=text.match(/\b(grand\s*total|total\s*amount\s*payable|amount\s*payable|net\s*payable|total\s*payable|invoice\s*total|total\s*amount|amount\s*due|balance\s*due|total)\b\s*(?:\(?\s*(?:inr|rs\.?|₹)\s*\)?)?\s*[:\-]?\s*[^\d\n]{0,4}([\d][\d.,]*)/i);
+  let amt=am?parseAmt(am[2]):null;
+  if(!(amt>0)){let mx=null;for(const m of text.matchAll(/(?:rs\.?|inr|₹|■|\uFFFD)\s*([\d][\d.,]*)/gi)){const v=parseAmt(m[1]);if(v>0&&(mx==null||v>mx))mx=v;}amt=mx;}
+  out.amount=amt>0?String(Math.round(amt*100)/100):null;
+  const ph=text.match(/(?:ph(?:one)?|mob(?:ile)?|contact|tel|cell|whatsapp)\s*(?:no\.?|number|#)?\s*[:\-]?\s*(\+?\d[\d\s\-]{8,16}\d)/i)||text.match(/(?:\+91[\s\-]?)?\b[6-9]\d{4}[\s\-]?\d{5}\b/);
+  out.contactNumber=ph?(ph[1]||ph[0]).trim():null;
+  const bank=lines.filter(l=>/bank\s*name|account\s*(no|number|name|holder)|a\/?c\s*(no|number|name)|ifsc|swift|branch|upi\s*id|beneficiary/i.test(l));
+  const ifsc=text.match(/\b[A-Z]{4}0[A-Z0-9]{6}\b/);if(ifsc&&!bank.some(l=>l.includes(ifsc[0])))bank.push('IFSC: '+ifsc[0]);
+  out.bankDetails=bank.length?[...new Set(bank)].join('\n'):null;
+  if(out.invoiceDate)out.quarter=quarterOf(out.invoiceDate);
+  for(const k in out)if(out[k]==null||out[k]==='')delete out[k];
+  return out;
+}
+
+const EMPTY=()=>({project:'',vendorName:'',service:'',invoiceDate:'',shootDate:'',deadline:'',amount:'',quarter:'',poc:'',contactNumber:'',approvedBy:'',bankDetails:'',paymentStatus:'unpaid',amountPaid:''});
+
+class Component extends DCLogic {
+  state={status:'loading',vendors:[],offlineText:'',q:'',
+    viewId:null,viewErr:'',confirmDel:false,rowDel:null,deleting:false,
+    formOpen:false,mode:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,drag:false,extract:null,preview:null,saving:false,flash:'',
+    mobile:typeof window!=='undefined'&&window.innerWidth<820};
+  componentDidMount(){this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile)this.setState({mobile:m});};window.addEventListener('resize',this.onResize);this.load();}
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);clearTimeout(this.ft);}
+  toast(msg){clearTimeout(this.ft);this.setState({flash:msg});this.ft=setTimeout(()=>this.setState({flash:''}),3500);}
+  async api(path,opts={}){
+    let r;
+    try{r=await fetch(API+path,{...opts,cache:'no-store'});}
+    catch(e){return {offline:true,error:'Could not reach the server — check your connection.'};}
+    const ct=r.headers.get('content-type')||'';
+    if(!/json|pdf/.test(ct))return {offline:true,status:r.status,error:'The vendor server is not available here.'};
+    if(/pdf/.test(ct))return {ok:r.ok,blob:await r.blob()};
+    let body={};try{body=await r.json();}catch(e){}
+    return {ok:r.ok,status:r.status,body,error:body.error};
+  }
+  async load(){
+    this.setState({status:this.state.vendors.length?this.state.status:'loading'});
+    const res=await this.api('');
+    if(res.offline)return this.setState({status:'offline',offlineText:res.status===404||res.status===undefined?'Open your deployed Netlify dashboard to add and view vendors — this preview has no server.':res.error});
+    if(!res.ok)return this.setState({status:'offline',offlineText:res.error||'Could not load vendors.'});
+    this.setState({status:'ready',vendors:res.body.vendors||[]});
+  }
+  openAdd(){this.setState({formOpen:true,mode:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,extract:null,preview:null});}
+  async openEdit(){
+    const v=this.state.vendors.find(x=>x.id===this.state.viewId);if(!v)return;
+    const f=EMPTY();for(const k in f)if(v[k]!=null)f[k]=String(v[k]);
+    this.setState({formOpen:true,mode:v.invoice?'upload':'manual',editId:v.id,form:f,errors:{},formErr:'',file:null,extract:null,preview:v.invoice?{busy:true}:null,viewId:null});
+    if(v.invoice){ // show the saved invoice beside the form
+      const res=await this.api('/'+v.id+'/invoice');
+      if(!res.blob)return this.setState({preview:{busy:false,error:res.error||'Could not load the saved invoice.'}});
+      try{const {pages,total}=await readPdf(new Uint8Array(await res.blob.arrayBuffer()));if(this.state.editId===v.id)this.setState({preview:{busy:false,pages,total}});}
+      catch(e){this.setState({preview:{busy:false,error:e.message||'Could not show the invoice.'}});}
+    }
+  }
+  setField(k,val){this.setState(s=>{const form={...s.form,[k]:val};if(k==='invoiceDate'&&val)form.quarter=quarterOf(val);const errors={...s.errors};delete errors[k];if(k==='invoiceDate')delete errors.quarter;return {form,errors,formErr:''};});}
+  async pickFile(file){
+    if(!file)return;
+    if(!/\.pdf$/i.test(file.name)&&file.type!=='application/pdf')return this.setState({formErr:'Choose the invoice as a PDF file.'});
+    if(file.size>MAX_PDF)return this.setState({formErr:'Invoice PDF must be under 4.5 MB.'});
+    const errors={...this.state.errors};delete errors.invoice;
+    this.setState({file,formErr:'',errors,extract:{busy:true},preview:{busy:true}});
+    try{
+      const {text,pages,total}=await readPdf(new Uint8Array(await file.arrayBuffer()));
+      if(this.state.file!==file)return;
+      if(text.replace(/\s/g,'').length<20)return this.setState({extract:{busy:false,found:[],scanned:true},preview:{busy:false,pages,total}});
+      const got=extractFields(text);
+      this.setState(s=>{const form={...s.form};const found=[];for(const k in got){if(s.editId==null||!String(form[k]||'').trim()){form[k]=got[k];found.push(k);}}return {form,extract:{busy:false,found},preview:{busy:false,pages,total}};});
+    }catch(e){this.setState({extract:{busy:false,found:[],failed:e.message||'Could not read this PDF.'},preview:{busy:false,error:e.message||'Could not show this PDF.'}});}
+  }
+  async save(){
+    const {form,file,editId,saving,vendors,mode}=this.state;if(saving)return;
+    const existing=editId?vendors.find(v=>v.id===editId):null;
+    const errors=validate(form,{needInvoice:mode==='upload'&&!file&&!(existing&&existing.invoice)});
+    if(Object.keys(errors).length)return this.setState({errors,formErr:'Fill all required fields: '+Object.keys(errors).map(k=>LABEL[k]).join(', ')+'.'});
+    const data={...form,amount:Number(form.amount),amountPaid:form.paymentStatus==='custom'?Number(form.amountPaid):undefined};
+    for(const k of ['project','vendorName','service','poc','approvedBy','contactNumber','bankDetails'])data[k]=String(data[k]).trim();
+    const fd=new FormData();fd.append('data',JSON.stringify(data));if(file)fd.append('invoice',file,file.name);
+    this.setState({saving:true,formErr:''});
+    const res=await this.api(editId?'/'+editId:'',{method:editId?'PUT':'POST',body:fd});
+    if(res.offline||!res.ok)return this.setState({saving:false,errors:(res.body&&res.body.fields)||{},formErr:res.error||'Could not save — please try again.'});
+    const v=res.body.vendor;
+    this.setState(s=>({saving:false,formOpen:false,preview:null,vendors:editId?s.vendors.map(x=>x.id===v.id?v:x):[...s.vendors,v],viewId:v.id}));
+    this.toast(editId?'Vendor updated':'Vendor added · '+v.vendorName);
+  }
+  async remove(id){
+    if(!id||this.state.deleting)return;
+    this.setState({deleting:true,viewErr:''});
+    const res=await this.api('/'+id,{method:'DELETE'});
+    if(!res.ok){this.setState({deleting:false,rowDel:null,viewErr:res.error||'Could not delete.'});return this.toast(res.error||'Could not delete.');}
+    this.setState(s=>({deleting:false,confirmDel:false,rowDel:null,viewId:s.viewId===id?null:s.viewId,vendors:s.vendors.filter(v=>v.id!==id)}));this.toast('Vendor deleted');
+  }
+  async openInvoice(){
+    const id=this.state.viewId;const w=window.open('','_blank');
+    const res=await this.api('/'+id+'/invoice');
+    if(!res.blob){if(w)w.close();return this.setState({viewErr:res.error||'Could not open the invoice.'});}
+    const url=URL.createObjectURL(res.blob);if(w)w.location.href=url;else location.assign(url);setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  renderVals(){
+    const s=this.state,m=s.mobile,today=todayISO();
+    const rows=s.vendors.map((v,i)=>{const paid=paidOf(v),bal=Math.max(0,(Number(v.amount)||0)-paid);const late=bal>0&&v.deadline<today?dayDiff(today,v.deadline):0;const left=bal>0&&!late?dayDiff(v.deadline,today):null;return {...v,sno:i+1,paid,bal,late,left};});
+    const ql=s.q.trim().toLowerCase();
+    const match=r=>!ql||[r.vendorName,r.service,r.project,r.poc,r.approvedBy].join(' ').toLowerCase().includes(ql);
+    const byDue=(a,b)=>(b.deadline||'').localeCompare(a.deadline||'')||b.createdAt-a.createdAt; // latest due date on top
+    const pending=rows.filter(r=>r.bal>0),paidRows=rows.filter(r=>r.bal===0);
+    const overdue=pending.filter(r=>r.late>0);
+    const sum=a=>a.reduce((x,y)=>x+y,0);
+    const dueText=r=>r.late>0?r.late+(r.late===1?' day overdue':' days overdue'):r.bal===0?'Settled':r.left===0?'Due today':'Due in '+r.left+(r.left===1?' day':' days');
+    const dueFg=r=>r.late>0?'#c0392b':r.bal===0?'#128a72':r.left!=null&&r.left<=7?'#b5651d':'#4b4962';
+    const view=r=>()=>this.setState({viewId:r.id,viewErr:'',confirmDel:false,rowDel:null});
+    const askRow=r=>()=>this.setState({rowDel:r.id});
+    const cancelRow=()=>this.setState({rowDel:null});
+    const delRow=r=>()=>this.remove(r.id);
+    const buildList=(key,title,list,dot,pillBg,pillFg,emptyText,totalText)=>{
+      const shown=list.filter(match).sort(byDue);
+      const cells=shown.flatMap(r=>{const conf=s.rowDel===r.id;const c=(v,go,o={})=>({v,go,align:o.align||'left',fg:o.fg||'#17162a',fw:o.fw||'400',bg:conf?'#fff5f4':'transparent'});
+        return [c(r.vendorName,view(r),{fw:'500'}),c(r.service,view(r),{fg:'#4b4962'}),c(fmtD(r.deadline)+(r.late?' · overdue':''),view(r),{fg:r.late?'#c0392b':'#4b4962',fw:r.late?'600':'400'}),c(money(key==='pending'?r.bal:r.amount),view(r),{align:'right',fw:'600'}),
+          conf?c('Cancel',cancelRow,{align:'right',fg:'#4b4962',fw:'600'}):c('View info →',view(r),{align:'right',fg:'#5b3fd9',fw:'600'}),
+          conf?c(s.deleting?'Deleting…':'Confirm delete',delRow(r),{align:'right',fg:'#c0392b',fw:'700'}):c('Delete',askRow(r),{align:'right',fg:'#c0392b',fw:'500'})];});
+      const cards=shown.map(r=>{const conf=s.rowDel===r.id;return {view:view(r),title:r.vendorName,sub:r.service,meta:'Due '+fmtD(r.deadline)+(r.late?' · overdue':''),metaFg:r.late?'#c0392b':'#6f6d85',value:money(key==='pending'?r.bal:r.amount),bg:conf?'#fff5f4':'#fff',
+        left:conf?cancelRow:view(r),leftLabel:conf?'Cancel':'View info',leftBg:conf?'#f2f1f7':'#f1ecff',leftFg:conf?'#4b4962':'#5b3fd9',
+        right:conf?delRow(r):askRow(r),rightLabel:conf?(s.deleting?'Deleting…':'Confirm delete'):'Delete',rightBg:conf?'#c0392b':'#fdecea',rightFg:conf?'#fff':'#c0392b'};});
+      return {title,count:String(shown.length),dot,pillBg,pillFg,total:totalText,cells,cards,empty:!shown.length,emptyText:list.length&&!shown.length?'No matches for this search.':emptyText,showDesk:!m&&!!shown.length,showMobile:m&&!!shown.length};
+    };
+    const V=s.viewId?rows.find(r=>r.id===s.viewId):null;
+    const f=s.form,ex=s.extract,found=new Set((ex&&ex.found)||[]),editing=!!s.editId;
+    const missing=ex&&!ex.busy?FIELDS.map(x=>x[0]).filter(k=>!String(f[k]||'').trim()):[];
+    const amt=Number(f.amount)||0,paidNow=paidOf(f);
+    const pv=s.preview;
+    const showPreview=s.mode==='upload';
+    return {
+      gap:m?'18px':'22px',titleSize:m?'32px':'46px',subSize:m?'14px':'16px',
+      boxCols:m?'minmax(0,1fr)':'repeat(3,minmax(0,1fr))',boxGap:m?'12px':'18px',boxPad:m?'16px':'22px',boxVal:m?'26px':'34px',boxValSm:m?'16px':'19px',
+      tCols:'minmax(190px,1.5fr) minmax(170px,1.3fr) 200px 130px 120px 130px',
+      tHead:[['VENDOR NAME','left'],['SERVICE','left'],['DUE DATE','left'],['AMOUNT','right'],['','right'],['','right']].map(([label,align])=>({label,align})),
+      ovAlign:m?'flex-end':'center',ovPad:m?'0':'24px',sheetR:m?'22px 22px 0 0':'20px',sheetPad:m?'22px 18px calc(22px + env(safe-area-inset-bottom))':'28px',sheetMaxH:m?'94vh':'calc(100vh - 48px)',flashB:m?'calc(96px + env(safe-area-inset-bottom))':'28px',
+      isLoading:s.status==='loading',isOffline:s.status==='offline',isReady:s.status==='ready',offlineText:s.offlineText,retry:()=>this.load(),
+      pendingCount:String(pending.length),pendingNote:overdue.length?overdue.length+(overdue.length===1?' vendor is':' vendors are')+' past the due date':'None past the due date',pendingNoteFg:overdue.length?'#c0392b':'#6f6d85',
+      dueAmount:money(sum(pending.map(r=>r.bal))),dueFg:overdue.length?'#c0392b':'#17162a',dueNote:overdue.length?money(sum(overdue.map(r=>r.bal)))+' of it overdue':'Balance left to pay',
+      openAdd:()=>this.openAdd(),
+      q:s.q,onSearch:e=>this.setState({q:e.target.value}),
+      lists:[
+        buildList('pending','Pending',pending,'#ee8a2a','#fff1e4','#b5651d','No pending vendors — everything is paid.',money(sum(pending.map(r=>r.bal)))+' due'),
+        buildList('paid','Paid',paidRows,'#17a589','#e3f5ef','#128a72','No paid vendors yet.',money(sum(paidRows.map(r=>r.amount)))+' paid')],
+      viewOpen:!!V,closeView:()=>this.setState({viewId:null,confirmDel:false}),stop:e=>e.stopPropagation(),
+      ...(V?(()=>{const st=STATUS[V.paymentStatus]||STATUS.unpaid;return {vSno:String(V.sno),vTitle:V.vendorName,vPill:st[0],vPillBg:st[1],vPillFg:st[2],vDue:dueText(V),vDueBg:V.late?'#fdecea':V.bal===0?'#e3f5ef':'#f2f1f7',vDueFg:dueFg(V),
+        vRows:[['S.No',String(V.sno)],['Project',V.project],['Name of the vendor',V.vendorName],['Service',V.service],['Invoice date',fmtD(V.invoiceDate)],['Due date',fmtD(V.deadline)],['Shoot date',fmtD(V.shootDate)],['Overdue',dueText(V),dueFg(V)],['Amount',money(V.amount),'#17162a','700'],['Paid',money(V.paid),'#128a72','600'],['Balance',money(V.bal),V.bal?'#c0392b':'#17162a','600'],['Quarter',V.quarter],['POC',V.poc],['Bank details',V.bankDetails],['Contact number',V.contactNumber],['Payment status',st[0],st[2],'600'],['Approved by / PM',V.approvedBy],['Last updated',new Date(V.updatedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})]].map(([label,value,fg,fw])=>({label,value:value||'—',fg:fg||'#17162a',fw:fw||'400'})),
+        vHasInvoice:!!V.invoice,vNoInvoice:!V.invoice,vInvoiceLabel:V.invoice?V.invoice.name+' · '+Math.max(1,Math.round(V.invoice.size/1024))+' KB':''};})():{vSno:'',vTitle:'',vPill:'',vPillBg:'#fff',vPillFg:'#000',vDue:'',vDueBg:'#fff',vDueFg:'#000',vRows:[],vHasInvoice:false,vNoInvoice:false,vInvoiceLabel:''}),
+      openInvoice:()=>this.openInvoice(),hasViewErr:!!s.viewErr,viewErr:s.viewErr,openEdit:()=>this.openEdit(),
+      confirmingDelete:s.confirmDel,notConfirmingDelete:!s.confirmDel,askDelete:()=>this.setState({confirmDel:true}),cancelDelete:()=>this.setState({confirmDel:false}),doDelete:()=>this.remove(s.viewId),deleteLabel:s.deleting?'Deleting…':'Delete',
+      formOpen:s.formOpen,closeForm:()=>{if(!s.saving)this.setState({formOpen:false,preview:null});},
+      formTitle:editing?'Edit vendor':'Add new vendor',
+      formSub:!s.mode?'How would you like to add this vendor?':s.mode==='upload'?'Check the invoice on the left against the fields — every field is required.':'Every field is required.',
+      isChoose:!s.mode,isFormStep:!!s.mode,chooseCols:m?'minmax(0,1fr)':'repeat(2,minmax(0,1fr))',
+      chooseUpload:()=>this.setState({mode:'upload'}),chooseManual:()=>this.setState({mode:'manual',file:null,extract:null,preview:null}),
+      canGoBack:!editing&&!!s.mode,goBack:()=>this.setState({mode:null,file:null,extract:null,preview:null,errors:{},formErr:''}),
+      modalW:showPreview&&!m?'1240px':'780px',formGrid:showPreview&&!m?'minmax(0,1fr) minmax(0,1.15fr)':'minmax(0,1fr)',
+      showPreviewCol:showPreview,previewPos:m?'static':'sticky',previewH:m?'340px':'calc(100vh - 260px)',
+      previewEmpty:!(pv&&pv.pages&&pv.pages.length),
+      previewMsg:pv&&pv.busy?'Opening the invoice…':pv&&pv.error?pv.error:'Upload the invoice PDF — it will open here so you can check it against the fields.',
+      previewPages:pv&&pv.pages?pv.pages.map((src,i)=>({src,alt:'Invoice page '+(i+1)})):[],
+      onFile:e=>{const fl=e.target.files&&e.target.files[0];e.target.value='';this.pickFile(fl);},
+      onDragOver:e=>{e.preventDefault();if(!s.drag)this.setState({drag:true});},onDragLeave:()=>this.setState({drag:false}),onDrop:e=>{e.preventDefault();this.setState({drag:false});this.pickFile(e.dataTransfer.files&&e.dataTransfer.files[0]);},
+      zoneBd:s.errors.invoice?'#c0392b':s.drag?'#6d4aff':s.file?'#9fdcc9':'#cfc8f5',zoneBg:s.drag?'#f1ecff':s.file?'#f3fbf8':'#faf9ff',
+      zoneTitle:ex&&ex.busy?'Reading the invoice…':s.file?s.file.name:editing?'Saved invoice — drop a new PDF to replace it':'Upload the invoice PDF',
+      zoneSub:s.errors.invoice?s.errors.invoice:s.file?Math.max(1,Math.round(s.file.size/1024))+' KB'+(pv&&pv.total>4?' · showing first 4 of '+pv.total+' pages':'')+' · click to change':'Drag it here or click to browse · under 4.5 MB',
+      hasFoundNote:!!(ex&&!ex.busy&&found.size),foundNote:'Filled from the invoice: '+[...found].map(k=>LABEL[k]).join(', ')+'. Check them against the preview before saving.',
+      hasMissingNote:!!(ex&&!ex.busy&&(missing.length||ex.scanned||ex.failed)),
+      missingNote:ex&&ex.scanned?'This PDF has no readable text (it looks like a scanned image), so nothing could be filled in. Enter every field by hand using the preview.':ex&&ex.failed?ex.failed+' Enter the fields by hand.':'Not found in the invoice — please fill in: '+missing.map(k=>LABEL[k]).join(', ')+'.',
+      formCols:m?'minmax(0,1fr)':'repeat(2,minmax(0,1fr))',
+      fields:FIELDS.map(([key,label,type,ph,span,mode])=>{const err=s.errors[key];const miss=missing.includes(key);const fromPdf=found.has(key);
+        return {label,ph,mode,type:type==='area'||type==='select'?'text':type,isInput:type!=='area'&&type!=='select',isArea:type==='area',isSelect:type==='select',
+          options:type==='select'?[{value:'',label:'Choose quarter'},...quarterOptions(f.quarter).map(q=>({value:q,label:q}))]:[],
+          value:f[key]??'',onChange:e=>this.setField(key,e.target.value),span:span===2?'1 / -1':'auto',
+          bd:err?'#c0392b':miss?'#e8b04b':'#e3e2ec',bg:miss?'#fffaf0':'#fff',hasErr:!!err,err:err||'',
+          tag:fromPdf?'from invoice':miss?'missing':'',tagBg:fromPdf?'#e3f5ef':miss?'#fff1d6':'transparent',tagFg:fromPdf?'#128a72':miss?'#8a5a12':'transparent'};}),
+      statusChips:Object.entries(STATUS).map(([id,[label]])=>{const a=f.paymentStatus===id;return {label,go:()=>this.setField('paymentStatus',id),bg:a?'#6d4aff':'#fff',fg:a?'#fff':'#17162a',bd:a?'#6d4aff':'#e3e2ec'};}),
+      isCustom:f.paymentStatus==='custom',paidValue:f.amountPaid,onPaid:e=>this.setField('amountPaid',e.target.value),paidBd:s.errors.amountPaid?'#c0392b':'#e3e2ec',
+      paidSummary:amt?'Paid '+money(paidNow)+' · balance '+money(Math.max(0,amt-paidNow)):'Enter the amount to see the balance.',
+      hasStatusErr:!!(s.errors.paymentStatus||s.errors.amountPaid),statusErr:s.errors.paymentStatus||s.errors.amountPaid||'',
+      hasFormErr:!!s.formErr,formErr:s.formErr,save:()=>this.save(),saveLabel:s.saving?'Saving…':editing?'Save changes':'Add vendor',saveBg:s.saving?'#a99cf0':'#6d4aff',saveCur:s.saving?'wait':'pointer',
+      hasFlash:!!s.flash,flash:s.flash
+    };
+  }
+}
+</script>
+</body>
+</html>
