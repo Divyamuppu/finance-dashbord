@@ -349,24 +349,40 @@ function loadPdfJs(){
   if(!pdfLibPromise)pdfLibPromise=new Promise((res,rej)=>{const s=document.createElement('script');s.src=PDFJS+'pdf.min.js';s.onload=()=>{if(!window.pdfjsLib)return rej(new Error('PDF reader failed to start.'));window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';res(window.pdfjsLib);};s.onerror=()=>{pdfLibPromise=null;rej(new Error('Could not load the PDF reader — check your internet connection.'));};document.head.appendChild(s);});
   return pdfLibPromise;
 }
+// Turn pdf.js text items into rows of cells. Items far apart on a line are separate table cells;
+// touching items (e.g. a big decorative first letter + the rest of the word) are joined.
+function pdfRows(items){
+  const its=items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str,x:i.transform[4],y:i.transform[5],w:i.width||0,h:Math.abs(i.transform[3])||i.height||8}));
+  const rows=[];
+  for(const it of its.sort((a,b)=>b.y-a.y)){let r=rows.find(r=>Math.abs(r.y-it.y)<=Math.max(2.5,Math.min(r.h,it.h)*0.35));if(!r){r={y:it.y,h:it.h,items:[]};rows.push(r);}r.items.push(it);}
+  return rows.sort((a,b)=>b.y-a.y).map(r=>{
+    const segs=[];let cur=null;
+    for(const it of r.items.sort((a,b)=>a.x-b.x)){
+      const gap=cur?it.x-cur.x2:0;const fs=Math.max(6,Math.min(it.h,20));
+      if(cur&&gap<=fs*0.15){cur.text+=it.s;cur.x2=Math.max(cur.x2,it.x+it.w);}
+      else if(cur&&gap<Math.max(10,fs*1.6)){cur.text+=' '+it.s;cur.x2=Math.max(cur.x2,it.x+it.w);}
+      else{cur={x:it.x,x2:it.x+it.w,text:it.s};segs.push(cur);}
+    }
+    segs.forEach(s=>s.text=s.text.replace(/\s+/g,' ').trim());
+    return {y:r.y,segs:segs.filter(s=>s.text)};
+  }).filter(r=>r.segs.length);
+}
+const rowsToText=rows=>rows.map(r=>r.segs.map(s=>s.text).join(' | ')).join('\n');
 async function readPdf(bytes){
   const lib=await loadPdfJs();
   const doc=await lib.getDocument({data:bytes}).promise;
-  const lines=[],pages=[];
+  const rows=[],pages=[];
   const n=Math.min(doc.numPages,4);
   for(let p=1;p<=n;p++){
     const page=await doc.getPage(p);
-    const tc=await page.getTextContent();
-    const rows=[];
-    for(const it of tc.items){if(!it.str||!it.str.trim())continue;const y=it.transform[5],x=it.transform[4];let row=rows.find(r=>Math.abs(r.y-y)<3);if(!row){row={y,items:[]};rows.push(row);}row.items.push({x,s:it.str});}
-    rows.sort((a,b)=>b.y-a.y).forEach(r=>lines.push(r.items.sort((a,b)=>a.x-b.x).map(i=>i.s).join(' ').replace(/\s+/g,' ').trim()));
+    rows.push(...pdfRows((await page.getTextContent()).items));
     // render a picture of the page for the side-by-side check
     const base=page.getViewport({scale:1});const scale=Math.min(2,1100/base.width);const vp=page.getViewport({scale});
     const canvas=document.createElement('canvas');canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
     await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
     pages.push(canvas.toDataURL('image/jpeg',0.85));
   }
-  return {text:lines.filter(Boolean).join('\n'),pages,total:doc.numPages};
+  return {text:rowsToText(rows),rows,pages,total:doc.numPages};
 }
 const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 const iso=(y,m,d)=>{const t=new Date(Date.UTC(y,m,d));return isNaN(t)||t.getUTCDate()!==d||y<2000||y>2100?null:t.toISOString().slice(0,10);};
@@ -387,33 +403,79 @@ const firstDate=s=>s?allDates(s)[0]||null:null;
 const dateNear=(text,re)=>{const m=text.match(re);return m?firstDate(m[1]):null;};
 const parseAmt=raw=>{const s=String(raw).trim();let n=s;if(s.includes(',')&&s.includes('.'))n=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');else if(s.includes(','))n=s.replace(/,/g,'');const v=Number(n);return isFinite(v)?v:null;};
 const labelled=(text,re)=>{const m=text.match(re);if(!m)return null;const v=m[m.length-1].trim().replace(/\s{2,}.*$/,'');return v.length>1&&v.length<160?v:null;};
-function extractFields(text){
+const cleanVal=v=>String(v||'').replace(/^[\s:;\-–—=.|>]+/,'').replace(/\s*[|]\s*$/,'').trim();
+// a cell that is itself a field label (so it is never taken as another label's value)
+const LABELISH=/^(name|postal\s*address|address|pan|gst(in)?|mobile|phone|e-?mail|bill(ed)?\s*(to|date|no\.?)?|bill|date|no\.?|invoice|nature\s*of\s*service|project\s*name|shoot\s*location|particulars|amount|sr\.?\s*no\.?|grand\s*total|total|account|bank|ifsc|branch|upi|signature|note)\b[\s:.\-–]*$/i;
+// Find a label cell and return its value: the rest of the same cell, else the next cell to the right,
+// else the cell just below it in the same column (labels in table invoices often sit above their value).
+function findLabel(rows,re,{wrap=false,below=3}={}){
+  for(let i=0;i<rows.length;i++){
+    const segs=rows[i].segs;
+    for(let j=0;j<segs.length;j++){
+      const m=segs[j].text.match(re);if(!m||m.index!==0)continue;
+      let v=cleanVal(segs[j].text.slice(m[0].length)).replace(/^\(.*?\)\s*/,'');
+      let at={i,x:segs[j].x};
+      if(!v){
+        for(let k=j+1;k<segs.length&&!v;k++){const t=cleanVal(segs[k].text);if(t&&!t.startsWith('(')&&!LABELISH.test(t)){v=t;at={i,x:segs[k].x};}}
+      }
+      if(!v){
+        for(let r=i+1;r<Math.min(rows.length,i+1+below)&&!v;r++){const c=rows[r].segs.find(s=>Math.abs(s.x-segs[j].x)<30||(s.x<=segs[j].x+5&&s.x2>segs[j].x+10));if(!c)continue;const t=cleanVal(c.text);if(t.startsWith('('))continue;if(LABELISH.test(t))break;if(t){v=t;at={i:r,x:c.x};}}
+      }
+      if(v&&wrap){ // a value that wraps onto the next line in the same column ("…App Digital" / "Ad")
+        const nx=rows[at.i+1];const c=nx&&nx.segs.find(s=>Math.abs(s.x-at.x)<6);
+        if(c&&c.text.length<=40&&!LABELISH.test(c.text)&&!/\d{3,}/.test(c.text)&&nx.segs.length<=2)v+=' '+c.text;
+      }
+      if(v&&v.length>1&&v.length<200)return v;
+    }
+  }
+  return null;
+}
+function extractFields(text,rows){
+  rows=rows||text.split('\n').map(l=>({segs:l.split(/\s+\|\s+/).map((t,i)=>({text:t.trim(),x:i*200,x2:i*200+150}))}));
   const out={};
   const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  out.vendorName=labelled(text,/^(?:from|bill\s*from|vendor|billed\s*by|supplier|seller|payee|company\s*name)\s*[:\-]\s*(.+)$/im);
-  if(!out.vendorName){const skip=/^(tax\s*invoice|invoice|receipt|bill\s*to|bill|original|copy|due|date|invoice\s*(no|date)|gstin|pan|page|to\b)/i;out.vendorName=lines.slice(0,8).find(l=>!skip.test(l)&&!/^\d+$/.test(l)&&l.length>2&&l.length<60&&!/@|www\.|\d{6}/.test(l))||null;}
-  out.service=labelled(text,/^(?:service|services|description|particulars|work\s*performed|nature\s*of\s*service|item)\s*(?:of\s*service)?\s*[:\-]\s*(.+)$/im);
-  if(!out.service){const i=lines.findIndex(l=>/^(description|particulars|item|services?)\b/i.test(l));if(i>=0&&lines[i+1]&&!/^\d+(\.\d+)?$/.test(lines[i+1]))out.service=lines[i+1].replace(/\s+[\d,]+(\.\d+)?$/,'').slice(0,120)||null;}
-  out.project=labelled(text,/^(?:project|project\s*name|campaign|job\s*name|production|po\s*ref(?:erence)?|reference)\s*[:\-]\s*(.+)$/im);
-  out.poc=labelled(text,/^(?:poc|contact\s*person|kind\s*attn\.?|attn\.?|attention)\s*[:\-]\s*(.+)$/im);
-  out.approvedBy=labelled(text,/^(?:approved\s*by|project\s*manager|producer)\s*[:\-]\s*(.+)$/im);
+  const L=re=>findLabel(rows,re);
+  out.vendorName=L(/^(name\s*of\s*(the\s*)?(vendor|supplier|payee|service\s*provider)|vendor(\s*name)?|supplier(\s*name)?|payee(\s*name)?|from|bill(ed)?\s*(from|by)|company\s*name|seller|name)\b(?!\s*of\s*(the\s*)?(bank|account))/i);
+  if(!out.vendorName){const skip=/^(tax\s*invoice|invoice|receipt|bill\s*to|bill|original|copy|due|date|invoice\s*(no|date)|gstin|pan|page|to\b)/i;const first=lines.slice(0,8).map(l=>l.split(' | ')[0]).find(l=>!skip.test(l)&&!/^\d+$/.test(l)&&l.length>2&&l.length<60&&!/@|www\.|\d{6}/.test(l));out.vendorName=first||null;}
+  out.service=findLabel(rows,/^(nature\s*of\s*(service|work)|type\s*of\s*service|service(s)?(\s*(type|description|provided|name))?|description\s*of\s*(service|work)|work\s*(description|performed)|designation|role)\b/i,{wrap:true});
+  // weaker labels next ("Description: …", "Particulars: …"), then the first line item under a Particulars/Description column
+  const okSvc=v=>v&&/[a-z]{3}/i.test(v)&&!/^\d/.test(v)&&!LABELISH.test(v)&&!/\b(total|amount|rs\.?|inr|gst|tax)\b/i.test(v);
+  if(!out.service){const v=findLabel(rows,/^(description|particulars|item(s)?|services?)\b/i);if(okSvc(v))out.service=v.replace(/\s+[\d,]+(\.\d+)?$/,'').slice(0,120);}
+  if(!out.service){const i=rows.findIndex(r=>r.segs.some(s=>/^(particulars|description|item(s)?)\s*$/i.test(s.text)));if(i>=0){const hx=rows[i].segs.find(s=>/^(particulars|description|item(s)?)\s*$/i.test(s.text)).x;for(const r of rows.slice(i+1,i+4)){const c=r.segs.find(s=>s.x>=hx-140&&s.x<hx+120&&okSvc(s.text));if(c){out.service=c.text.replace(/\s+[\d,]+(\.\d+)?$/,'').slice(0,120);break;}}}}
+  out.project=findLabel(rows,/^(project(\s*(name|title))?|campaign(\s*name)?|job(\s*name)?|production(\s*name)?|film(\s*name)?|brand\s*\/?\s*project)\b(?!\s*manager)/i,{wrap:true});
+  out.poc=L(/^(poc|point\s*of\s*contact|contact\s*person|co-?ordinator|kind\s*attn\.?|attn\.?|attention)\b/i);
+  out.approvedBy=L(/^(approved\s*by|project\s*manager|producer|line\s*producer)\b/i);
   // dates: use labels when the invoice has them…
-  out.invoiceDate=dateNear(text,/(?:invoice|bill|inv\.?)\s*date\s*[:\-]?\s*([^\n]{6,30})/i)||dateNear(text,/^\s*date(?:d)?\s*[:\-]\s*([^\n]{6,30})/im);
-  out.deadline=dateNear(text,/(?:due\s*date|due\s*on|payment\s*due(?:\s*date)?|pay\s*by|payable\s*by|deadline|last\s*date)\s*[:\-]?\s*([^\n]{6,30})/i);
-  out.shootDate=dateNear(text,/(?:shoot(?:ing)?\s*date|date\s*of\s*shoot|shoot\s*on|event\s*date)\s*[:\-]?\s*([^\n]{6,30})/i);
+  const dL=re=>{const v=L(re);return v?firstDate(v):null;};
+  out.invoiceDate=dL(/^((invoice|bill|inv\.?)\s*date|date\s*of\s*(invoice|issue)|dated|date)\b/i)||dateNear(text,/(?:invoice|bill|inv\.?)\s*date\s*[:\-]?\s*([^\n]{6,30})/i);
+  out.deadline=dL(/^(due\s*date|due\s*on|payment\s*due(\s*date)?|pay\s*by|payable\s*by|deadline|last\s*date(\s*of\s*payment)?)\b/i)||dateNear(text,/(?:due\s*date|payment\s*due|pay\s*by|payable\s*by)\s*[:\-]?\s*([^\n]{6,30})/i);
+  out.shootDate=dL(/^(shoot(ing)?\s*date(s)?|date(s)?\s*of\s*shoot|shoot\s*(on|day)|event\s*date)\b/i);
   // …otherwise go by order: the 1st date on the invoice is the invoice date, the 2nd is the due date
   const seq=[...new Set(allDates(text))].filter(d=>d!==out.shootDate);
   if(!out.invoiceDate&&seq.length)out.invoiceDate=seq[0];
   if(!out.deadline&&out.invoiceDate){const after=seq.slice(seq.indexOf(out.invoiceDate)+1).find(d=>d>=out.invoiceDate);if(after)out.deadline=after;}
-  const am=text.match(/\b(grand\s*total|total\s*amount\s*payable|amount\s*payable|net\s*payable|total\s*payable|invoice\s*total|total\s*amount|amount\s*due|balance\s*due|total)\b\s*(?:\(?\s*(?:inr|rs\.?|₹)\s*\)?)?\s*[:\-]?\s*[^\d\n]{0,4}([\d][\d.,]*)/i);
+  const am=text.match(/\b(grand\s*total|total\s*amount\s*payable|amount\s*payable|net\s*payable|total\s*payable|invoice\s*total|total\s*amount|amount\s*due|balance\s*due|total)\b\s*(?:\(?\s*(?:inr|rs\.?|₹)\s*\)?)?\s*[:\-]?\s*[^\d\n]{0,6}([\d][\d.,]*)/i);
   let amt=am?parseAmt(am[2]):null;
   if(!(amt>0)){let mx=null;for(const m of text.matchAll(/(?:rs\.?|inr|₹|■|\uFFFD)\s*([\d][\d.,]*)/gi)){const v=parseAmt(m[1]);if(v>0&&(mx==null||v>mx))mx=v;}amt=mx;}
   out.amount=amt>0?String(Math.round(amt*100)/100):null;
-  const ph=text.match(/(?:ph(?:one)?|mob(?:ile)?|contact|tel|cell|whatsapp)\s*(?:no\.?|number|#)?\s*[:\-]?\s*(\+?\d[\d\s\-]{8,16}\d)/i)||text.match(/(?:\+91[\s\-]?)?\b[6-9]\d{4}[\s\-]?\d{5}\b/);
+  const phv=L(/^(mobile|mob|phone|ph|contact|tel|cell|whatsapp)(\s*(no\.?|number|#))?\b/i);
+  const ph=(phv&&phv.match(/\+?\d[\d\s\-]{8,16}\d/))||text.match(/(?:ph(?:one)?|mob(?:ile)?|contact|tel|cell|whatsapp)\s*(?:no\.?|number|#)?\s*[:\-|]?\s*(\+?\d[\d\s\-]{8,16}\d)/i)||text.match(/(?:\+91[\s\-]?)?\b[6-9]\d{4}[\s\-]?\d{5}\b/);
   out.contactNumber=ph?(ph[1]||ph[0]).trim():null;
-  const bank=lines.filter(l=>/bank\s*name|account\s*(no|number|name|holder)|a\/?c\s*(no|number|name)|ifsc|swift|branch|upi\s*id|beneficiary/i.test(l));
-  const ifsc=text.match(/\b[A-Z]{4}0[A-Z0-9]{6}\b/);if(ifsc&&!bank.some(l=>l.includes(ifsc[0])))bank.push('IFSC: '+ifsc[0]);
-  out.bankDetails=bank.length?[...new Set(bank)].join('\n'):null;
+  // bank details: every bank field the invoice has, one per line
+  // a cell may hold several bank fields in one line ("Bank: ICICI  A/c No: …  IFSC: …") – cut each value at the next field's label
+  const cut=v=>v?String(v).split(/\s+(?=(?:a\/?c\b|account\b|acc\.?\s*no|ifsc|branch|upi|swift|bank\s*name|beneficiary)\b)/i)[0].replace(/[\s,;|]+$/,'').trim():v;
+  const acNo=(L(/^(account\s*(no\.?|number|#)|a\/?c\s*(no\.?|number)|acc(ount)?\s*no\.?|bank\s*a\/?c(\s*no\.?)?)\b/i)||'').match(/\d[\d\s\-]{5,}\d/)?.[0]||text.match(/(?:a\/?c|account|acc)\.?\s*(?:no\.?|number|#)?\s*[:\-.]*\s*(\d[\d\s\-]{5,}\d)/i)?.[1];
+  const bank=[
+    ['Account holder',cut(L(/^(account\s*holder('?s)?(\s*name)?|a\/?c\s*holder(\s*name)?|beneficiary(\s*name)?|account\s*name|a\/?c\s*name|name\s*of\s*(the\s*)?account(\s*holder)?)\b/i))],
+    ['Bank',cut(L(/^(bank(\s*name)?|name\s*of\s*(the\s*)?bank)\b(?!\s*(details|account|a\/c))/i))],
+    ['A/c no',acNo&&acNo.trim()],
+    ['IFSC',(L(/^ifsc(\s*code)?\b/i)||text.match(/\b[A-Z]{4}0[A-Z0-9]{6}\b/)?.[0]||'').match(/[A-Z]{4}0[A-Z0-9]{6}/i)?.[0]?.toUpperCase()],
+    ['Branch',cut(L(/^branch(\s*name)?\b/i))],
+    ['UPI',cut(L(/^upi(\s*id)?\b/i))],
+    ['SWIFT',cut(L(/^swift(\s*code)?\b/i))]
+  ].filter(([,v])=>v&&String(v).trim());
+  if(bank.length>=2||(bank.length&&bank[0][0]!=='IFSC'))out.bankDetails=bank.map(([k,v])=>k+': '+String(v).trim()).join('\n');
+  else{const bl=lines.filter(l=>/bank\s*name|account\s*(no|number|name|holder)|a\/?c\s*(no|number|name)|ifsc|swift|branch|upi\s*id|beneficiary/i.test(l)).map(l=>l.replace(/\s*\|\s*/g,' '));if(bl.length)out.bankDetails=[...new Set(bl)].join('\n');else if(bank.length)out.bankDetails=bank.map(([k,v])=>k+': '+v).join('\n');}
   if(out.invoiceDate)out.quarter=quarterOf(out.invoiceDate);
   for(const k in out)if(out[k]==null||out[k]==='')delete out[k];
   return out;
@@ -466,10 +528,10 @@ class Component extends DCLogic {
     const errors={...this.state.errors};delete errors.invoice;
     this.setState({file,formErr:'',errors,extract:{busy:true},preview:{busy:true}});
     try{
-      const {text,pages,total}=await readPdf(new Uint8Array(await file.arrayBuffer()));
+      const {text,rows,pages,total}=await readPdf(new Uint8Array(await file.arrayBuffer()));
       if(this.state.file!==file)return;
       if(text.replace(/\s/g,'').length<20)return this.setState({extract:{busy:false,found:[],scanned:true},preview:{busy:false,pages,total}});
-      const got=extractFields(text);
+      const got=extractFields(text,rows);
       this.setState(s=>{const form={...s.form};const found=[];for(const k in got){if(s.editId==null||!String(form[k]||'').trim()){form[k]=got[k];found.push(k);}}return {form,extract:{busy:false,found},preview:{busy:false,pages,total}};});
     }catch(e){this.setState({extract:{busy:false,found:[],failed:e.message||'Could not read this PDF.'},preview:{busy:false,error:e.message||'Could not show this PDF.'}});}
   }
