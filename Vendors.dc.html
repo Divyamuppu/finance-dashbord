@@ -152,6 +152,9 @@ input::placeholder,textarea::placeholder{color:#a3a1b8}
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ vNeeds }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border:1px solid #f3d9a8;border-radius:10px;padding:10px 12px;text-wrap:pretty">⚠ Needs details: {{ vNeedsText }}. Click Edit to fill them in.</div>
+        </sc-if>
         <sc-if value="{{ vHasInvoice }}" hint-placeholder-val="{{ true }}">
           <div onClick="{{ openInvoice }}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #d9d2ff;background:#f6f3ff;border-radius:12px;cursor:pointer;font-size:14px;color:#3b3953" style-hover="background:#efeaff">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6d4aff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg>
@@ -160,7 +163,7 @@ input::placeholder,textarea::placeholder{color:#a3a1b8}
           </div>
         </sc-if>
         <sc-if value="{{ vNoInvoice }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:13px;color:#8e8ca3;padding:4px 2px">Entered manually — no invoice PDF attached.</div>
+          <div style="font-size:13px;color:#8e8ca3;padding:4px 2px">{{ vSourceText }}</div>
         </sc-if>
         <sc-if value="{{ hasViewErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#c0392b">{{ viewErr }}</div></sc-if>
         <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #ececf2;padding-top:16px;align-items:center">
@@ -203,6 +206,64 @@ input::placeholder,textarea::placeholder{color:#a3a1b8}
               <div style="width:44px;height:44px;border-radius:12px;background:#f2f1f7;color:#3b3953;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
               <div style="font-size:17px;font-weight:600">Enter manually</div>
               <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Type in every field yourself — no invoice PDF needed.</div>
+            </div>
+            <div onClick="{{ chooseImport }}" style="border:1.5px solid #e3e2ec;background:#fff;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px;cursor:pointer" style-hover="border-color:#6d4aff">
+              <div style="width:44px;height:44px;border-radius:12px;background:#e3f5ef;color:#128a72;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M3 15h18M9 3v18"></path></svg></div>
+              <div style="font-size:17px;font-weight:600">Import Excel</div>
+              <div style="font-size:14px;color:#6f6d85;text-wrap:pretty">Add many vendors at once from your vendor payments sheet (Pending and Paid tabs).</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- step 2b: import from Excel -->
+        <sc-if value="{{ isImportStep }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <label style="border:1.5px dashed #cfc8f5;background:#faf9ff;border-radius:16px;padding:20px;display:flex;align-items:center;gap:14px;cursor:pointer">
+              <input type="file" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onChange="{{ onImpFile }}" style="display:none">
+              <div style="width:40px;height:40px;border-radius:10px;background:#e3f5ef;color:#128a72;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:13px">XLS</div>
+              <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                <span style="font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ impFileLabel }}</span>
+                <span style="font-size:13px;color:#6f6d85">{{ impFileHint }}</span>
+              </div>
+            </label>
+            <sc-if value="{{ impHasErr }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;color:#c0392b;background:#fdecea;border-radius:10px;padding:10px 12px;text-wrap:pretty">{{ impErr }}</div>
+            </sc-if>
+            <sc-if value="{{ impReady }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:grid;grid-template-columns:{{ impStatCols }};gap:10px">
+                  <sc-for list="{{ impStats }}" as="x" hint-placeholder-count="3">
+                    <div style="border:1px solid #ececf2;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+                      <span style="font-size:12px;color:#6f6d85">{{ x.label }}</span>
+                      <span style="font-size:20px;font-weight:700;color:{{ x.fg }}">{{ x.value }}</span>
+                      <span style="font-size:12px;color:#8e8ca3">{{ x.note }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:#4b4962;display:flex;flex-direction:column;gap:4px">
+                  <sc-for list="{{ impSheets }}" as="sh" hint-placeholder-count="2"><span>• {{ sh }}</span></sc-for>
+                </div>
+                <sc-if value="{{ impHasNeeds }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:13px;color:#8a5a12;background:#fff6e8;border:1px solid #f3d9a8;border-radius:10px;padding:10px 12px;text-wrap:pretty">⚠ {{ impNeedsNote }}</div>
+                </sc-if>
+                <div style="border:1px solid #ececf2;border-radius:14px;overflow:hidden">
+                  <sc-for list="{{ impPreview }}" as="p" hint-placeholder-count="5">
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:9px 14px;border-bottom:1px solid #f3f2f7;font-size:13px">
+                      <div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span><span style="color:#6f6d85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.sub }}</span></div>
+                      <div style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-weight:600;font-variant-numeric:tabular-nums">{{ p.amount }}</span><span style="font-size:11px;font-weight:600;color:{{ p.stFg }}">{{ p.status }}</span></div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ impHasMore }}" hint-placeholder-val="{{ false }}"><div style="padding:9px 14px;font-size:12px;color:#8e8ca3">{{ impMore }}</div></sc-if>
+                </div>
+                <sc-if value="{{ impHasSkipped }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px;color:#8e8ca3;text-wrap:pretty">{{ impSkipped }}</div>
+                </sc-if>
+              </div>
+            </sc-if>
+            <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #ececf2;padding-top:16px;flex-wrap:wrap;align-items:center">
+              <span onClick="{{ goBack }}" style="font-size:13px;color:#5b3fd9;cursor:pointer;margin-right:auto">← Change how to add</span>
+              <div onClick="{{ closeForm }}" style="font-size:14px;padding:12px 18px;border-radius:999px;border:1px solid #e3e2ec;cursor:pointer" style-hover="background:#f6f6fa">Cancel</div>
+              <div onClick="{{ doImport }}" style="font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;background:{{ impBtnBg }};color:#fff;cursor:{{ impBtnCur }}">{{ impBtn }}</div>
             </div>
           </div>
         </sc-if>
@@ -303,6 +364,7 @@ input::placeholder,textarea::placeholder{color:#a3a1b8}
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
 const API='/api/vendors';
 const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 const MAX_PDF=4.5*1024*1024;
 const STATUS={unpaid:['Unpaid','#fdecea','#b03a2e'],half:['Half paid','#fff1e4','#b5651d'],custom:['Custom amount','#e8f0ff','#2f5fb3'],paid:['Paid','#e3f5ef','#128a72']};
 // [key, label, input type, placeholder, span, inputmode]
@@ -349,6 +411,85 @@ function validate(f,{needInvoice}){
   else if(f.paymentStatus==='custom'){const p=Number(f.amountPaid);if(!(p>0)||!(p<amt))e.amountPaid='Custom amount must be more than 0 and less than the invoice amount.';}
   if(needInvoice)e.invoice='Upload the invoice PDF.';
   return e;
+}
+
+let xlsxPromise=null;
+function loadXlsx(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  if(!xlsxPromise)xlsxPromise=new Promise((res,rej)=>{const s=document.createElement('script');s.src=XLSX_URL;s.onload=()=>window.XLSX?res(window.XLSX):rej(new Error('Excel reader failed to start.'));s.onerror=()=>{xlsxPromise=null;rej(new Error('Could not load the Excel reader — check your internet connection.'));};document.head.appendChild(s);});
+  return xlsxPromise;
+}
+// ---------- Excel import: map a vendor payments workbook to vendor records ----------
+// Reads every sheet that has a header row with a name and an amount column. Pending/Paid comes from the
+// row's "Payment Status" cell, else from the sheet name ("Paid" sheet → paid, anything else → unpaid).
+const XL_HEAD={
+  sno:/^s\.?\s*no\.?$/i, project:/^project/i, nameService:/^name\s*\/\s*service$/i, vendorName:/^(name(\s*of\s*(the\s*)?vendor)?|vendor(\s*name)?)$/i,
+  service:/^service/i, invoiceDate:/^invoice\s*date/i, deadline:/^(deadline|due\s*date)/i, shootDate:/^shoot/i, amount:/^amount/i,
+  quarter:/^quarter/i, poc:/^poc$/i, contactNumber:/^contact/i, approvedBy:/^approved\s*by/i, status:/^payment\s*status/i,
+  amountPaid:/^amount\s*paid/i, bankDetails:/^bank/i,
+};
+const xlStr=v=>v==null?'':(typeof v==='number'?(Number.isInteger(v)?String(v):String(v)):String(v)).replace(/\s+/g,' ').trim();
+const xlNum=v=>{if(typeof v==='number')return v;const n=Number(String(v??'').replace(/[₹,\s]/g,''));return Number.isFinite(n)?n:NaN;};
+const xlDate=v=>{
+  if(v instanceof Date&&!isNaN(v))return new Date(Date.UTC(v.getFullYear(),v.getMonth(),v.getDate())).toISOString().slice(0,10);
+  if(typeof v==='number'&&v>20000&&v<80000)return new Date(Date.UTC(1899,11,30)+Math.round(v)*864e5).toISOString().slice(0,10);
+  const s=xlStr(v);if(!s)return '';
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+  m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);if(m){const y=m[3].length===2?'20'+m[3]:m[3];const d=new Date(Date.UTC(+y,+m[2]-1,+m[1]));return isNaN(d)||d.getUTCDate()!==+m[1]?'':d.toISOString().slice(0,10);}
+  const d=new Date(s);return isNaN(d)?'':new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())).toISOString().slice(0,10);
+};
+const xlPhone=v=>{if(typeof v==='number')return String(Math.round(v));return xlStr(v);};
+// "Quarter 1-2026" in the sheet = Q1 of FY 2026-27 (Apr–Jun 2026); "Q3 FY26-27" passes through
+const xlQuarter=(v,inv)=>{const s=xlStr(v);let m=s.match(/^Q(?:uarter)?\s*([1-4])\s*[-–\s]\s*(?:FY\s*)?(\d{4})$/i);if(m){const y=+m[2];return 'Q'+m[1]+' FY'+String(y).slice(2)+'-'+String(y+1).slice(2);}
+  m=s.match(/^Q([1-4]) FY(\d{2})-(\d{2})$/i);if(m)return 'Q'+m[1]+' FY'+m[2]+'-'+m[3];return quarterOf(inv)||'';};
+const IFSC=/\b[A-Z]{4}0[A-Z0-9]{6}\b/;
+function xlBank(row,usedCols){
+  // bank details sometimes sit in unlabeled columns (account no. + IFSC) or in a mislabeled cell
+  const parts=[];let acct='',ifsc='';
+  row.forEach((v,i)=>{if(usedCols.has(i)&&!(typeof v==='string'&&/account|a\/c|ifsc/i.test(v)))return;const s=xlStr(v);if(!s)return;
+    if(/account|a\/c|ifsc/i.test(s)&&/\d{6,}/.test(s)){parts.push(s);return;}
+    if(!usedCols.has(i)&&IFSC.test(s.toUpperCase())&&s.length<=12){ifsc=s.toUpperCase();return;}
+    if(!usedCols.has(i)&&typeof v==='number'&&Number.isInteger(v)&&v>=1e8&&v<1e18){acct=String(v);return;}});
+  if(acct||ifsc)parts.push([acct&&'A/c no '+acct,ifsc&&'IFSC '+ifsc].filter(Boolean).join(' / '));
+  return parts.join(' / ');
+}
+function parseVendorWorkbook(XLSX,wb){
+  const out=[],skipped=[],sheets=[];
+  for(const name of wb.SheetNames){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:null,blankrows:false});
+    let hi=-1,cols=null;
+    for(let i=0;i<Math.min(rows.length,10)&&hi<0;i++){const c={};(rows[i]||[]).forEach((h,j)=>{const t=xlStr(h);if(!t)return;for(const [k,re] of Object.entries(XL_HEAD))if(c[k]==null&&re.test(t)){c[k]=j;break;}});
+      if((c.nameService!=null||c.vendorName!=null)&&c.amount!=null){hi=i;cols=c;}}
+    if(hi<0){sheets.push({name,count:0,note:'no vendor header row — skipped'});continue;}
+    const used=new Set(Object.values(cols));const sheetPaid=/paid/i.test(name)&&!/un\s*paid|pending/i.test(name);let count=0;
+    rows.slice(hi+1).forEach((r,k)=>{
+      const g=key=>cols[key]==null?null:r[cols[key]];const line=hi+k+2;
+      let vendorName=xlStr(g('vendorName')),service=xlStr(g('service'));
+      if(cols.nameService!=null){const ns=xlStr(g('nameService'));const m=ns.match(/^(.*?)\s+[-–]\s+(.+)$/);if(m){vendorName=m[1].trim();service=m[2].trim();}else vendorName=ns;}
+      const amount=xlNum(g('amount'));
+      if(!vendorName&&!service){if(r.some((v,i)=>v!=null&&i!==cols.sno))skipped.push({sheet:name,line,reason:'no vendor name'});return;}
+      if(!(amount>0)){skipped.push({sheet:name,line,reason:(vendorName||service)+': no amount'});return;}
+      const st=xlStr(g('status')).toLowerCase();
+      let paymentStatus=/^paid|fully\s*paid|cleared|done/.test(st)?'paid':/half/.test(st)?'half':/unpaid|pending|due/.test(st)?'unpaid':sheetPaid?'paid':'unpaid';
+      let amountPaid;const ap=xlNum(g('amountPaid'));if(paymentStatus!=='paid'&&ap>0&&ap<amount){paymentStatus='custom';amountPaid=ap;}
+      let approvedBy=xlStr(g('approvedBy'));if(/account|a\/c|ifsc/i.test(approvedBy)&&/\d{6,}/.test(approvedBy))approvedBy='';
+      const invoiceDate=xlDate(g('invoiceDate'));
+      out.push({sheet:name,line,project:xlStr(g('project')),vendorName,service,invoiceDate,deadline:xlDate(g('deadline')),shootDate:xlDate(g('shootDate')),
+        amount:Math.round(amount*100)/100,quarter:xlQuarter(g('quarter'),invoiceDate),poc:xlStr(g('poc')),contactNumber:xlPhone(g('contactNumber')),
+        approvedBy,bankDetails:xlStr(g('bankDetails'))||xlBank(r,used),paymentStatus,amountPaid});
+      count++;});
+    sheets.push({name,count,note:sheetPaid?'marked Paid unless the row says otherwise':'marked Pending unless the row says Paid'});
+  }
+  // the same invoice listed in both Pending and Paid → keep one, as Paid
+  const keyOf=v=>[v.project,v.vendorName,v.service,v.invoiceDate,v.amount.toFixed(2)].join('|').toLowerCase();
+  const byKey=new Map(),vendors=[];
+  for(const v of out){const k=keyOf(v),prev=byKey.get(k);
+    if(!prev){byKey.set(k,v);vendors.push(v);continue;}
+    if(prev.paymentStatus===v.paymentStatus){vendors.push(v);continue;} // same status twice: genuinely separate rows
+    const keep=v.paymentStatus==='paid'?v:prev,drop=keep===v?prev:v;
+    if(keep===v)vendors[vendors.indexOf(prev)]=v,byKey.set(k,v);
+    skipped.push({sheet:drop.sheet,line:drop.line,reason:vName(drop)+' is also on '+keep.sheet+' row '+keep.line+' — kept as '+(keep.paymentStatus==='paid'?'Paid':'Pending')});}
+  return {vendors,skipped,sheets};
 }
 
 // ---------- invoice PDF reading and preview (in the browser; nothing is uploaded until you save) ----------
@@ -495,7 +636,7 @@ const EMPTY=()=>({project:'',vendorName:'',service:'',invoiceDate:'',shootDate:'
 class Component extends DCLogic {
   state={status:'loading',vendors:[],offlineText:'',q:'',
     viewId:null,viewErr:'',confirmDel:false,rowDel:null,deleting:false,statusBusy:null,editPay:null,tab:'pending',
-    formOpen:false,mode:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,drag:false,extract:null,preview:null,saving:false,flash:'',
+    formOpen:false,mode:null,imp:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,drag:false,extract:null,preview:null,saving:false,flash:'',
     mobile:typeof window!=='undefined'&&window.innerWidth<820};
   componentDidMount(){this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile)this.setState({mobile:m});};window.addEventListener('resize',this.onResize);this.load();}
   componentWillUnmount(){window.removeEventListener('resize',this.onResize);clearTimeout(this.ft);}
@@ -517,7 +658,7 @@ class Component extends DCLogic {
     if(!res.ok)return this.setState({status:'offline',offlineText:res.error||'Could not load vendors.'});
     this.setState({status:'ready',vendors:res.body.vendors||[]});
   }
-  openAdd(){this.setState({formOpen:true,mode:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,extract:null,preview:null});}
+  openAdd(){this.setState({formOpen:true,mode:null,imp:null,editId:null,form:EMPTY(),errors:{},formErr:'',file:null,extract:null,preview:null});}
   async openEdit(){
     const v=this.state.vendors.find(x=>x.id===this.state.viewId);if(!v)return;
     const f=EMPTY();for(const k in f)if(v[k]!=null)f[k]=String(v[k]);
@@ -570,10 +711,7 @@ class Component extends DCLogic {
   async saveStatus(id,status,amountPaid){
     const v=this.state.vendors.find(x=>x.id===id);if(!v)return {error:'Vendor not found.'};
     this.setState({statusBusy:id});
-    const data={};for(const k of Object.keys(EMPTY()))if(v[k]!=null)data[k]=v[k];
-    data.paymentStatus=status;data.amountPaid=status==='custom'?Number(amountPaid):undefined;
-    const fd=new FormData();fd.append('data',JSON.stringify(data));
-    const res=await this.api('/'+id,{method:'PUT',body:fd});
+    const res=await this.api('/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({paymentStatus:status,amountPaid:status==='custom'?Number(amountPaid):undefined})});
     if(res.offline||!res.ok){this.setState({statusBusy:null});return {error:(res.body&&res.body.fields&&(res.body.fields.amountPaid||res.body.fields.paymentStatus))||res.error||'Could not update the status.'};}
     const nv=res.body.vendor;
     this.setState(s=>({statusBusy:null,vendors:s.vendors.map(x=>x.id===id?nv:x)}));
@@ -587,6 +725,29 @@ class Component extends DCLogic {
     const res=await this.saveStatus(c.id,'custom',p);
     if(res.ok)this.setState({editPay:null});else this.setState(s=>({editPay:s.editPay&&{...s.editPay,err:res.error}}));
   }
+  async readExcel(file){
+    if(!file)return;
+    if(!/\.(xlsx|xlsm|xls)$/i.test(file.name||''))return this.setState({imp:{name:file.name,err:'Choose an Excel file (.xlsx).'}});
+    if(file.size>15*1024*1024)return this.setState({imp:{name:file.name,err:'That file is over 15 MB.'}});
+    this.setState({imp:{name:file.name,busy:true}});
+    try{
+      const XLSX=await loadXlsx();
+      const wb=XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array',cellDates:false});
+      const parsed=parseVendorWorkbook(XLSX,wb);
+      if(!parsed.vendors.length)return this.setState({imp:{name:file.name,err:'No vendor rows found. The sheet needs a header row with a name column (e.g. "Name/Service") and an "Amount" column.'}});
+      this.setState({imp:{name:file.name,parsed}});
+    }catch(e){this.setState({imp:{name:file.name,err:'Could not read this Excel file: '+(e.message||e)}});}
+  }
+  async doImport(){
+    const im=this.state.imp;if(!im||!im.parsed||im.saving)return;
+    this.setState({imp:{...im,saving:true,err:''}});
+    const res=await this.api('/import',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({vendors:im.parsed.vendors})});
+    if(res.offline||!res.ok)return this.setState(s=>({imp:{...s.imp,saving:false,err:res.error||'Import failed — try again.'}}));
+    const b=res.body;
+    this.setState({formOpen:false,imp:null,mode:null,tab:'pending'});
+    this.toast('Imported '+b.added+' vendor'+(b.added===1?'':'s')+(b.duplicates?' · '+b.duplicates+' already there':'')+(b.failed&&b.failed.length?' · '+b.failed.length+' skipped':''));
+    this.load();
+  }
   async remove(id){
     if(!id||this.state.deleting)return;
     this.setState({deleting:true,viewErr:''});
@@ -599,6 +760,20 @@ class Component extends DCLogic {
     const res=await this.api('/'+id+'/invoice');
     if(!res.blob){if(w)w.close();return this.setState({viewErr:res.error||'Could not open the invoice.'});}
     const url=URL.createObjectURL(res.blob);if(w)w.location.href=url;else location.assign(url);setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  importVals(){
+    const im=this.state.imp||{},p=im.parsed,m=this.state.mobile,sum=a=>a.reduce((x,y)=>x+y,0);
+    const v=p?p.vendors:[];const pend=v.filter(x=>x.paymentStatus!=='paid'),paid=v.filter(x=>x.paymentStatus==='paid');
+    const needs=v.filter(x=>!x.project||!x.service||!x.approvedBy||!x.bankDetails||x.bankDetails.length<6||!x.quarter).length;
+    return {impFileLabel:im.name||'Choose Excel file',impFileHint:im.busy?'Reading…':p?'Click to choose a different file':'.xlsx — e.g. VENDOR PAYMENTS.xlsx',onImpFile:e=>{const f=e.target.files&&e.target.files[0];e.target.value='';this.readExcel(f);},
+      impHasErr:!!im.err,impErr:im.err||'',impReady:!!p,impStatCols:m?'minmax(0,1fr)':'repeat(3,minmax(0,1fr))',
+      impStats:p?[{label:'Vendors found',value:String(v.length),note:'from '+p.sheets.filter(x=>x.count).length+' sheet(s)',fg:'#17162a'},{label:'Pending',value:String(pend.length),note:money(sum(pend.map(x=>x.amount)))+' due',fg:'#b5651d'},{label:'Paid',value:String(paid.length),note:money(sum(paid.map(x=>x.amount))),fg:'#128a72'}]:[],
+      impSheets:p?p.sheets.map(x=>x.name+': '+(x.count?x.count+' vendors, '+x.note:x.note)):[],
+      impHasNeeds:needs>0,impNeedsNote:needs+' of '+v.length+' rows are missing project, service, quarter, approver or bank details in the sheet. They will be imported as they are and marked "Needs details" — open a vendor and click Edit to fill them in.',
+      impPreview:v.slice(0,6).map(x=>({name:vName(x)+(x.service?' · '+x.service:''),sub:[x.project||'No project',x.deadline?'Due '+fmtD(x.deadline):'No due date'].join(' · '),amount:money(x.amount),status:x.paymentStatus==='paid'?'Paid':'Pending',stFg:x.paymentStatus==='paid'?'#128a72':'#b5651d'})),
+      impHasMore:v.length>6,impMore:'+ '+(v.length-6)+' more',
+      impHasSkipped:!!(p&&p.skipped.length),impSkipped:p?'Skipped '+p.skipped.length+' row(s): '+p.skipped.slice(0,4).map(x=>x.sheet+' row '+x.line+' ('+x.reason+')').join(', ')+(p.skipped.length>4?'…':''):'',
+      impBtn:im.saving?'Importing…':p?'Import '+v.length+' vendors':'Import',impBtnBg:p&&!im.saving?'#6d4aff':'#b9b3d9',impBtnCur:p&&!im.saving?'pointer':'default',doImport:()=>this.doImport()};
   }
   renderVals(){
     const s=this.state,m=s.mobile,today=todayISO();
@@ -618,7 +793,7 @@ class Component extends DCLogic {
     const delRow=r=>()=>this.remove(r.id);
     const buildRows=(key,list)=>list.filter(match).sort(byDue).map(r=>{const conf=s.rowDel===r.id;const busy=s.statusBusy===r.id;const ed=s.editPay&&s.editPay.id===r.id?s.editPay:null;
         const partPaid=key==='paid'&&r.bal>0;const sel=ed?ed.status:r.paymentStatus;
-        return {name:vName(r),service:r.service,view:view(r),bg:conf?'#fff5f4':ed?'#faf9ff':'#fff',
+        return {name:vName(r),service:r.service||r.project||'',view:view(r),bg:conf?'#fff5f4':ed?'#faf9ff':'#fff',
           due:(r.deadline?'Due '+fmtD(r.deadline):'No due date')+(key==='pending'&&r.late?' · '+dueText(r):''),dueFg:key==='pending'&&r.late?'#c0392b':'#6f6d85',dueFw:key==='pending'&&r.late?'600':'400',
           amount:money(key==='pending'?r.bal:r.paid),amountNote:(STATUS[r.paymentStatus]||STATUS.unpaid)[0]+(key==='pending'?(r.paid>0?' · of '+money(r.amount):''):(partPaid?' · '+money(r.bal)+' left':'')),
           edit:ed?()=>this.setState({editPay:null}):()=>this.setState({editPay:{id:r.id,status:r.paymentStatus,value:r.paymentStatus==='custom'&&r.amountPaid?String(r.amountPaid):'',err:''},rowDel:null}),
@@ -652,15 +827,17 @@ class Component extends DCLogic {
       viewOpen:!!V,closeView:()=>this.setState({viewId:null,confirmDel:false}),stop:e=>e.stopPropagation(),
       ...(V?(()=>{const st=STATUS[V.paymentStatus]||STATUS.unpaid;return {vSno:String(V.sno),vTitle:vName(V),vPill:st[0],vPillBg:st[1],vPillFg:st[2],vDue:dueText(V),vDueBg:V.late?'#fdecea':V.bal===0?'#e3f5ef':'#f2f1f7',vDueFg:dueFg(V),
         vRows:[['S.No',String(V.sno)],['Project',V.project],['Name of the vendor',V.vendorName],['Service',V.service],['Invoice date',fmtD(V.invoiceDate)],['Due date',fmtD(V.deadline)],['Shoot date',fmtD(V.shootDate)],['Overdue',dueText(V),dueFg(V)],['Amount',money(V.amount),'#17162a','700'],['Paid',money(V.paid),'#128a72','600'],['Balance',money(V.bal),V.bal?'#c0392b':'#17162a','600'],['Quarter',V.quarter],['POC',V.poc],['Bank details',V.bankDetails],['Contact number',V.contactNumber],['Payment status',st[0],st[2],'600'],['Approved by / PM',V.approvedBy],['Last updated',new Date(V.updatedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})]].map(([label,value,fg,fw])=>({label,value:value||'—',fg:fg||'#17162a',fw:fw||'400'})),
-        vHasInvoice:!!V.invoice,vNoInvoice:!V.invoice,vInvoiceLabel:V.invoice?V.invoice.name+' · '+Math.max(1,Math.round(V.invoice.size/1024))+' KB':''};})():{vSno:'',vTitle:'',vPill:'',vPillBg:'#fff',vPillFg:'#000',vDue:'',vDueBg:'#fff',vDueFg:'#000',vRows:[],vHasInvoice:false,vNoInvoice:false,vInvoiceLabel:''}),
+        vNeeds:!!(V.needsDetails&&V.needsDetails.length),vNeedsText:(V.needsDetails||[]).join(', '),vSourceText:V.source==='excel'?'Imported from Excel — no invoice PDF attached.':'Entered manually — no invoice PDF attached.',vHasInvoice:!!V.invoice,vNoInvoice:!V.invoice,vInvoiceLabel:V.invoice?V.invoice.name+' · '+Math.max(1,Math.round(V.invoice.size/1024))+' KB':''};})():{vSno:'',vTitle:'',vPill:'',vPillBg:'#fff',vPillFg:'#000',vDue:'',vDueBg:'#fff',vDueFg:'#000',vRows:[],vNeeds:false,vNeedsText:'',vSourceText:'',vHasInvoice:false,vNoInvoice:false,vInvoiceLabel:''}),
       openInvoice:()=>this.openInvoice(),hasViewErr:!!s.viewErr,viewErr:s.viewErr,openEdit:()=>this.openEdit(),
       confirmingDelete:s.confirmDel,notConfirmingDelete:!s.confirmDel,askDelete:()=>this.setState({confirmDel:true}),cancelDelete:()=>this.setState({confirmDel:false}),doDelete:()=>this.remove(s.viewId),deleteLabel:s.deleting?'Deleting…':'Delete',
-      formOpen:s.formOpen,closeForm:()=>{if(!s.saving)this.setState({formOpen:false,preview:null});},
+      formOpen:s.formOpen,closeForm:()=>{if(!s.saving&&!(s.imp&&s.imp.saving))this.setState({formOpen:false,preview:null,imp:null});},
       formTitle:editing?'Edit vendor':'Add new vendor',
-      formSub:!s.mode?'How would you like to add this vendor?':s.mode==='upload'?'Check the invoice on the left against the fields — fields marked * are required.':'Fields marked * are required.',
-      isChoose:!s.mode,isFormStep:!!s.mode,chooseCols:m?'minmax(0,1fr)':'repeat(2,minmax(0,1fr))',
+      formSub:!s.mode?'How would you like to add vendors?':s.mode==='import'?'Pick your vendor payments Excel. Check the summary, then import.':s.mode==='upload'?'Check the invoice on the left against the fields — fields marked * are required.':'Fields marked * are required.',
+      isChoose:!s.mode,isFormStep:!!s.mode&&s.mode!=='import',isImportStep:s.mode==='import',chooseCols:m?'minmax(0,1fr)':'repeat(3,minmax(0,1fr))',
+      chooseImport:()=>this.setState({mode:'import',imp:null}),
+      ...this.importVals(),
       chooseUpload:()=>this.setState({mode:'upload'}),chooseManual:()=>this.setState({mode:'manual',file:null,extract:null,preview:null}),
-      canGoBack:!editing&&!!s.mode,goBack:()=>this.setState({mode:null,file:null,extract:null,preview:null,errors:{},formErr:''}),
+      canGoBack:!editing&&!!s.mode,goBack:()=>this.setState({mode:null,imp:null,file:null,extract:null,preview:null,errors:{},formErr:''}),
       modalW:showPreview&&!m?'1240px':'780px',formGrid:showPreview&&!m?'minmax(0,1fr) minmax(0,1.15fr)':'minmax(0,1fr)',
       showPreviewCol:showPreview,previewPos:m?'static':'sticky',previewH:m?'340px':'calc(100vh - 260px)',
       previewEmpty:!(pv&&pv.pages&&pv.pages.length),

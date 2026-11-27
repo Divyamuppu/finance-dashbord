@@ -4,6 +4,8 @@
 //   GET    /api/vendors                 list vendors (viewer or editor)
 //   POST   /api/vendors                 create — multipart: "data" (JSON) + optional "invoice" (PDF; omitted for manual entries)
 //   PUT    /api/vendors/:id             update  (editor) — multipart: "data" (JSON) + optional "invoice" (PDF)
+//   PATCH  /api/vendors/:id             change payment status only — JSON { paymentStatus, amountPaid? }
+//   POST   /api/vendors/import          bulk add from Excel — JSON { vendors: [...] } (rows may be incomplete; flagged needsDetails)
 //   DELETE /api/vendors/:id             delete  (editor)
 //   GET    /api/vendors/:id/invoice     download the invoice PDF (viewer or editor)
 //
@@ -98,6 +100,36 @@ function validate(input) {
   return { errors: e, value: v };
 }
 
+// ---------- Excel import: lenient — keeps what the sheet has and lists what's still missing ----------
+const MAX_IMPORT = 1000;
+const REQUIRED_FOR_COMPLETE = ["project", "service", "quarter", "approvedBy", "bankDetails"];
+const clean = (v, max) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+const dedupeKey = (v) => [v.project, v.vendorName, v.service, v.invoiceDate, Number(v.amount).toFixed(2)].map((x) => String(x || "").toLowerCase().trim()).join("|");
+
+function validateImport(input) {
+  if (!input || typeof input !== "object") return { error: "Row is empty." };
+  const v = {};
+  for (const k of ["project", "vendorName", "service", "poc", "approvedBy"]) v[k] = clean(input[k], 200);
+  v.bankDetails = String(input.bankDetails ?? "").trim().slice(0, 1000);
+  v.contactNumber = clean(input.contactNumber, 40);
+  if (!v.vendorName && !v.service) return { error: "No vendor name." };
+  for (const k of ["invoiceDate", "shootDate", "deadline"]) v[k] = isoDate(input[k]) ? input[k] : "";
+  const amount = Number(input.amount);
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1e10) return { error: "No valid amount." };
+  v.amount = Math.round(amount * 100) / 100;
+  v.quarter = /^Q[1-4] FY\d{2}-\d{2}$/.test(String(input.quarter || "")) ? input.quarter : (v.invoiceDate ? quarterOf(v.invoiceDate) : "");
+  v.paymentStatus = STATUSES.includes(input.paymentStatus) ? input.paymentStatus : "unpaid";
+  if (v.paymentStatus === "paid") v.amountPaid = v.amount;
+  else if (v.paymentStatus === "half") v.amountPaid = Math.round(v.amount * 50) / 100;
+  else if (v.paymentStatus === "custom") {
+    const paid = Number(input.amountPaid);
+    if (Number.isFinite(paid) && paid > 0 && paid < v.amount) v.amountPaid = Math.round(paid * 100) / 100;
+    else { v.paymentStatus = "unpaid"; v.amountPaid = 0; }
+  } else v.amountPaid = 0;
+  v.needsDetails = REQUIRED_FOR_COMPLETE.filter((k) => !v[k] || (k === "bankDetails" && v[k].length < 6)).map((k) => FIELD_LABELS[k]);
+  return { value: v };
+}
+
 async function readPdf(file) {
   if (!file || typeof file === "string" || !file.size) return { file: null };
   if (file.size > MAX_PDF_BYTES) return { error: "Invoice PDF must be under 4.5 MB." };
@@ -129,10 +161,35 @@ export default async (req) => {
   if (auth.error) return auth.error;
   const store = getStore(STORE);
   const parts = new URL(req.url).pathname.replace(/^\/api\/vendors\/?/, "").split("/").filter(Boolean);
-  const id = parts[0] ? decodeURIComponent(parts[0]) : null;
-  if (id && !/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "Not found." }, 404);
-
   try {
+    // ----- bulk import from Excel -----
+    if (parts[0] === "import" && parts.length === 1) {
+      if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
+      let body;
+      try { body = await req.json(); } catch { return json({ error: "Send the rows as JSON." }, 400); }
+      const rows = Array.isArray(body?.vendors) ? body.vendors : null;
+      if (!rows || !rows.length) return json({ error: "No vendors to import." }, 400);
+      if (rows.length > MAX_IMPORT) return json({ error: `Import at most ${MAX_IMPORT} vendors at a time.` }, 400);
+      const seen = new Set((await listVendors(store)).map(dedupeKey));
+      const now = Date.now();
+      const toSave = [], failed = [];
+      let duplicates = 0;
+      rows.forEach((row, i) => {
+        const r = validateImport(row);
+        const where = { sheet: clean(row?.sheet, 60), line: Number(row?.line) || i + 1 };
+        if (r.error) return failed.push({ ...where, error: r.error });
+        const key = dedupeKey(r.value);
+        if (seen.has(key)) { duplicates++; return; }
+        seen.add(key);
+        toSave.push({ id: randomUUID(), ...r.value, source: "excel", createdBy: auth.user.email, invoice: null, createdAt: now + i, updatedAt: now });
+      });
+      for (let i = 0; i < toSave.length; i += 25) await Promise.all(toSave.slice(i, i + 25).map((rec) => store.setJSON(`v/${rec.id}`, rec)));
+      return json({ added: toSave.length, duplicates, failed }, toSave.length ? 201 : 200);
+    }
+
+    const id = parts[0] ? decodeURIComponent(parts[0]) : null;
+    if (id && !/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "Not found." }, 404);
+
     // ----- invoice download -----
     if (id && parts[1] === "invoice") {
       if (req.method !== "GET") return json({ error: "Method not allowed." }, 405);
@@ -166,11 +223,34 @@ export default async (req) => {
       if (body.error) return body.error;
       const { errors, value } = validate(body.data);
       if (Object.keys(errors).length) return json({ error: "Some required fields are missing or invalid.", fields: errors }, 400);
-      const rec = { ...existing, ...value, updatedAt: Date.now(), updatedBy: auth.user.email };
+      const rec = { ...existing, ...value, needsDetails: [], updatedAt: Date.now(), updatedBy: auth.user.email };
       if (body.pdf) {
         await store.set(`inv/${id}`, body.pdf.buf, { metadata: { name: body.pdf.name } });
         rec.invoice = { name: body.pdf.name, size: body.pdf.size };
       }
+      await store.setJSON(`v/${id}`, rec);
+      return json({ vendor: rec });
+    }
+
+    // ----- payment status only (list "Edit") -----
+    if (req.method === "PATCH" && id) {
+      const existing = await store.get(`v/${id}`, { type: "json" });
+      if (!existing) return json({ error: "Vendor not found." }, 404);
+      let body;
+      try { body = await req.json(); } catch { return json({ error: "Send the status as JSON." }, 400); }
+      const status = body?.paymentStatus;
+      if (!STATUSES.includes(status)) return json({ error: "Choose a payment status.", fields: { paymentStatus: "Choose a payment status." } }, 400);
+      const amount = Number(existing.amount) || 0;
+      let amountPaid;
+      if (status === "paid") amountPaid = amount;
+      else if (status === "half") amountPaid = Math.round(amount * 50) / 100;
+      else if (status === "unpaid") amountPaid = 0;
+      else {
+        const paid = Number(body.amountPaid);
+        if (!Number.isFinite(paid) || paid <= 0 || paid >= amount) { const msg = "Custom amount must be more than 0 and less than the invoice amount."; return json({ error: msg, fields: { amountPaid: msg } }, 400); }
+        amountPaid = Math.round(paid * 100) / 100;
+      }
+      const rec = { ...existing, paymentStatus: status, amountPaid, updatedAt: Date.now(), updatedBy: auth.user.email };
       await store.setJSON(`v/${id}`, rec);
       return json({ vendor: rec });
     }
